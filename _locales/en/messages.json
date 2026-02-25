@@ -1,0 +1,190 @@
+{
+  "extensionName": {
+    "message": "Surfaced",
+    "description": "Name of the extension."
+  },
+  "extensionDescription": {
+    "message": "Notifications for the endless scroll. Shows a notification when you scroll past a set threshold.",
+    "description": "Description of the extension shown in add-ons manager."
+  },
+  "actionTitle": {
+    "message": "Surfaced Settings",
+    "description": "Tooltip shown when hovering the toolbar icon."
+  },
+  "logoTagline": {
+    "message": "Come up for air",
+    "description": "Tagline shown below the extension name in the popup header."
+  },
+  "unitScreensOne": {
+    "message": "screen",
+    "description": "Unit label for number of screens scrolled (singular)."
+  },
+  "unitScreensFew": {
+    "message": "screens",
+    "description": "Unit label for number of screens scrolled (few)."
+  },
+  "unitScreensMany": {
+    "message": "screens",
+    "description": "Unit label for number of screens scrolled (many)."
+  },
+  "unitScreensOther": {
+    "message": "screens",
+    "description": "Unit label for number of screens scrolled (other)."
+  },
+  "depthThreshold": {
+    "message": "Depth threshold",
+    "description": "Label for the depth threshold gauge section."
+  },
+  "depthThresholdHint": {
+    "message": "surface warning triggers here",
+    "description": "Hint text below the depth threshold label."
+  },
+  "notificationTextLabel": {
+    "message": "Notification text",
+    "description": "Label for the notification text input."
+  },
+  "enabledOnSite": {
+    "message": "Enabled on this site",
+    "description": "Label for the per-site toggle when no hostname is available."
+  },
+  "enabledOnHost": {
+    "message": "Enabled on $HOST$",
+    "description": "Label for the per-site toggle showing the current hostname.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  },
+  "save": {
+    "message": "Save",
+    "description": "Label for the save button."
+  },
+  "statusSaved": {
+    "message": "Surfaced ✓",
+    "description": "Status message after saving settings."
+  },
+  "statusAutoSaved": {
+    "message": "Saved ✓",
+    "description": "Brief auto-save confirmation shown after debounced saves."
+  },
+  "statusError": {
+    "message": "Error saving",
+    "description": "Status message when saving fails."
+  },
+  "statusEnabled": {
+    "message": "Enabled ✓",
+    "description": "Status message after globally enabling the extension."
+  },
+  "statusDisabled": {
+    "message": "Disabled",
+    "description": "Status message after globally disabling the extension."
+  },
+  "statusEnabledOnHost": {
+    "message": "Enabled on $HOST$",
+    "description": "Status message after enabling on a specific site.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  },
+  "statusDisabledOnHost": {
+    "message": "Disabled on $HOST$",
+    "description": "Status message after disabling on a specific site.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  },
+  "ariaThresholdValue": {
+    "message": "Depth threshold value",
+    "description": "Aria label for the threshold input in the header badge."
+  },
+  "ariaThresholdGauge": {
+    "message": "Threshold in screens",
+    "description": "Aria label for the gauge threshold input."
+  },
+  "ariaThresholdSlider": {
+    "message": "Depth threshold slider",
+    "description": "Aria label for the depth threshold slider."
+  },
+  "ariaToggleGlobal": {
+    "message": "Enable extension globally",
+    "description": "Aria label for the global enable toggle."
+  },
+  "defaultNotificationText": {
+    "message": "You've drifted pretty far. Come up for air.",
+    "description": "Default notification text shown when the user scrolls past the threshold."
+  },
+  "notificationSub": {
+    "message": "Surfaced · scroll depth alert",
+    "description": "Subtitle shown below the notification title."
+  },
+  "ariaNotificationDismiss": {
+    "message": "Dismiss notification",
+    "description": "Aria label for the notification close button."
+  },
+  "notificationMid": {
+    "message": "Still going? You're deep in the feed now.",
+    "description": "Notification text for the Mid (2x threshold) depth zone."
+  },
+  "notificationDeep": {
+    "message": "You've been down here a while. Time to surface.",
+    "description": "Notification text for the Deep (3x threshold) depth zone."
+  },
+  "siteSettings": {
+    "message": "Site settings",
+    "description": "Label for the per-site configuration section."
+  },
+  "siteOverride": {
+    "message": "Custom threshold",
+    "description": "Label for the site-specific threshold override."
+  },
+  "siteOverrideEnabled": {
+    "message": "Use custom threshold for this site",
+    "description": "Label for the checkbox to enable site-specific override."
+  },
+  "manageSites": {
+    "message": "Manage site overrides",
+    "description": "Label for the link to manage all site overrides."
+  },
+  "noOverrides": {
+    "message": "No custom site thresholds set.",
+    "description": "Message shown when the overrides list is empty."
+  },
+  "statusOverrideEnabled": {
+    "message": "Custom threshold enabled for $HOST$",
+    "description": "Status message when a custom threshold is enabled.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  },
+  "statusOverrideDisabled": {
+    "message": "Global threshold restored for $HOST$",
+    "description": "Status message when a custom threshold is disabled.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  },
+  "statusOverrideRemoved": {
+    "message": "Override removed for $HOST$",
+    "description": "Status message when an override is deleted from the management list.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  }
+}

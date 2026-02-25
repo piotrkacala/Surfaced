@@ -1,0 +1,146 @@
+{
+    "extensionName": {
+        "message": "Surfaced"
+    },
+    "extensionDescription": {
+        "message": "Powiadomienia przy nieskończonym przewijaniu. Wyświetla powiadomienie po przekroczeniu ustawionego progu."
+    },
+    "actionTitle": {
+        "message": "Ustawienia Surfaced"
+    },
+    "logoTagline": {
+        "message": "Wynurz się na chwilę"
+    },
+    "unitScreensOne": {
+        "message": "ekran"
+    },
+    "unitScreensFew": {
+        "message": "ekrany"
+    },
+    "unitScreensMany": {
+        "message": "ekranów"
+    },
+    "unitScreensOther": {
+        "message": "ekranu"
+    },
+    "depthThreshold": {
+        "message": "Próg głębokości"
+    },
+    "depthThresholdHint": {
+        "message": "ostrzeżenie pojawi się tutaj"
+    },
+    "notificationTextLabel": {
+        "message": "Tekst powiadomienia"
+    },
+    "enabledOnSite": {
+        "message": "Włączone na tej stronie"
+    },
+    "enabledOnHost": {
+        "message": "Włączone na $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    },
+    "save": {
+        "message": "Zapisz"
+    },
+    "statusSaved": {
+        "message": "Zapisano ✓"
+    },
+    "statusAutoSaved": {
+        "message": "Zapisano ✓"
+    },
+    "statusError": {
+        "message": "Błąd zapisu"
+    },
+    "statusEnabled": {
+        "message": "Włączono ✓"
+    },
+    "statusDisabled": {
+        "message": "Wyłączono"
+    },
+    "statusEnabledOnHost": {
+        "message": "Włączone na $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    },
+    "statusDisabledOnHost": {
+        "message": "Wyłączone na $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    },
+    "ariaThresholdValue": {
+        "message": "Wartość progu głębokości"
+    },
+    "ariaThresholdGauge": {
+        "message": "Próg w ekranach"
+    },
+    "ariaThresholdSlider": {
+        "message": "Suwak progu głębokości"
+    },
+    "ariaToggleGlobal": {
+        "message": "Włącz rozszerzenie globalnie"
+    },
+    "defaultNotificationText": {
+        "message": "Zaszedłeś dość daleko. Wynurz się na chwilę."
+    },
+    "notificationSub": {
+        "message": "Surfaced · alert głębokości przewijania"
+    },
+    "ariaNotificationDismiss": {
+        "message": "Zamknij powiadomienie"
+    },
+    "notificationMid": {
+        "message": "Wciąż przewijasz? Jesteś już głęboko w treści."
+    },
+    "notificationDeep": {
+        "message": "Jesteś tu już od dłuższego czasu. Czas wypłynąć na powierzchnię."
+    },
+    "siteSettings": {
+        "message": "Ustawienia strony"
+    },
+    "siteOverride": {
+        "message": "Własny próg"
+    },
+    "siteOverrideEnabled": {
+        "message": "Użyj własnego progu dla tej strony"
+    },
+    "manageSites": {
+        "message": "Zarządzaj wyjątkami stron"
+    },
+    "noOverrides": {
+        "message": "Brak ustawionych wyjątków dla stron."
+    },
+    "statusOverrideEnabled": {
+        "message": "Własny próg włączony dla $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    },
+    "statusOverrideDisabled": {
+        "message": "Przywrócono próg globalny dla $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    },
+    "statusOverrideRemoved": {
+        "message": "Usunięto wyjątek dla $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+/*
+ * content.css
+ *
+ * Styles for the shadow host element (#scroll-notifier-box).
+ * The notification's internal styles live inside the shadow DOM in content.js.
+ * This file handles only the host's position in the page layout.
+ */
+
+#scroll-notifier-box {
+  /* Positioning is set inline via JS (fixed, bottom: 0, full width).
+     This file exists as a fallback and for any host-level overrides
+     you may want to add later (e.g. safe-area insets for mobile). */
+
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}
