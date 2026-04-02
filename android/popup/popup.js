@@ -247,13 +247,7 @@
       border: 1px solid rgba(0, 212, 255, 0.2);
       border-radius: 4px;
       padding: 4px 8px;
-      cursor: text;
       transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .depth-badge:hover {
-      border-color: rgba(0, 212, 255, 0.3);
-      box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
     }
 
     .depth-badge__input {
@@ -510,38 +504,34 @@
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
-      height: 4px;
+      height: 6px;
       background: rgba(0,212,255,0.1);
-      border-radius: 2px;
+      border-radius: 3px;
       outline: none;
-      cursor: pointer;
       margin-top: 8px;
     }
 
     .depth-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 16px; height: 16px;
+      width: 24px; height: 24px;
       border-radius: 50%;
       background: var(--accent);
       border: 2px solid var(--deep);
       box-shadow: 0 0 8px rgba(0,212,255,0.5);
-      cursor: grab;
       transition: box-shadow 0.15s, transform 0.15s;
     }
 
     .depth-slider::-webkit-slider-thumb:active {
-      cursor: grabbing;
       transform: scale(1.2);
       box-shadow: 0 0 16px rgba(0,212,255,0.7);
     }
 
     .depth-slider::-moz-range-thumb {
-      width: 16px; height: 16px;
+      width: 24px; height: 24px;
       border-radius: 50%;
       background: var(--accent);
       border: 2px solid var(--deep);
       box-shadow: 0 0 8px rgba(0,212,255,0.5);
-      cursor: grab;
     }
 
     /* ── Divider ─────────────────────────────────────────────────────────── */
@@ -575,12 +565,14 @@
 
     /* Toggle pills */
     .toggle-group { display: flex; gap: 5px; }
-    .toggle-pill  { cursor: pointer; }
     .toggle-pill input[type="radio"] { display: none; }
 
     .toggle-pill span {
-      display: block;
-      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 4px 16px;
       border-radius: 4px;
       border: 1px solid rgba(0, 212, 255, 0.2);
       background: rgba(0, 212, 255, 0.08);
@@ -596,13 +588,13 @@
       color: #c8eaf7;
     }
 
-    .toggle-pill:hover span {
+    .toggle-pill:active span {
       border-color: rgba(0, 212, 255, 0.25);
       color: #c8eaf7;
     }
 
     /* Switch */
-    .switch { cursor: pointer; display: inline-flex; align-items: center; }
+    .switch { display: inline-flex; align-items: center; min-height: 44px; }
     .switch input { display: none; }
 
     .switch__track {
@@ -752,10 +744,13 @@
       text-align: center;
       opacity: 0.7;
       transition: opacity 0.2s;
-      cursor: pointer;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .manage-link:hover {
+    .manage-link:active {
       opacity: 1;
       text-decoration: underline;
     }
@@ -804,14 +799,14 @@
       background: none;
       border: none;
       color: var(--warn);
-      cursor: pointer;
       font-size: 12px;
-      padding: 0 4px;
+      padding: 10px 12px;
+      min-height: 44px;
       opacity: 0.6;
       transition: opacity 0.2s;
     }
 
-    .override-item__remove:hover {
+    .override-item__remove:active {
       opacity: 1;
     }
 
