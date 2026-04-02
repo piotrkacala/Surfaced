@@ -323,7 +323,7 @@
       display: flex;
       align-items: stretch;
       gap: 10px;
-      height: 128px;
+      height: clamp(128px, 28vw, 192px);
     }
 
     .ruler {
