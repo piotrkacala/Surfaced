@@ -1076,7 +1076,7 @@
   async function init() {
     // 1. Get current tab hostname
     try {
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const tabs = await browser.tabs.query({ active: true });
       if (tabs[0]?.url) {
         activeHostname = new URL(tabs[0].url).hostname;
       }
@@ -1122,7 +1122,7 @@
   // ── Shared: notify content script of current state ────────────────────────
   async function notifyContentScript() {
     try {
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const tabs = await browser.tabs.query({ active: true });
       if (tabs[0]?.id) {
         const result = await browser.storage.local.get([
           KEYS.threshold, KEYS.enabled, KEYS.disabledDomains, KEYS.text, KEYS.siteOverrides,
