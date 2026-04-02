@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
-<script>
-(async () => {
-  const { os } = await browser.runtime.getPlatformInfo();
-  location.replace(os === "android" ? "android/popup.html" : "desktop/popup.html");
-})();
-</script>
+<script src="dispatcher.js"></script>
 </body>
 </html>
