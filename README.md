@@ -4,6 +4,8 @@
 
 Surfaced is a Firefox extension that taps you on the shoulder when you've scrolled too far down a page. You set the threshold (say, 7 screens) and when you drift past it, a quiet notification appears at the bottom of the screen. A gentle reminder that you've been in the feed for a while.
 
+Works on Firefox for desktop and Firefox for Android.
+
 Project source: https://github.com/piotrkacala/Surfaced
 
 Please add bug reports and feature requests as GitHub Issues there.
@@ -27,7 +29,7 @@ Infinite scroll is designed to be invisible. There's no bottom, no natural stopp
 ## How to use it
 
 **1. Install the extension**
-Head to the Firefox Add-ons page and click **Add to Firefox**.
+Head to the Firefox Add-ons page and click **Add to Firefox** (or **Add to Firefox for Android**).
 
 **2. Set your threshold**
 Click the Surfaced icon in your toolbar. Use the depth gauge or type a number directly into the badge in the top-right of the popup. The default is **7 screens** (seven full screen-heights past the top). Settings save automatically as you adjust them.
