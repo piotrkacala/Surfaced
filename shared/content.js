@@ -52,7 +52,7 @@
         // where scrolling deep triggers a URL query update (?page=2) but is still the same list.
         const pathChanged = oldObj.pathname !== newObj.pathname;
         const scrollTop = window.scrollY || document.documentElement.scrollTop || (currentScrollTarget ? currentScrollTarget.scrollTop : 0);
-        const nearTop = scrollTop < 500;
+        const nearTop = scrollTop < window.innerHeight * 0.5;
 
         if (pathChanged || nearTop) {
           resetScrollTracking();
