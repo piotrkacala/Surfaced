@@ -32,6 +32,9 @@
     "notificationTextLabel": {
         "message": "Tekst powiadomienia"
     },
+    "notificationTextReset": {
+        "message": "Reset"
+    },
     "enabledOnSite": {
         "message": "Włączone na tej stronie"
     },

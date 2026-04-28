@@ -10,6 +10,10 @@
 
   // ── i18n helper ───────────────────────────────────────────────────────────
   const msg = (key, ...subs) => browser.i18n.getMessage(key, subs);
+  const uiLanguage = browser.i18n.getUILanguage();
+  if (uiLanguage) {
+    document.documentElement.lang = uiLanguage;
+  }
 
   const pr = new Intl.PluralRules(browser.i18n.getUILanguage());
   function getUnitScreensMsg(val) {
@@ -484,12 +488,44 @@
       gap: 6px;
     }
 
+    .text-input-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
     .text-input-wrap label {
       font-size: 11px;
       font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--text-dim);
+    }
+
+    .text-input-reset {
+      background: none;
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      border-radius: 999px;
+      color: var(--accent);
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      padding: 4px 10px;
+      min-height: 28px;
+      cursor: pointer;
+      transition: opacity 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .text-input-reset:hover {
+      background: rgba(0, 212, 255, 0.08);
+      border-color: rgba(0, 212, 255, 0.32);
+    }
+
+    .text-input-reset:disabled {
+      opacity: 0.45;
+      cursor: default;
     }
 
     .text-input {
@@ -709,19 +745,23 @@
       gap: 6px;
     }
 
-    .manage-link {
+    .manage-button {
       display: block;
       margin-top: 12px;
       font-size: 10px;
       color: var(--accent);
-      text-decoration: none;
       text-align: center;
       opacity: 0.7;
       transition: opacity 0.2s;
       cursor: pointer;
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
     }
 
-    .manage-link:hover {
+    .manage-button:hover {
       opacity: 1;
       text-decoration: underline;
     }
@@ -898,15 +938,19 @@
   });
 
   const textInputWrap = el("div", "text-input-wrap");
+  const textInputHeader = el("div", "text-input-header");
   const textInputLabel = el("label");
   textInputLabel.textContent = msg("notificationTextLabel");
   textInputLabel.htmlFor = "notificationText";
+  const textResetButton = el("button", "text-input-reset", { type: "button" });
+  textResetButton.textContent = msg("notificationTextReset");
   const textInput = el("input", "text-input", {
     type: "text",
     id: "notificationText",
     placeholder: DEFAULTS.text
   });
-  textInputWrap.append(textInputLabel, textInput);
+  textInputHeader.append(textInputLabel, textResetButton);
+  textInputWrap.append(textInputHeader, textInput);
 
   gaugeSection.append(gaugeLabel, gaugeWrap, slider, textInputWrap);
 
@@ -947,10 +991,14 @@
   overrideRow.append(overrideLabel, overrideInputWrap);
   overrideControls.append(overrideRow);
 
-  const manageLink = el("a", "manage-link");
+  const manageLink = el("button", "manage-button", {
+    type: "button",
+    "aria-controls": "siteOverridesList",
+    "aria-expanded": "false",
+  });
   manageLink.textContent = msg("manageSites");
 
-  const overridesList = el("div", "overrides-list hidden");
+  const overridesList = el("div", "overrides-list hidden", { id: "siteOverridesList" });
 
   siteConfig.append(siteConfigHeader, overrideControls, manageLink, overridesList);
 
@@ -1083,6 +1131,7 @@
     slider.value = threshold;
     badgeInput.value = threshold;
     textInput.value = text;
+    syncTextResetState();
     enabledCheckbox.checked = enabled;
 
     if (activeHostname) {
@@ -1128,6 +1177,10 @@
         siteOverrides: result[KEYS.siteOverrides] ?? {},
       }).catch(() => { });
     } catch (e) { /* popup may close before this completes */ }
+  }
+
+  function syncTextResetState() {
+    textResetButton.disabled = textInput.value === DEFAULTS.text;
   }
 
   // ── Visual + auto-save: global toggle ─────────────────────────────────────
@@ -1203,9 +1256,9 @@
   const debouncedSaveSiteOverride = debounce(saveSiteOverride, 600);
 
   // Management list
-  manageLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    overridesList.classList.toggle("hidden");
+  manageLink.addEventListener("click", () => {
+    const isOpen = !overridesList.classList.toggle("hidden");
+    manageLink.setAttribute("aria-expanded", String(isOpen));
   });
 
   function renderOverridesList(overrides) {
@@ -1307,6 +1360,7 @@
     const text = textInput.value.trim() || DEFAULTS.text;
     try {
       await browser.storage.local.set({ [KEYS.text]: text });
+      syncTextResetState();
       notifyContentScript();
       showStatus(msg("statusAutoSaved"));
     } catch (e) {
@@ -1316,8 +1370,20 @@
 
   const debouncedSaveText = debounce(saveText, 800);
 
-  textInput.addEventListener("input", () => debouncedSaveText());
-  textInput.addEventListener("blur", () => saveText());
+  textInput.addEventListener("input", () => {
+    syncTextResetState();
+    debouncedSaveText();
+  });
+  textInput.addEventListener("blur", () => {
+    textInput.value = textInput.value.trim() || DEFAULTS.text;
+    syncTextResetState();
+    saveText();
+  });
+  textResetButton.addEventListener("click", async () => {
+    textInput.value = DEFAULTS.text;
+    syncTextResetState();
+    await saveText();
+  });
 
   // ── Status ────────────────────────────────────────────────────────────────
   let statusTimer = null;
@@ -1332,5 +1398,6 @@
   // ── Init ──────────────────────────────────────────────────────────────────
   spawnBubbles();
   updateGauge(DEFAULTS.threshold);
+  syncTextResetState();
 
 })();

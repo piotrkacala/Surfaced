@@ -43,6 +43,10 @@
     "message": "Notification text",
     "description": "Label for the notification text input."
   },
+  "notificationTextReset": {
+    "message": "Reset",
+    "description": "Button label that restores the default notification text."
+  },
   "enabledOnSite": {
     "message": "Enabled on this site",
     "description": "Label for the per-site toggle when no hostname is available."
