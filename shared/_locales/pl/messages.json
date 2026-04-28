@@ -11,6 +11,12 @@
     "logoTagline": {
         "message": "Wynurz się na chwilę"
     },
+    "popupExplainer": {
+        "message": "Delikatne przypomnienie, gdy scrollujesz zbyt daleko."
+    },
+    "popupGlobalToggleLabel": {
+        "message": "Włączone"
+    },
     "unitScreensOne": {
         "message": "ekran"
     },
@@ -32,8 +38,29 @@
     "notificationTextLabel": {
         "message": "Tekst powiadomienia"
     },
+    "popupThresholdTitle": {
+        "message": "Po ilu ekranach przypomnieć?"
+    },
+    "popupThresholdHelperScreens": {
+        "message": "1 ekran = wysokość widocznej części strony."
+    },
+    "popupThresholdCustomHint": {
+        "message": "Możesz też wpisać własną wartość, np. 5.5 lub 20."
+    },
+    "popupThresholdBehaviorHint": {
+        "message": "Następne przypomnienia: 2× i 3× tej wartości."
+    },
     "notificationTextReset": {
-        "message": "Reset"
+        "message": "Resetuj"
+    },
+    "popupNotificationTextTitle": {
+        "message": "Treść pierwszego przypomnienia"
+    },
+    "popupNotificationTextHint": {
+        "message": "Ten tekst pojawia się przy pierwszym przypomnieniu."
+    },
+    "popupPreviewLabel": {
+        "message": "Podgląd"
     },
     "enabledOnSite": {
         "message": "Włączone na tej stronie"
@@ -75,13 +102,31 @@
         }
     },
     "ariaThresholdValue": {
-        "message": "Wartość progu głębokości"
+        "message": "Wartość progu pierwszego przypomnienia"
     },
     "ariaThresholdSlider": {
         "message": "Suwak progu głębokości"
     },
+    "ariaDecreaseThreshold": {
+        "message": "Zmniejsz próg pierwszego przypomnienia"
+    },
+    "ariaIncreaseThreshold": {
+        "message": "Zwiększ próg pierwszego przypomnienia"
+    },
+    "ariaThresholdHelpToggle": {
+        "message": "Pokaż wyjaśnienie ustawienia progu"
+    },
     "ariaToggleGlobal": {
         "message": "Włącz rozszerzenie globalnie"
+    },
+    "ariaSiteThresholdValue": {
+        "message": "Wartość progu przypomnienia dla tej strony"
+    },
+    "ariaDecreaseSiteThreshold": {
+        "message": "Zmniejsz próg przypomnienia dla tej strony"
+    },
+    "ariaIncreaseSiteThreshold": {
+        "message": "Zwiększ próg przypomnienia dla tej strony"
     },
     "defaultNotificationText": {
         "message": "Zaszedłeś dość daleko. Wynurz się na chwilę."
@@ -101,17 +146,40 @@
     "siteSettings": {
         "message": "Ustawienia strony"
     },
+    "popupSiteTitle": {
+        "message": "Ta strona: $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    },
+    "popupSiteTitleFallback": {
+        "message": "Ta strona"
+    },
+    "popupSiteDescription": {
+        "message": "Dostosuj działanie Surfaced na stronie, którą właśnie przeglądasz."
+    },
+    "popupCurrentSiteUnavailable": {
+        "message": "Ustawienia dla tej strony są tutaj niedostępne, bo Surfaced nie może odczytać bieżącego adresu strony."
+    },
     "siteOverride": {
         "message": "Własny próg"
     },
     "siteOverrideEnabled": {
-        "message": "Użyj własnego progu dla tej strony"
+        "message": "Użyj innej wartości na tej stronie"
+    },
+    "popupSiteOverrideToggleLabel": {
+        "message": "Użyj innej wartości na tej stronie"
+    },
+    "popupSiteOverrideInputLabel": {
+        "message": "Pokaż przypomnienie po"
     },
     "manageSites": {
-        "message": "Zarządzaj wyjątkami stron"
+        "message": "Zarządzaj ustawieniami stron"
     },
     "noOverrides": {
-        "message": "Brak ustawionych wyjątków dla stron."
+        "message": "Brak zapisanych ustawień dla stron."
     },
     "statusOverrideEnabled": {
         "message": "Własny próg włączony dla $HOST$",
@@ -131,6 +199,14 @@
     },
     "statusOverrideRemoved": {
         "message": "Usunięto wyjątek dla $HOST$",
+        "placeholders": {
+            "host": {
+                "content": "$1"
+            }
+        }
+    },
+    "ariaRemoveSiteOverride": {
+        "message": "Usuń zapisane ustawienie dla $HOST$",
         "placeholders": {
             "host": {
                 "content": "$1"

@@ -15,6 +15,14 @@
     "message": "Come up for air",
     "description": "Tagline shown below the extension name in the popup header."
   },
+  "popupExplainer": {
+    "message": "A gentle reminder when you scroll too far.",
+    "description": "Short explainer sentence shown in the popup header."
+  },
+  "popupGlobalToggleLabel": {
+    "message": "Enabled",
+    "description": "Visible label next to the global enable switch in the popup header."
+  },
   "unitScreensOne": {
     "message": "screen",
     "description": "Unit label for number of screens scrolled (singular)."
@@ -43,9 +51,37 @@
     "message": "Notification text",
     "description": "Label for the notification text input."
   },
+  "popupThresholdTitle": {
+    "message": "After how many screens should Surfaced remind you?",
+    "description": "Title for the main threshold section in the popup."
+  },
+  "popupThresholdHelperScreens": {
+    "message": "1 screen = the height of the visible part of the page.",
+    "description": "Helper text explaining the meaning of one screen."
+  },
+  "popupThresholdCustomHint": {
+    "message": "You can also enter a custom value, for example 5.5 or 20.",
+    "description": "Helper text explaining that custom threshold values are supported."
+  },
+  "popupThresholdBehaviorHint": {
+    "message": "Later reminders: 2× and 3× this value.",
+    "description": "Helper text explaining the later depth zones."
+  },
   "notificationTextReset": {
     "message": "Reset",
     "description": "Button label that restores the default notification text."
+  },
+  "popupNotificationTextTitle": {
+    "message": "First reminder text",
+    "description": "Title for the popup section that customizes the shallow reminder copy."
+  },
+  "popupNotificationTextHint": {
+    "message": "This text appears in the first reminder.",
+    "description": "Helper text under the reminder text section title."
+  },
+  "popupPreviewLabel": {
+    "message": "Preview",
+    "description": "Label above the inline reminder preview in the popup."
   },
   "enabledOnSite": {
     "message": "Enabled on this site",
@@ -98,16 +134,40 @@
     }
   },
   "ariaThresholdValue": {
-    "message": "Depth threshold value",
-    "description": "Aria label for the threshold input in the header badge."
+    "message": "First reminder threshold value",
+    "description": "Aria label for the main threshold input."
   },
   "ariaThresholdSlider": {
     "message": "Depth threshold slider",
     "description": "Aria label for the depth threshold slider."
   },
+  "ariaDecreaseThreshold": {
+    "message": "Decrease the global reminder threshold",
+    "description": "Aria label for the button that decreases the global threshold."
+  },
+  "ariaIncreaseThreshold": {
+    "message": "Increase the global reminder threshold",
+    "description": "Aria label for the button that increases the global threshold."
+  },
+  "ariaThresholdHelpToggle": {
+    "message": "Show more information about the threshold setting",
+    "description": "Aria label for the button that toggles the threshold help text."
+  },
   "ariaToggleGlobal": {
     "message": "Enable extension globally",
     "description": "Aria label for the global enable toggle."
+  },
+  "ariaSiteThresholdValue": {
+    "message": "Site-specific reminder threshold value",
+    "description": "Aria label for the site-specific threshold input."
+  },
+  "ariaDecreaseSiteThreshold": {
+    "message": "Decrease the site-specific reminder threshold",
+    "description": "Aria label for the button that decreases the site-specific threshold."
+  },
+  "ariaIncreaseSiteThreshold": {
+    "message": "Increase the site-specific reminder threshold",
+    "description": "Aria label for the button that increases the site-specific threshold."
   },
   "defaultNotificationText": {
     "message": "You've drifted pretty far. Come up for air.",
@@ -133,21 +193,51 @@
     "message": "Site settings",
     "description": "Label for the per-site configuration section."
   },
+  "popupSiteTitle": {
+    "message": "This site: $HOST$",
+    "description": "Section title for the current site settings block.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  },
+  "popupSiteTitleFallback": {
+    "message": "This site",
+    "description": "Fallback title for the current site settings block when no hostname is available."
+  },
+  "popupSiteDescription": {
+    "message": "Adjust how Surfaced behaves on the page you're viewing.",
+    "description": "Description text below the current site section title."
+  },
+  "popupCurrentSiteUnavailable": {
+    "message": "Site-specific settings are unavailable here because Surfaced could not read the current page address.",
+    "description": "Fallback message shown when the popup cannot resolve the current hostname."
+  },
   "siteOverride": {
     "message": "Custom threshold",
     "description": "Label for the site-specific threshold override."
   },
   "siteOverrideEnabled": {
-    "message": "Use custom threshold for this site",
+    "message": "Use a different value on this site",
     "description": "Label for the checkbox to enable site-specific override."
   },
+  "popupSiteOverrideToggleLabel": {
+    "message": "Use a different value on this site",
+    "description": "Visible label for enabling a site-specific threshold override."
+  },
+  "popupSiteOverrideInputLabel": {
+    "message": "Show the reminder after",
+    "description": "Label above the site-specific threshold input controls."
+  },
   "manageSites": {
-    "message": "Manage site overrides",
-    "description": "Label for the link to manage all site overrides."
+    "message": "Manage site settings",
+    "description": "Label for the button that expands the saved site settings list."
   },
   "noOverrides": {
-    "message": "No custom site thresholds set.",
-    "description": "Message shown when the overrides list is empty."
+    "message": "No site-specific settings saved yet.",
+    "description": "Message shown when the saved site settings list is empty."
   },
   "statusOverrideEnabled": {
     "message": "Custom threshold enabled for $HOST$",
@@ -172,6 +262,16 @@
   "statusOverrideRemoved": {
     "message": "Override removed for $HOST$",
     "description": "Status message when an override is deleted from the management list.",
+    "placeholders": {
+      "host": {
+        "content": "$1",
+        "example": "reddit.com"
+      }
+    }
+  },
+  "ariaRemoveSiteOverride": {
+    "message": "Remove saved site setting for $HOST$",
+    "description": "Aria label for the button that removes a saved site-specific setting.",
     "placeholders": {
       "host": {
         "content": "$1",

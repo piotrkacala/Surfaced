@@ -6,6 +6,8 @@ const DEFAULT_PLATFORM_CONFIG = {
   isTouch: false,
 };
 
+const THRESHOLD_STEP = 0.5;
+
 export function mountPopup(platformConfig = {}) {
   const config = {
     ...DEFAULT_PLATFORM_CONFIG,
@@ -13,29 +15,11 @@ export function mountPopup(platformConfig = {}) {
   };
 
   const interactionPseudoClass = config.isTouch ? "active" : "hover";
-  const badgePointerStyles = config.isTouch ? "" : "cursor: text;";
-  const badgeInteractionStyles = config.isTouch ? "" : `
-    .depth-badge:hover {
-      border-color: rgba(0, 212, 255, 0.3);
-      box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
-    }
-  `;
-  const textResetPointerStyles = config.isTouch ? "" : "cursor: pointer;";
-  const textResetDisabledPointerStyles = config.isTouch ? "" : "cursor: default;";
-  const sliderPointerStyles = config.isTouch ? "" : "cursor: pointer;";
-  const sliderThumbPointerStyles = config.isTouch ? "" : "cursor: grab;";
-  const sliderThumbActivePointerStyles = config.isTouch ? "" : "cursor: grabbing;";
-  const switchBaseStyles = config.isTouch
+  const pointerStyles = config.isTouch ? "" : "cursor: pointer;";
+  const toggleBaseStyles = config.isTouch
     ? "display: inline-flex; align-items: center; min-height: 44px;"
-    : "cursor: pointer; display: inline-flex; align-items: center;";
-  const manageButtonPlatformStyles = config.isTouch
-    ? "min-height: 44px; display: flex; align-items: center; justify-content: center;"
-    : "cursor: pointer;";
-  const overrideRemovePlatformStyles = config.isTouch
-    ? "padding: 10px 12px; min-height: 44px;"
-    : "cursor: pointer; padding: 0 4px;";
+    : "display: inline-flex; align-items: center; cursor: pointer;";
 
-  // ── Storage keys ──────────────────────────────────────────────────────────
   const KEYS = {
     threshold: "scrollNotifierThreshold",
     enabled: "scrollNotifierEnabled",
@@ -44,19 +28,26 @@ export function mountPopup(platformConfig = {}) {
     siteOverrides: "scrollNotifierSiteOverrides",
   };
 
-  // ── i18n helper ───────────────────────────────────────────────────────────
   const msg = (key, ...subs) => browser.i18n.getMessage(key, subs);
   const uiLanguage = browser.i18n.getUILanguage();
   if (uiLanguage) {
     document.documentElement.lang = uiLanguage;
   }
 
-  const pr = new Intl.PluralRules(browser.i18n.getUILanguage());
-  function getUnitScreensMsg(val) {
-    const form = pr.select(val);
+  const pluralRules = new Intl.PluralRules(uiLanguage);
+  const numberFormatter = new Intl.NumberFormat(uiLanguage, {
+    maximumFractionDigits: 2,
+  });
+
+  function getUnitScreensMsg(value) {
+    const form = pluralRules.select(value);
     const suffix = form.charAt(0).toUpperCase() + form.slice(1);
-    const m = msg("unitScreens" + suffix);
-    return m ? m : msg("unitScreensOther");
+    const localized = msg("unitScreens" + suffix);
+    return localized ? localized : msg("unitScreensOther");
+  }
+
+  function formatThresholdNumber(value) {
+    return numberFormatter.format(value);
   }
 
   const DEFAULTS = {
@@ -66,49 +57,74 @@ export function mountPopup(platformConfig = {}) {
     text: msg("defaultNotificationText"),
   };
 
+  function normalizeThresholdInput(value) {
+    return String(value ?? "").trim().replace(",", ".");
+  }
+
   function parsePositiveThreshold(value) {
-    const parsed = Number(value);
+    const normalizedValue = normalizeThresholdInput(value);
+    if (!normalizedValue) {
+      return null;
+    }
+
+    const parsed = Number(normalizedValue);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  function parseLiveThreshold(value) {
+    const rawValue = String(value ?? "").trim();
+    if (!rawValue || /[.,]$/.test(rawValue)) {
+      return null;
+    }
+
+    return parsePositiveThreshold(rawValue);
   }
 
   function sanitizeThreshold(value, fallback = DEFAULTS.threshold) {
     return parsePositiveThreshold(value) ?? fallback;
   }
 
-  // ── Shadow DOM mount ──────────────────────────────────────────────────────
+  function normalizeThreshold(value) {
+    return Number(value.toFixed(2));
+  }
+
   const root = document.getElementById("root");
   const shadow = root.attachShadow({ mode: "open" });
 
-  // ── Styles ────────────────────────────────────────────────────────────────
   const style = document.createElement("style");
   style.textContent = `
-    /* ── Tokens ─────────────────────────────────────────────────────────── */
     :host {
-      --deep:        #020d1a;
-      --mid:         #041628;
-      --water:       #0d4a7a;
-      --water-light: #1a6fa8;
-      --foam:        #5bc4f5;
-      --foam-dim:    #2a8abf;
-      --accent:      #00d4ff;
-      --warn:        #f0a500;
-      --text:        #c8eaf7;
-      --text-dim:    #5a8fae;
-      --border:      rgba(0, 212, 255, 0.18);
-      --border-dim:  rgba(0, 212, 255, 0.08);
-      --font-ui:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-mono:   ui-monospace, 'SFMono-Regular', Consolas, monospace;
+      --deep: #020d1a;
+      --mid: #041628;
+      --panel: rgba(4, 24, 46, 0.9);
+      --panel-strong: rgba(4, 22, 42, 0.98);
+      --accent: #00d4ff;
+      --accent-soft: rgba(0, 212, 255, 0.12);
+      --accent-border: rgba(0, 212, 255, 0.18);
+      --text: #d7f1fb;
+      --text-dim: #7fb3c8;
+      --text-muted: rgba(200, 234, 247, 0.72);
+      --warning: #f0a500;
+      --danger: #ff4f4f;
+      --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      --control-height: ${config.isTouch ? "44px" : "36px"};
+      --control-radius: ${config.isTouch ? "12px" : "9px"};
+      --chip-height: ${config.isTouch ? "38px" : "30px"};
 
       display: block;
       width: 100%;
       height: 100%;
-      font-family: var(--font-ui);
-      font-size: 13px;
       color: var(--text);
+      font-family: var(--font-ui);
+      font-size: ${config.isTouch ? "14px" : "12px"};
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Layout shell ───────────────────────────────────────────────────── */
+    [hidden] {
+      display: none !important;
+    }
+
     .shell {
       position: relative;
       width: 100%;
@@ -116,1021 +132,1157 @@ export function mountPopup(platformConfig = {}) {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      
-      /* Ocean dark background matching content.js */
-      background: linear-gradient(
-        135deg,
-        rgba(4, 22, 42, 0.97) 0%,
-        rgba(2, 14, 30, 0.97) 100%
-      );
-      border: 1px solid rgba(0, 212, 255, 0.25);
+      background:
+        radial-gradient(circle at top left, rgba(26, 111, 168, 0.16), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.08), transparent 32%),
+        linear-gradient(135deg, rgba(4, 22, 42, 0.97) 0%, rgba(2, 14, 30, 0.99) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.24);
+      border-radius: 10px;
       box-shadow:
         0 0 0 1px rgba(0, 212, 255, 0.08),
-        0 8px 32px rgba(0, 0, 0, 0.6),
-        0 0 40px rgba(0, 212, 255, 0.08),
-        inset 0 1px 0 rgba(0, 212, 255, 0.1);
-      border-radius: 8px;
-      font-family: var(--font-ui);
-      animation: surface-up 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+        0 14px 36px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(0, 212, 255, 0.08);
+      animation: surface-up 0.32s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
     }
 
-    @keyframes surface-up {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-        box-shadow: 0 0 0 1px rgba(0,212,255,0.08), 0 0 0 rgba(0,0,0,0);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-        box-shadow:
-          0 0 0 1px rgba(0, 212, 255, 0.08),
-          0 8px 32px rgba(0, 0, 0, 0.6),
-          0 0 40px rgba(0, 212, 255, 0.08),
-          inset 0 1px 0 rgba(0, 212, 255, 0.1);
-      }
-    }
-
-    /* Surface shimmer effect like content.js */
-    .shell::before {
-      content: '';
+    .shell::before,
+    .shell::after {
+      content: "";
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(ellipse 80px 30px at 20% 50%, rgba(0,212,255,0.05) 0%, transparent 70%),
-        radial-gradient(ellipse 60px 40px at 75% 30%, rgba(0,180,220,0.04) 0%, transparent 70%);
       pointer-events: none;
-      animation: caustic-shift 6s ease-in-out infinite alternate;
+    }
+
+    .shell::before {
+      background:
+        radial-gradient(ellipse 120px 40px at 18% 12%, rgba(0, 212, 255, 0.07) 0%, transparent 72%),
+        radial-gradient(ellipse 90px 60px at 78% 22%, rgba(0, 180, 220, 0.05) 0%, transparent 72%);
+      animation: caustic-shift 8s ease-in-out infinite alternate;
     }
 
     .shell::after {
-      content: '';
-      position: absolute;
       top: 0;
-      left: 10%;
-      right: 10%;
+      left: 12%;
+      right: 12%;
+      bottom: auto;
       height: 1px;
       background: linear-gradient(
         90deg,
         transparent,
-        rgba(0, 212, 255, 0.6),
+        rgba(0, 212, 255, 0.55),
         rgba(91, 196, 245, 0.8),
-        rgba(0, 212, 255, 0.6),
+        rgba(0, 212, 255, 0.55),
         transparent
       );
       animation: surface-shimmer 3s ease-in-out infinite;
     }
 
-    @keyframes surface-shimmer {
-      0%, 100% { opacity: 0.5; transform: scaleX(0.9); }
-      50%       { opacity: 1.0; transform: scaleX(1.0); }
-    }
-
-    /* ── Ocean background ───────────────────────────────────────────────── */
-    .caustics {
-      position: absolute;
-      inset: -50%;
-      width: 200%;
-      height: 200%;
-      pointer-events: none;
-      background-image:
-        radial-gradient(ellipse 80px 30px at 20% 50%, rgba(0,212,255,0.05) 0%, transparent 70%),
-        radial-gradient(ellipse 60px 40px at 75% 30%, rgba(0,180,220,0.04) 0%, transparent 70%);
-      animation: caustic-shift 6s ease-in-out infinite alternate;
-      opacity: 0.8;
-    }
-
-    .caustics--2 {
-      animation-duration: 11s;
-      animation-delay: -4s;
-      animation-direction: alternate-reverse;
-      opacity: 0.5;
-      background-image:
-        radial-gradient(ellipse 90px 30px at 35% 20%, rgba(0,212,255,0.04) 0%, transparent 70%),
-        radial-gradient(ellipse 50px 70px at 60% 50%, rgba(0,180,255,0.05) 0%, transparent 70%);
+    @keyframes surface-up {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @keyframes caustic-shift {
-      0%   { opacity: 0.6; transform: scale(1) translateX(0); }
-      100% { opacity: 1;   transform: scale(1.05) translateX(4px); }
-    }
-
-    .bubbles { position: absolute; inset: 0; pointer-events: none; }
-
-    .bubble {
-      position: absolute;
-      bottom: -20px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.35), rgba(0,212,255,0.06));
-      border: 1px solid rgba(0,212,255,0.2);
-      animation: bubble-rise linear infinite;
-    }
-
-    @keyframes bubble-rise {
-      0%   { transform: translateY(0) translateX(0); opacity: 0; }
-      10%  { opacity: 0.8; }
-      90%  { opacity: 0.4; }
-      100% { transform: translateY(-460px) translateX(var(--drift, 0px)); opacity: 0; }
-    }
-
-    /* ── Header ─────────────────────────────────────────────────────────── */
-    .header {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
-      background: linear-gradient(180deg, rgba(4,30,58,0.95) 0%, rgba(2,18,36,0.8) 100%);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(4px);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .logo__icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .logo__icon svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .logo__name {
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      color: #e8f6ff;
-      line-height: 1;
-      margin: 0;
-    }
-
-    .logo__tagline {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: rgba(200, 234, 247, 0.7);
-      margin-top: 1px;
-      letter-spacing: 0.3px;
-    }
-
-    .depth-badge {
-      display: flex;
-      align-items: baseline;
-      gap: 2px;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      border-radius: 4px;
-      padding: 4px 8px;
-      ${badgePointerStyles}
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    ${badgeInteractionStyles}
-
-    .depth-badge__input {
-      background: transparent;
-      border: none;
-      color: #00d4ff;
-      font-family: var(--font-mono);
-      font-size: 18px;
-      font-weight: 700;
-      line-height: 1;
-      text-shadow: 0 0 12px rgba(0,212,255,0.6);
-      transition: text-shadow 0.3s;
-      width: 40px;
-      text-align: center;
-      outline: none;
-      -moz-appearance: textfield;
-    }
-
-    .depth-badge__input::-webkit-outer-spin-button,
-    .depth-badge__input::-webkit-inner-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0;
-    }
-
-    .depth-badge__input:focus {
-      text-shadow: 0 0 16px rgba(0,212,255,0.8);
-    }
-
-    .depth-badge__unit {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-    }
-
-    /* ── Body ───────────────────────────────────────────────────────────── */
-    .body {
-      position: relative;
-      z-index: 1;
-      flex: 1;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-
-    /* ── Gauge ──────────────────────────────────────────────────────────── */
-    .gauge-label {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      margin-bottom: 10px;
-    }
-
-    .gauge-label__text {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-dim);
-    }
-
-    .gauge-label__hint {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      color: rgba(200, 234, 247, 0.7);
-      letter-spacing: 0.3px;
-    }
-
-    .gauge-wrap {
-      display: flex;
-      align-items: stretch;
-      gap: 10px;
-      height: ${config.gaugeHeight};
-    }
-
-    .ruler {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 2px 0;
-      width: 26px;
-    }
-
-    .ruler-spacer {
-      width: 26px;
-      flex: 0 0 26px;
-    }
-
-    .ruler__mark {
-      font-family: var(--font-mono);
-      font-size: 8px;
-      color: var(--text-dim);
-      text-align: right;
-      line-height: 1;
-      opacity: 0.7;
-    }
-
-    .gauge-track-wrap { flex: 1; display: flex; }
-
-    .gauge-track {
-      flex: 1;
-      position: relative;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    /* Caustic shimmer inside the gauge */
-    .gauge-track::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80px 30px at 20% 50%, rgba(0,212,255,0.05) 0%, transparent 70%),
-        radial-gradient(ellipse 60px 40px at 75% 30%, rgba(0,180,220,0.04) 0%, transparent 70%);
-      pointer-events: none;
-      animation: caustic-shift 6s ease-in-out infinite alternate;
-    }
-
-    .gauge-water {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 20%;
-      background: linear-gradient(180deg, rgba(13,74,122,0.6) 0%, rgba(4,40,80,0.9) 100%);
-      transition: height 0.35s cubic-bezier(0.34, 1.1, 0.64, 1);
-      z-index: 1;
-    }
-
-    .gauge-water__surface {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, var(--foam), var(--foam-dim), transparent);
-      animation: surface-shimmer 3s ease-in-out infinite;
-      opacity: 0.8;
+      0% {
+        opacity: 0.65;
+        transform: scale(1) translateX(0);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1.04) translateX(6px);
+      }
     }
 
     @keyframes surface-shimmer {
-      0%, 100% { opacity: 0.5; transform: scaleX(0.97); }
-      50%       { opacity: 1.0; transform: scaleX(1.0);  }
+      0%, 100% {
+        opacity: 0.45;
+        transform: scaleX(0.94);
+      }
+      50% {
+        opacity: 1;
+        transform: scaleX(1);
+      }
     }
 
-    .gauge-marker {
-      position: absolute;
-      left: 0; right: 0;
-      top: 80%;
+    .header {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      column-gap: ${config.isTouch ? "16px" : "12px"};
+      row-gap: 8px;
+      padding: ${config.isTouch ? "16px" : "14px"};
+      border-bottom: 1px solid rgba(0, 212, 255, 0.12);
+      background: linear-gradient(180deg, rgba(3, 26, 50, 0.94) 0%, rgba(2, 16, 32, 0.7) 100%);
+      backdrop-filter: blur(6px);
+    }
+
+    .brand {
       display: flex;
       align-items: center;
-      pointer-events: none;
-      transition: top 0.35s cubic-bezier(0.34, 1.1, 0.64, 1);
-      z-index: 2;
+      gap: ${config.isTouch ? "12px" : "10px"};
+      min-width: 0;
     }
 
-    .gauge-marker__line {
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--warn), transparent);
-      box-shadow: 0 0 6px var(--warn);
-    }
-
-    .gauge-marker__dot {
-      position: absolute;
-      right: 6px;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--warn);
-      box-shadow: 0 0 8px var(--warn);
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { box-shadow: 0 0 4px var(--warn); }
-      50%       { box-shadow: 0 0 12px var(--warn), 0 0 20px rgba(240,165,0,0.4); }
-    }
-
-    /* Used by per-site override input row */
-    .gauge-input {
-      width: 52px;
+    .brand__icon {
+      width: ${config.isTouch ? "34px" : "30px"};
+      height: ${config.isTouch ? "34px" : "30px"};
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: rgba(0, 212, 255, 0.08);
       border: 1px solid rgba(0, 212, 255, 0.2);
-      border-radius: 5px;
-      color: #00d4ff;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 700;
-      padding: 5px 4px;
-      text-align: center;
-      outline: none;
-      -moz-appearance: textfield;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .gauge-input::-webkit-outer-spin-button,
-    .gauge-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
+    .brand__icon svg {
+      width: ${config.isTouch ? "18px" : "16px"};
+      height: ${config.isTouch ? "18px" : "16px"};
+    }
+
+    .brand__name {
       margin: 0;
+      font-size: ${config.isTouch ? "17px" : "15px"};
+      line-height: 1;
+      font-weight: 600;
+      color: #edf9ff;
+      letter-spacing: 0.2px;
     }
 
-    .gauge-input:focus {
-      border-color: #00d4ff;
-      box-shadow: 0 0 0 2px rgba(0,212,255,0.15);
+    .header-description {
+      grid-column: 1 / -1;
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.42;
+      font-size: ${config.isTouch ? "13px" : "12px"};
+      max-width: ${config.isTouch ? "30ch" : "none"};
     }
 
-    .gauge-input__unit {
-      font-family: var(--font-mono);
-      font-size: 8px;
+    .header__toggle {
+      display: flex;
+      align-items: center;
+      gap: ${config.isTouch ? "10px" : "8px"};
+      flex-shrink: 0;
+    }
+
+    .toggle-label {
       color: var(--text-dim);
+      font-size: ${config.isTouch ? "11px" : "10px"};
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.7px;
+      white-space: nowrap;
     }
 
-    /* Text input below gauge */
-    .text-input-wrap {
-      margin-top: 12px;
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .switch {
+      ${toggleBaseStyles}
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .switch__track {
+      width: 38px;
+      height: 22px;
+      position: relative;
+      border-radius: 999px;
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .switch__thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(90, 143, 174, 0.82);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, box-shadow 0.2s;
+    }
+
+    .switch input:checked + .switch__track {
+      background: rgba(0, 212, 255, 0.18);
+      border-color: rgba(0, 212, 255, 0.48);
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.18);
+    }
+
+    .switch input:checked + .switch__track .switch__thumb {
+      transform: translateX(16px);
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.45);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      overflow-y: auto;
+      padding: ${config.isTouch ? "16px" : "14px"};
+      display: flex;
+      flex-direction: column;
+      gap: ${config.isTouch ? "14px" : "12px"};
+      transition: opacity 0.25s, filter 0.25s;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: ${config.isTouch ? "14px" : "12px"};
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(5, 26, 50, 0.78) 0%, rgba(3, 18, 35, 0.88) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.12);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 8px 20px rgba(0, 0, 0, 0.18);
+    }
+
+    .section__header {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    .text-input-header {
+    .section__header-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section__title {
+      margin: 0;
+      font-size: ${config.isTouch ? "15px" : "14px"};
+      line-height: 1.3;
+      font-weight: 600;
+      color: #eefaff;
+    }
+
+    .section__description {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.45;
+      font-size: ${config.isTouch ? "12px" : "11px"};
+    }
+
+    .threshold-shell {
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
 
-    .text-input-wrap label {
-      font-size: 11px;
-      font-weight: 500;
+    .threshold-control {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .threshold-stepper {
+      display: grid;
+      grid-template-columns: ${config.isTouch ? "48px" : "44px"} minmax(0, 1fr) ${config.isTouch ? "48px" : "44px"};
+      align-items: stretch;
+      width: min(100%, ${config.isTouch ? "320px" : "300px"});
+      margin: 0 auto;
+      min-height: ${config.isTouch ? "48px" : "44px"};
+      border-radius: calc(var(--control-radius) + 3px);
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(0, 212, 255, 0.09) 0%, rgba(0, 212, 255, 0.04) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 0 0 1px rgba(0, 212, 255, 0.04);
+    }
+
+    .stepper-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 100%;
+      border: none;
+      border-radius: 0;
+      background: rgba(0, 212, 255, 0.06);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 20px;
+      line-height: 1;
+      transition: transform 0.15s, background 0.2s, color 0.2s;
+      ${pointerStyles}
+    }
+
+    .stepper-button[data-direction="decrement"] {
+      border-right: 1px solid rgba(0, 212, 255, 0.14);
+    }
+
+    .stepper-button[data-direction="increment"] {
+      border-left: 1px solid rgba(0, 212, 255, 0.14);
+    }
+
+    .stepper-button:${interactionPseudoClass} {
+      background: rgba(0, 212, 255, 0.12);
+      color: #effaff;
+    }
+
+    .stepper-button:active {
+      transform: scale(0.98);
+    }
+
+    .stepper-display {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+      min-height: 100%;
+      padding: ${config.isTouch ? "10px 12px" : "8px 10px"};
+      background: transparent;
+      flex: 1 1 auto;
+    }
+
+    .stepper-display:focus-within {
+      box-shadow:
+        inset 0 0 0 1px rgba(0, 212, 255, 0.18),
+        inset 0 0 0 2px rgba(0, 212, 255, 0.12);
+    }
+
+    .threshold-input {
+      width: ${config.isTouch ? "6.5ch" : "6ch"};
+      min-width: 0;
+      border: none;
+      background: transparent;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: ${config.isTouch ? "28px" : "23px"};
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      text-align: center;
+      outline: none;
+      -moz-appearance: textfield;
+      text-shadow: 0 0 14px rgba(0, 212, 255, 0.34);
+    }
+
+    .threshold-input::-webkit-outer-spin-button,
+    .threshold-input::-webkit-inner-spin-button,
+    .text-input::-webkit-outer-spin-button,
+    .text-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .threshold-unit {
+      font-family: var(--font-mono);
+      font-size: ${config.isTouch ? "11px" : "10px"};
+      color: var(--text-dim);
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      color: var(--text-dim);
     }
 
-    .text-input-reset {
-      background: none;
-      border: 1px solid rgba(0, 212, 255, 0.18);
+    .helper-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .helper-copy p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.4;
+      font-size: ${config.isTouch ? "12px" : "11px"};
+    }
+
+    .ghost-button {
+      min-height: 30px;
+      padding: 0 12px;
       border-radius: 999px;
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      background: transparent;
       color: var(--accent);
       font-family: var(--font-ui);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 0.3px;
-      padding: 4px 10px;
-      min-height: 28px;
-      ${textResetPointerStyles}
-      transition: opacity 0.2s, border-color 0.2s, background 0.2s;
+      line-height: 1;
+      transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+      ${pointerStyles}
     }
 
-    .text-input-reset:${interactionPseudoClass} {
-      background: rgba(0, 212, 255, 0.08);
+    .ghost-button:${interactionPseudoClass} {
       border-color: rgba(0, 212, 255, 0.32);
+      background: rgba(0, 212, 255, 0.08);
     }
 
-    .text-input-reset:disabled {
+    .ghost-button:disabled {
       opacity: 0.45;
-      ${textResetDisabledPointerStyles}
+      ${config.isTouch ? "" : "cursor: default;"}
+    }
+
+    .icon-button {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      background: rgba(0, 212, 255, 0.04);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+      ${pointerStyles}
+    }
+
+    .icon-button:${interactionPseudoClass} {
+      border-color: rgba(0, 212, 255, 0.32);
+      background: rgba(0, 212, 255, 0.1);
+      color: #effaff;
     }
 
     .text-input {
       width: 100%;
       box-sizing: border-box;
-      background: rgba(0, 212, 255, 0.05);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      border-radius: 6px;
-      color: #c8eaf7;
+      min-height: var(--control-height);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 212, 255, 0.18);
+      background: rgba(0, 212, 255, 0.04);
+      color: var(--text);
       font-family: var(--font-ui);
-      font-size: 12px;
-      padding: 8px 10px;
+      font-size: ${config.isTouch ? "13px" : "12px"};
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     }
 
+    .text-input:focus,
+    .threshold-input:focus {
+      box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.12);
+    }
+
     .text-input:focus {
-      border-color: #00d4ff;
-      background: rgba(0, 212, 255, 0.1);
-      box-shadow: 0 0 0 2px rgba(0,212,255,0.15);
+      border-color: rgba(0, 212, 255, 0.34);
+      background: rgba(0, 212, 255, 0.08);
     }
 
-    /* Horizontal slider under gauge */
-    .depth-slider {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: ${config.sliderHeight};
-      background: rgba(0,212,255,0.1);
-      border-radius: ${config.sliderBorderRadius};
-      outline: none;
-      ${sliderPointerStyles}
-      margin-top: 8px;
+    .preview-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .depth-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: ${config.sliderThumbSize}; height: ${config.sliderThumbSize};
-      border-radius: 50%;
-      background: var(--accent);
-      border: 2px solid var(--deep);
-      box-shadow: 0 0 8px rgba(0,212,255,0.5);
-      ${sliderThumbPointerStyles}
-      transition: box-shadow 0.15s, transform 0.15s;
+    .preview-label {
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
 
-    .depth-slider::-webkit-slider-thumb:active {
-      ${sliderThumbActivePointerStyles}
-      transform: scale(1.2);
-      box-shadow: 0 0 16px rgba(0,212,255,0.7);
-    }
-
-    .depth-slider::-moz-range-thumb {
-      width: ${config.sliderThumbSize}; height: ${config.sliderThumbSize};
-      border-radius: 50%;
-      background: var(--accent);
-      border: 2px solid var(--deep);
-      box-shadow: 0 0 8px rgba(0,212,255,0.5);
-      ${sliderThumbPointerStyles}
-    }
-
-    .setting {
+    .preview-card {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-    }
-
-    .setting__label {
-      font-size: 11px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-dim);
-      white-space: nowrap;
-    }
-
-    /* Switch */
-    .switch { ${switchBaseStyles} }
-    .switch input { display: none; }
-
-    .switch__track {
-      width: 36px; height: 20px;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      border-radius: 10px;
+      gap: 14px;
       position: relative;
-      transition: background 0.2s, border-color 0.2s;
+      overflow: hidden;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(4, 22, 42, 0.98) 0%, rgba(2, 14, 30, 0.98) 100%);
+      border: 1px solid rgba(0, 212, 255, 0.22);
+      box-shadow:
+        0 0 0 1px rgba(0, 212, 255, 0.06),
+        inset 0 1px 0 rgba(0, 212, 255, 0.08);
     }
 
-    .switch input:checked + .switch__track {
-      background: rgba(0, 212, 255, 0.2);
-      border-color: #00d4ff;
-      box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
-    }
-
-    .switch__thumb {
+    .preview-card::before,
+    .preview-card::after {
+      content: "";
       position: absolute;
-      top: 2px; left: 2px;
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: rgba(90, 143, 174, 0.8);
-      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
+      pointer-events: none;
     }
 
-    .switch input:checked + .switch__track .switch__thumb {
-      transform: translateX(16px);
-      background: #00d4ff;
-      box-shadow: 0 0 6px #00d4ff;
+    .preview-card::before {
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80px 30px at 20% 50%, rgba(0, 212, 255, 0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60px 40px at 75% 30%, rgba(0, 212, 255, 0.06) 0%, transparent 70%);
+      animation: caustic-shift 7s ease-in-out infinite alternate;
     }
 
-    /* ── Header controls ───────────────────────────────────────────────── */
-    .header__controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .preview-card::after {
+      top: 0;
+      left: 12%;
+      right: 12%;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 212, 255, 0.55),
+        rgba(91, 196, 245, 0.7),
+        rgba(0, 212, 255, 0.55),
+        transparent
+      );
+      animation: surface-shimmer 3s ease-in-out infinite;
     }
 
-    /* ── Site bar ───────────────────────────────────────────────────────── */
-    .site-bar {
+    .preview-card__left {
       position: relative;
       z-index: 1;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 10px 16px;
-      background: linear-gradient(180deg, rgba(2,18,36,0.8) 0%, rgba(4,22,42,0.5) 100%);
-      border-bottom: 1px solid var(--border-dim);
-      backdrop-filter: blur(4px);
-      transition: opacity 0.3s, filter 0.3s;
+      gap: 12px;
+      min-width: 0;
     }
 
-    .site-bar__label {
-      font-size: 11px;
+    .preview-card__icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.22);
+    }
+
+    .preview-card__icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .preview-card__copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .preview-card__title {
+      color: #c8eaf7;
+      font-size: ${config.isTouch ? "14px" : "13px"};
+      line-height: 1.35;
       font-weight: 500;
-      letter-spacing: 0.5px;
-      color: var(--text-dim);
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* ── Footer: status-only ────────────────────────────────────────────── */
-    .footer {
+    .preview-card__sub {
+      color: rgba(200, 234, 247, 0.7);
+      font-family: var(--font-mono);
+      font-size: ${config.isTouch ? "10px" : "9px"};
+      letter-spacing: 0.35px;
+    }
+
+    .preview-card__close {
       position: relative;
       z-index: 1;
-      display: flex;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 9px 16px;
-      border-top: 1px solid rgba(0, 212, 255, 0.15);
-      background: linear-gradient(0deg, rgba(2,10,20,0.95) 0%, rgba(4,22,42,0.8) 100%);
-      backdrop-filter: blur(4px);
-      min-height: 36px;
+      flex-shrink: 0;
+      color: rgba(90, 143, 174, 0.8);
+      background: rgba(0, 212, 255, 0.06);
+      border: 1px solid rgba(0, 212, 255, 0.14);
+      font-size: 14px;
+      line-height: 1;
     }
 
-    .status {
-      font-family: var(--font-mono);
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--foam);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .status.visible { opacity: 1; }
-
-    /* ── Per-site Config  ─────────────────────────────────────────── */
-    .site-config {
-      margin-top: 4px;
-      padding: 12px;
-      background: rgba(0, 212, 255, 0.03);
-      border: 1px solid rgba(0, 212, 255, 0.1);
-      border-radius: 8px;
-    }
-
-    .site-config__header {
+    .section-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      gap: 12px;
     }
 
-    .site-config__title {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-dim);
-    }
-
-    .override-controls {
+    .section-row__copy {
+      min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(0, 212, 255, 0.08);
-      margin-top: 8px;
-      transition: all 0.3s ease;
+      gap: 4px;
     }
 
-    .override-controls.hidden {
-      display: none;
+    .section-row__title {
+      color: #e3f7ff;
+      font-size: ${config.isTouch ? "13px" : "12px"};
+      line-height: 1.4;
+      font-weight: 500;
     }
 
-    .override-row {
+    .section-row__description {
+      color: var(--text-muted);
+      font-size: ${config.isTouch ? "12px" : "11px"};
+      line-height: 1.4;
+    }
+
+    .site-note {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(0, 212, 255, 0.14);
+      color: var(--text-muted);
+      font-size: ${config.isTouch ? "12px" : "11px"};
+      line-height: 1.45;
+    }
+
+    .site-override-panel {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 2px;
     }
 
-    .override-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .manage-button {
-      display: block;
-      margin-top: 12px;
-      font-size: 10px;
-      color: var(--accent);
-      text-align: center;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-      ${manageButtonPlatformStyles}
-      width: 100%;
-      background: none;
-      border: none;
-      padding: 0;
-      font: inherit;
-    }
-
-    .manage-button:${interactionPseudoClass} {
-      opacity: 1;
-      text-decoration: underline;
+    .site-override-label {
+      color: var(--text-dim);
+      font-size: ${config.isTouch ? "11px" : "10px"};
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
 
     .overrides-list {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(0, 212, 255, 0.1);
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      max-height: 150px;
+      gap: 8px;
+      padding-top: 4px;
+      border-top: 1px solid rgba(0, 212, 255, 0.08);
+      max-height: 164px;
       overflow-y: auto;
-    }
-
-    .overrides-list.hidden {
-      display: none;
     }
 
     .override-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 8px;
-      background: rgba(0, 212, 255, 0.05);
-      border-radius: 4px;
-      font-size: 11px;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(0, 212, 255, 0.04);
+      border: 1px solid rgba(0, 212, 255, 0.08);
+    }
+
+    .override-item__copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .override-item__host {
-      color: #c8eaf7;
+      color: #dff5ff;
+      line-height: 1.35;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
-      margin-right: 8px;
     }
 
     .override-item__value {
-      font-family: var(--font-mono);
       color: var(--accent);
-      margin-right: 8px;
+      font-family: var(--font-mono);
+      font-size: ${config.isTouch ? "11px" : "10px"};
     }
 
-    .override-item__remove {
-      background: none;
-      border: none;
-      color: var(--warn);
-      font-size: 12px;
-      ${overrideRemovePlatformStyles}
-      opacity: 0.6;
-      transition: opacity 0.2s;
+    .remove-button {
+      min-width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 79, 79, 0.18);
+      background: rgba(255, 79, 79, 0.06);
+      color: var(--danger);
+      font-size: 14px;
+      line-height: 1;
+      transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+      ${pointerStyles}
     }
 
-    .override-item__remove:${interactionPseudoClass} {
+    .remove-button:${interactionPseudoClass} {
+      background: rgba(255, 79, 79, 0.12);
+      border-color: rgba(255, 79, 79, 0.32);
+    }
+
+    .empty-state {
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: ${config.isTouch ? "12px" : "11px"};
+      font-style: italic;
+      background: rgba(0, 212, 255, 0.03);
+      border: 1px dashed rgba(0, 212, 255, 0.1);
+    }
+
+    .bubbles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+      opacity: ${config.isTouch ? "0.85" : "1"};
+    }
+
+    .bubble {
+      position: absolute;
+      bottom: -28px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.34), rgba(0, 212, 255, 0.11));
+      border: 1px solid rgba(0, 212, 255, 0.22);
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.08);
+      opacity: 0;
+      animation: bubble-rise linear infinite;
+    }
+
+    @keyframes bubble-rise {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+      12% {
+        opacity: 0.68;
+      }
+      88% {
+        opacity: 0.24;
+      }
+      100% {
+        transform: translateY(-520px) translateX(var(--drift, 0px));
+        opacity: 0;
+      }
+    }
+
+    .footer {
+      position: relative;
+      z-index: 1;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-top: 1px solid rgba(0, 212, 255, 0.12);
+      background: linear-gradient(0deg, rgba(2, 10, 20, 0.95) 0%, rgba(4, 22, 42, 0.8) 100%);
+      backdrop-filter: blur(4px);
+    }
+
+    .status {
+      opacity: 0;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: opacity 0.25s;
+    }
+
+    .status.visible {
       opacity: 1;
     }
-
-    .no-overrides {
-      font-size: 10px;
-      color: var(--text-dim);
-      text-align: center;
-      padding: 10px;
-      font-style: italic;
-    }
-
   `;
 
   shadow.appendChild(style);
 
-  // ── Build DOM ─────────────────────────────────────────────────────────────
   function el(tag, cls, attrs = {}) {
-    const e = document.createElement(tag);
-    if (cls) e.className = cls;
-    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
-    return e;
+    const element = document.createElement(tag);
+    if (cls) {
+      element.className = cls;
+    }
+    Object.entries(attrs).forEach(([key, value]) => {
+      element.setAttribute(key, value);
+    });
+    return element;
   }
 
   function svgEl(tag, attrs = {}) {
-    const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
-    Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
-    return e;
+    const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.entries(attrs).forEach(([key, value]) => {
+      element.setAttribute(key, value);
+    });
+    return element;
   }
 
-  // Shell
+  function createLogoSvg(color) {
+    const svg = svgEl("svg", {
+      width: "18",
+      height: "18",
+      viewBox: "0 0 16 16",
+      fill: "none",
+      "aria-hidden": "true",
+    });
+
+    [
+      { points: "3,3 8,7 13,3", opacity: "1" },
+      { points: "3,7 8,11 13,7", opacity: "0.55" },
+      { points: "3,11 8,15 13,11", opacity: "0.2" },
+    ].forEach((polyline) => {
+      svg.appendChild(svgEl("polyline", {
+        points: polyline.points,
+        stroke: color,
+        "stroke-width": "1.8",
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
+        opacity: polyline.opacity,
+      }));
+    });
+
+    return svg;
+  }
+
+  function createSwitch(id, ariaLabel) {
+    const wrap = el("label", "switch");
+    const input = el("input", null, {
+      type: "checkbox",
+      id,
+      "aria-label": ariaLabel,
+    });
+    const track = el("span", "switch__track");
+    const thumb = el("span", "switch__thumb");
+    track.appendChild(thumb);
+    wrap.append(input, track);
+    return { wrap, input };
+  }
+
+  function createThresholdControl({ inputId, inputAriaLabel, decrementAriaLabel, incrementAriaLabel }) {
+    const root = el("div", "threshold-control");
+    const stepper = el("div", "threshold-stepper");
+    const decrementButton = el("button", "stepper-button", {
+      type: "button",
+      "data-direction": "decrement",
+      "aria-label": decrementAriaLabel,
+    });
+    decrementButton.textContent = "−";
+
+    const display = el("div", "stepper-display");
+    const input = el("input", "threshold-input", {
+      type: "number",
+      id: inputId,
+      step: String(THRESHOLD_STEP),
+      inputmode: "decimal",
+      "aria-label": inputAriaLabel,
+    });
+    const unit = el("span", "threshold-unit");
+    display.append(input, unit);
+
+    const incrementButton = el("button", "stepper-button", {
+      type: "button",
+      "data-direction": "increment",
+      "aria-label": incrementAriaLabel,
+    });
+    incrementButton.textContent = "+";
+
+    stepper.append(decrementButton, display, incrementButton);
+    root.append(stepper);
+
+    return {
+      root,
+      input,
+      unit,
+      decrementButton,
+      incrementButton,
+    };
+  }
+
   const shell = el("div", "shell");
-
-  // Ocean layers
-  const caustics1 = el("div", "caustics");
-  const caustics2 = el("div", "caustics caustics--2");
   const bubblesEl = el("div", "bubbles");
-  shell.append(caustics1, caustics2, bubblesEl);
 
-  // ── Header ────────────────────────────────────────────────────────────────
   const header = el("header", "header");
+  const brand = el("div", "brand");
+  const brandIcon = el("div", "brand__icon");
+  brandIcon.appendChild(createLogoSvg("#00d4ff"));
+  const brandName = el("h1", "brand__name");
+  brandName.textContent = msg("extensionName");
+  brand.append(brandIcon, brandName);
+  const headerDescription = el("p", "header-description");
+  headerDescription.textContent = msg("popupExplainer");
 
-  const logo = el("div", "logo");
-  const logoIcon = el("div", "logo__icon");
-  const svg = svgEl("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none" });
-  [
-    { points: "3,3 8,7 13,3", opacity: "1" },
-    { points: "3,7 8,11 13,7", opacity: "0.55" },
-    { points: "3,11 8,15 13,11", opacity: "0.2" }
-  ].forEach(p => {
-    svg.appendChild(svgEl("polyline", {
-      points: p.points, stroke: "#00d4ff", "stroke-width": "1.8",
-      "stroke-linecap": "round", "stroke-linejoin": "round", opacity: p.opacity
-    }));
+  const headerToggle = el("div", "header__toggle");
+  const headerToggleLabel = el("span", "toggle-label sr-only");
+  headerToggleLabel.textContent = msg("popupGlobalToggleLabel");
+  const globalSwitch = createSwitch("enabled", msg("ariaToggleGlobal"));
+  globalSwitch.input.checked = true;
+  headerToggle.append(headerToggleLabel, globalSwitch.wrap);
+
+  header.append(brand, headerToggle, headerDescription);
+
+  const content = el("main", "content");
+
+  const thresholdSection = el("section", "section");
+  const thresholdHeader = el("div", "section__header");
+  const thresholdHeaderRow = el("div", "section__header-row");
+  const thresholdTitle = el("h2", "section__title");
+  thresholdTitle.textContent = msg("popupThresholdTitle");
+  const thresholdHelpButton = el("button", "icon-button", {
+    type: "button",
+    "aria-label": msg("ariaThresholdHelpToggle"),
+    "aria-controls": "thresholdHelper",
+    "aria-expanded": "false",
   });
-  logoIcon.appendChild(svg);
-  const logoTitles = el("div");
-  const logoName = el("h1", "logo__name");
-  logoName.textContent = msg("extensionName");
-  const logoTagline = el("p", "logo__tagline");
-  logoTagline.textContent = msg("logoTagline");
-  logoTitles.append(logoName, logoTagline);
-  logo.append(logoIcon, logoTitles);
+  thresholdHelpButton.textContent = "?";
+  thresholdHeaderRow.append(thresholdTitle, thresholdHelpButton);
+  thresholdHeader.append(thresholdHeaderRow);
 
-  const badge = el("div", "depth-badge");
-  const badgeValueInput = el("input", "depth-badge__input", {
-    type: "number", id: "thresholdValue",
-    min: "7", max: "14", step: "0.5", value: "7",
-    "aria-label": msg("ariaThresholdValue"),
+  const thresholdShell = el("div", "threshold-shell");
+  const globalThresholdControl = createThresholdControl({
+    inputId: "globalThresholdValue",
+    inputAriaLabel: msg("ariaThresholdValue"),
+    decrementAriaLabel: msg("ariaDecreaseThreshold"),
+    incrementAriaLabel: msg("ariaIncreaseThreshold"),
   });
-  const badgeUnit = el("span", "depth-badge__unit");
-  badgeUnit.textContent = getUnitScreensMsg(DEFAULTS.threshold);
-  badge.append(badgeValueInput, badgeUnit);
+  const thresholdHelper = el("div", "helper-copy", { id: "thresholdHelper" });
+  thresholdHelper.hidden = true;
+  const thresholdHelperScreens = el("p");
+  thresholdHelperScreens.textContent = msg("popupThresholdHelperScreens");
+  const thresholdHelperCustom = el("p");
+  thresholdHelperCustom.textContent = msg("popupThresholdCustomHint");
+  const thresholdHelperBehavior = el("p");
+  thresholdHelperBehavior.textContent = msg("popupThresholdBehaviorHint");
+  thresholdHelper.append(thresholdHelperScreens, thresholdHelperCustom, thresholdHelperBehavior);
+  thresholdShell.append(globalThresholdControl.root, thresholdHelper);
+  thresholdSection.append(thresholdHeader, thresholdShell);
 
-  // Header fully assembled after toggle creation below
-
-  // ── Body ──────────────────────────────────────────────────────────────────
-  const body = el("main", "body");
-
-  // Gauge
-  const gaugeSection = el("div", "gauge-section");
-
-  const gaugeLabel = el("div", "gauge-label");
-  const gaugeLabelText = el("span", "gauge-label__text");
-  gaugeLabelText.textContent = msg("depthThreshold");
-  const gaugeLabelHint = el("span", "gauge-label__hint");
-  gaugeLabelHint.textContent = msg("depthThresholdHint");
-  gaugeLabel.append(gaugeLabelText, gaugeLabelHint);
-
-  const gaugeWrap = el("div", "gauge-wrap");
-
-  const ruler = el("div", "ruler");
-  ["7", "9", "11", "13", "14"].forEach(n => {
-    const m = el("span", "ruler__mark");
-    m.textContent = n;
-    ruler.appendChild(m);
-  });
-
-  const gaugeTrackWrap = el("div", "gauge-track-wrap");
-  const gaugeTrack = el("div", "gauge-track");
-  const gaugeWater = el("div", "gauge-water");
-  const gaugeWaterSurface = el("div", "gauge-water__surface");
-  gaugeWater.appendChild(gaugeWaterSurface);
-  const gaugeMarker = el("div", "gauge-marker");
-  const gaugeMarkerLine = el("span", "gauge-marker__line");
-  const gaugeMarkerDot = el("span", "gauge-marker__dot");
-  gaugeMarker.append(gaugeMarkerLine, gaugeMarkerDot);
-  gaugeTrack.append(gaugeWater, gaugeMarker);
-  gaugeTrackWrap.appendChild(gaugeTrack);
-
-  const rulerSpacer = el("div", "ruler-spacer");
-
-  gaugeWrap.append(ruler, gaugeTrackWrap, rulerSpacer);
-
-  const slider = el("input", "depth-slider", {
-    type: "range", id: "threshold",
-    min: "7", max: "14", step: "0.5", value: "7",
-    "aria-label": msg("ariaThresholdSlider"),
-  });
-
-  const textInputWrap = el("div", "text-input-wrap");
-  const textInputHeader = el("div", "text-input-header");
-  const textInputLabel = el("label");
-  textInputLabel.textContent = msg("notificationTextLabel");
-  textInputLabel.htmlFor = "notificationText";
-  const textResetButton = el("button", "text-input-reset", { type: "button" });
+  const textSection = el("section", "section");
+  const textHeader = el("div", "section__header");
+  const textHeaderRow = el("div", "section__header-row");
+  const textTitle = el("h2", "section__title");
+  textTitle.textContent = msg("popupNotificationTextTitle");
+  const textResetButton = el("button", "ghost-button", { type: "button" });
   textResetButton.textContent = msg("notificationTextReset");
+  const textDescription = el("p", "section__description");
+  textDescription.textContent = msg("popupNotificationTextHint");
+  textHeaderRow.append(textTitle, textResetButton);
+  textHeader.append(textHeaderRow, textDescription);
+
   const textInput = el("input", "text-input", {
     type: "text",
     id: "notificationText",
-    placeholder: DEFAULTS.text
+    placeholder: DEFAULTS.text,
   });
-  textInputHeader.append(textInputLabel, textResetButton);
-  textInputWrap.append(textInputHeader, textInput);
 
-  gaugeSection.append(gaugeLabel, gaugeWrap, slider, textInputWrap);
+  const previewBlock = el("div", "preview-block");
+  const previewLabel = el("span", "preview-label");
+  previewLabel.textContent = msg("popupPreviewLabel");
+  const previewCard = el("div", "preview-card");
+  const previewLeft = el("div", "preview-card__left");
+  const previewIcon = el("div", "preview-card__icon");
+  previewIcon.appendChild(createLogoSvg("#00d4ff"));
+  const previewCopy = el("div", "preview-card__copy");
+  const previewTitle = el("span", "preview-card__title");
+  previewTitle.textContent = DEFAULTS.text;
+  const previewSub = el("span", "preview-card__sub");
+  previewSub.textContent = msg("notificationSub");
+  previewCopy.append(previewTitle, previewSub);
+  previewLeft.append(previewIcon, previewCopy);
+  const previewClose = el("span", "preview-card__close", { "aria-hidden": "true" });
+  previewClose.textContent = "✕";
+  previewCard.append(previewLeft, previewClose);
+  previewBlock.append(previewLabel, previewCard);
 
-  // ── Per-site configuration ──────────────────────────────────────────
-  const siteConfig = el("section", "site-config");
+  const siteSection = el("section", "section");
+  const siteHeader = el("div", "section__header");
+  const siteTitle = el("h2", "section__title");
+  siteTitle.textContent = msg("popupSiteTitleFallback");
+  const siteDescription = el("p", "section__description");
+  siteDescription.textContent = msg("popupSiteDescription");
+  siteHeader.append(siteTitle, siteDescription);
 
-  const siteConfigHeader = el("div", "site-config__header");
-  const siteConfigTitle = el("h2", "site-config__title");
-  siteConfigTitle.textContent = msg("siteSettings");
+  const siteUnavailableNote = el("div", "site-note");
+  siteUnavailableNote.textContent = msg("popupCurrentSiteUnavailable");
+  siteUnavailableNote.hidden = true;
 
-  const overrideSwitchWrap = el("label", "switch");
-  const overrideCheckbox = el("input", null, {
-    type: "checkbox",
-    id: "siteOverrideEnabled",
-    "aria-label": msg("siteOverrideEnabled"),
+  const siteEnabledRow = el("div", "section-row");
+  const siteEnabledCopy = el("div", "section-row__copy");
+  const siteEnabledTitle = el("span", "section-row__title");
+  siteEnabledTitle.textContent = msg("enabledOnSite");
+  siteEnabledCopy.appendChild(siteEnabledTitle);
+  const siteSwitch = createSwitch("siteEnabled", msg("enabledOnSite"));
+  siteSwitch.input.checked = true;
+  siteEnabledRow.append(siteEnabledCopy, siteSwitch.wrap);
+
+  const siteOverrideRow = el("div", "section-row");
+  const siteOverrideCopy = el("div", "section-row__copy");
+  const siteOverrideTitle = el("span", "section-row__title");
+  siteOverrideTitle.textContent = msg("popupSiteOverrideToggleLabel");
+  siteOverrideCopy.appendChild(siteOverrideTitle);
+  const overrideSwitch = createSwitch("siteOverrideEnabled", msg("siteOverrideEnabled"));
+  siteOverrideRow.append(siteOverrideCopy, overrideSwitch.wrap);
+
+  const siteOverridePanel = el("div", "site-override-panel");
+  siteOverridePanel.hidden = true;
+  const siteOverrideLabel = el("span", "site-override-label");
+  siteOverrideLabel.textContent = msg("popupSiteOverrideInputLabel");
+  const siteThresholdControl = createThresholdControl({
+    inputId: "siteThresholdValue",
+    inputAriaLabel: msg("ariaSiteThresholdValue"),
+    decrementAriaLabel: msg("ariaDecreaseSiteThreshold"),
+    incrementAriaLabel: msg("ariaIncreaseSiteThreshold"),
   });
-  const overrideSwitchTrack = el("span", "switch__track");
-  const overrideSwitchThumb = el("span", "switch__thumb");
-  overrideSwitchTrack.appendChild(overrideSwitchThumb);
-  overrideSwitchWrap.append(overrideCheckbox, overrideSwitchTrack);
+  siteOverridePanel.append(siteOverrideLabel, siteThresholdControl.root);
 
-  siteConfigHeader.append(siteConfigTitle, overrideSwitchWrap);
-
-  const overrideControls = el("div", "override-controls hidden");
-  const overrideRow = el("div", "override-row");
-  const overrideLabel = el("span", "setting__label");
-  overrideLabel.textContent = msg("siteOverride");
-
-  const overrideInputWrap = el("div", "override-input-wrap");
-  const overrideInput = el("input", "gauge-input", {
-    type: "number", id: "siteThresholdValue",
-    min: "7", max: "14", step: "0.5", value: "7"
-  });
-  const overrideUnit = el("span", "gauge-input__unit");
-  overrideUnit.textContent = getUnitScreensMsg(7);
-  overrideInputWrap.append(overrideInput, overrideUnit);
-
-  overrideRow.append(overrideLabel, overrideInputWrap);
-  overrideControls.append(overrideRow);
-
-  const manageLink = el("button", "manage-button", {
+  const manageButton = el("button", "ghost-button", {
     type: "button",
     "aria-controls": "siteOverridesList",
     "aria-expanded": "false",
   });
-  manageLink.textContent = msg("manageSites");
+  manageButton.textContent = msg("manageSites");
+  const overridesList = el("div", "overrides-list", { id: "siteOverridesList" });
+  overridesList.hidden = true;
 
-  const overridesList = el("div", "overrides-list hidden", { id: "siteOverridesList" });
+  siteSection.append(
+    siteHeader,
+    siteUnavailableNote,
+    siteEnabledRow,
+    siteOverrideRow,
+    siteOverridePanel,
+    manageButton,
+    overridesList,
+  );
 
-  siteConfig.append(siteConfigHeader, overrideControls, manageLink, overridesList);
+  textSection.append(textHeader, textInput, previewBlock);
 
-  // ── Global toggle (header right side) ─────────────────────────────────────
-  const headerControls = el("div", "header__controls");
-  const switchWrap = el("label", "switch");
-  const enabledCheckbox = el("input", null, {
-    type: "checkbox", id: "enabled",
-    "aria-label": msg("ariaToggleGlobal"),
-  });
-  enabledCheckbox.checked = true;
-  const switchTrack = el("span", "switch__track");
-  const switchThumb = el("span", "switch__thumb");
-  switchTrack.appendChild(switchThumb);
-  switchWrap.append(enabledCheckbox, switchTrack);
-  headerControls.append(badge, switchWrap);
-  header.append(logo, headerControls);
+  content.append(thresholdSection, siteSection, textSection);
 
-  // ── Site toggle bar (below header) ────────────────────────────────────────
-  const siteBar = el("div", "site-bar");
-  const siteLabel = el("span", "site-bar__label");
-  siteLabel.textContent = msg("enabledOnSite");
-  const siteSwitchWrap = el("label", "switch");
-  const siteCheckbox = el("input", null, {
-    type: "checkbox",
-    id: "siteEnabled",
-    "aria-label": msg("enabledOnSite"),
-  });
-  siteCheckbox.checked = true;
-  const siteSwitchTrack = el("span", "switch__track");
-  const siteSwitchThumb = el("span", "switch__thumb");
-  siteSwitchTrack.appendChild(siteSwitchThumb);
-  siteSwitchWrap.append(siteCheckbox, siteSwitchTrack);
-  siteBar.append(siteLabel, siteSwitchWrap);
-
-  body.append(gaugeSection, siteConfig);
-
-  // ── Footer ────────────────────────────────────────────────────────────────
   const footer = el("footer", "footer");
   const statusEl = el("span", "status");
   statusEl.setAttribute("aria-live", "polite");
-  footer.append(statusEl);
+  footer.appendChild(statusEl);
 
-  shell.append(header, siteBar, body, footer);
+  shell.append(bubblesEl, header, content, footer);
   shadow.appendChild(shell);
 
-  // ── Refs to interactive elements ──────────────────────────────────────────
-  const badgeInput = shadow.getElementById("thresholdValue");
+  let activeTabId = null;
+  let activeHostname = "";
+  let currentThreshold = DEFAULTS.threshold;
+  let currentSiteThreshold = DEFAULTS.threshold;
+  let isOverridesListOpen = false;
+  let statusTimer = null;
 
-  // ── Gauge update ──────────────────────────────────────────────────────────
-  function updateGauge(value) {
-    const min = 7, max = 14;
-    const bounded = Math.max(min, Math.min(max, value));
-    const pct = (bounded - min) / (max - min);
-
-    gaugeMarker.style.top = `${5 + pct * 85}%`;
-    gaugeWater.style.height = `${5 + pct * 88}%`;
-    badgeInput.value = value;
-
-    const unitText = getUnitScreensMsg(value);
-    badgeUnit.textContent = unitText;
-
-    // Glow intensity scales with depth
-    const g = Math.round(pct * 20 + 4);
-    const glowAlpha = (0.4 + pct * 0.5).toFixed(2);
-    badgeInput.style.textShadow = `0 0 ${g}px rgba(0,212,255,${glowAlpha})`;
-
-    // Slider fill
-    const fillPct = pct * 100;
-    slider.style.background = `linear-gradient(to right, var(--accent) ${fillPct}%, rgba(0,212,255,0.1) ${fillPct}%)`;
+  function setGlobalThresholdValue(value, { syncInput = true } = {}) {
+    currentThreshold = value;
+    if (syncInput) {
+      globalThresholdControl.input.value = String(value);
+    }
+    globalThresholdControl.unit.textContent = getUnitScreensMsg(value);
   }
 
-  // ── Bubble spawner ────────────────────────────────────────────────────────
+  function setSiteThresholdValue(value, { syncInput = true } = {}) {
+    currentSiteThreshold = value;
+    if (syncInput) {
+      siteThresholdControl.input.value = String(value);
+    }
+    siteThresholdControl.unit.textContent = getUnitScreensMsg(value);
+  }
+
+  function syncPreviewText() {
+    previewTitle.textContent = textInput.value.trim() || DEFAULTS.text;
+  }
+
+  function syncThresholdHelpVisibility() {
+    const isExpanded = !thresholdHelper.hidden;
+    thresholdHelpButton.setAttribute("aria-expanded", String(isExpanded));
+  }
+
   function spawnBubbles() {
-    for (let i = 0; i < 12; i++) {
-      const b = el("div", "bubble");
-      const size = 3 + Math.random() * 8;
-      const left = 10 + Math.random() * 80;
+    bubblesEl.textContent = "";
+    const bubbleCount = config.isTouch ? 10 : 10;
+
+    for (let index = 0; index < bubbleCount; index += 1) {
+      const bubble = el("div", "bubble");
+      const size = (config.isTouch ? 3 : 3) + Math.random() * (config.isTouch ? 7 : 6);
+      const left = 6 + Math.random() * 88;
+      const duration = (config.isTouch ? 7 : 8) + Math.random() * 8;
       const delay = Math.random() * 10;
-      const dur = 6 + Math.random() * 8;
-      const drift = (Math.random() - 0.5) * 30;
-      b.style.cssText = `
-        width:${size}px; height:${size}px;
-        left:${left}%;
-        animation-duration:${dur}s;
-        animation-delay:-${delay}s;
-        --drift:${drift}px;
+      const drift = (Math.random() - 0.5) * 24;
+
+      bubble.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        left: ${left}%;
+        animation-duration: ${duration}s;
+        animation-delay: -${delay}s;
+        --drift: ${drift}px;
       `;
-      bubblesEl.appendChild(b);
+
+      bubblesEl.appendChild(bubble);
     }
   }
 
-  // ── Globals for active tab ────────────────────────────────────────────────
-  let activeTabId = null;
-  let activeHostname = "";
+  function syncTextResetState() {
+    textResetButton.disabled = textInput.value === DEFAULTS.text;
+  }
+
+  function showStatus(message) {
+    statusEl.textContent = message;
+    statusEl.classList.add("visible");
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(() => statusEl.classList.remove("visible"), 2200);
+  }
+
+  function syncGlobalState() {
+    const off = !globalSwitch.input.checked;
+    content.style.opacity = off ? "0.38" : "1";
+    content.style.pointerEvents = off ? "none" : "auto";
+    content.style.filter = off ? "grayscale(0.45)" : "none";
+  }
+
+  function syncSiteAvailability() {
+    const hasHost = Boolean(activeHostname);
+    siteUnavailableNote.hidden = hasHost;
+    siteDescription.hidden = !hasHost;
+    siteEnabledRow.hidden = !hasHost;
+    siteOverrideRow.hidden = !hasHost;
+    manageButton.hidden = !hasHost;
+    siteSwitch.input.disabled = !hasHost;
+    overrideSwitch.input.disabled = !hasHost;
+    isOverridesListOpen = false;
+    syncOverrideVisibility();
+    syncOverridesListVisibility();
+
+    if (!hasHost) {
+      siteTitle.textContent = msg("popupSiteTitleFallback");
+      siteEnabledTitle.textContent = msg("enabledOnSite");
+      siteSwitch.input.setAttribute("aria-label", msg("enabledOnSite"));
+    } else {
+      siteTitle.textContent = msg("popupSiteTitle", activeHostname);
+      siteDescription.textContent = msg("popupSiteDescription");
+      siteEnabledTitle.textContent = msg("enabledOnHost", activeHostname);
+      siteSwitch.input.setAttribute("aria-label", msg("enabledOnHost", activeHostname));
+    }
+  }
 
   async function resolveActiveTabContext() {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     const activeTab = tabs[0];
-
     activeTabId = Number.isInteger(activeTab?.id) ? activeTab.id : null;
     activeHostname = "";
 
@@ -1140,66 +1292,25 @@ export function mountPopup(platformConfig = {}) {
 
     try {
       activeHostname = new URL(activeTab.url).hostname;
-    } catch (e) {
+    } catch (error) {
       activeHostname = "";
     }
   }
 
-  // ── Load settings ─────────────────────────────────────────────────────────
-  async function init() {
-    // 1. Get current tab hostname
-    try {
-      await resolveActiveTabContext();
-    } catch (e) { /* default to empty string */ }
-
-    // 2. Load settings
-    const result = await browser.storage.local.get(Object.values(KEYS));
-    const threshold = sanitizeThreshold(result[KEYS.threshold]);
-    const enabled = result[KEYS.enabled] ?? DEFAULTS.enabled;
-    const disabledDomains = result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains;
-    const text = result[KEYS.text] ?? DEFAULTS.text;
-    const siteOverrides = result[KEYS.siteOverrides] ?? {};
-
-    slider.value = threshold;
-    badgeInput.value = threshold;
-    textInput.value = text;
-    syncTextResetState();
-    enabledCheckbox.checked = enabled;
-
-    if (activeHostname) {
-      siteLabel.textContent = msg("enabledOnHost", activeHostname);
-      siteCheckbox.setAttribute("aria-label", msg("enabledOnHost", activeHostname));
-      siteCheckbox.checked = !disabledDomains.includes(activeHostname);
-
-      const siteThreshold = parsePositiveThreshold(siteOverrides[activeHostname]);
-      if (siteThreshold !== null) {
-        overrideCheckbox.checked = true;
-        overrideInput.value = siteThreshold;
-        overrideUnit.textContent = getUnitScreensMsg(siteThreshold);
-        overrideControls.classList.remove("hidden");
-      }
-    } else {
-      siteLabel.textContent = msg("enabledOnSite");
-      siteCheckbox.setAttribute("aria-label", msg("enabledOnSite"));
-      siteCheckbox.disabled = true;
-      overrideCheckbox.disabled = true;
-    }
-
-    // Sync global dim state
-    syncGlobalState();
-
-    updateGauge(threshold);
-    renderOverridesList(siteOverrides);
-  }
-
-  // ── Shared: notify content script of current state ────────────────────────
   async function notifyContentScript() {
     try {
-      if (activeTabId === null) return;
+      if (activeTabId === null) {
+        return;
+      }
 
       const result = await browser.storage.local.get([
-        KEYS.threshold, KEYS.enabled, KEYS.disabledDomains, KEYS.text, KEYS.siteOverrides,
+        KEYS.threshold,
+        KEYS.enabled,
+        KEYS.disabledDomains,
+        KEYS.text,
+        KEYS.siteOverrides,
       ]);
+
       browser.tabs.sendMessage(activeTabId, {
         type: "SET_THRESHOLD",
         value: sanitizeThreshold(result[KEYS.threshold]),
@@ -1208,97 +1319,101 @@ export function mountPopup(platformConfig = {}) {
         text: result[KEYS.text] ?? DEFAULTS.text,
         siteOverrides: result[KEYS.siteOverrides] ?? {},
       }).catch(() => { });
-    } catch (e) { /* popup may close before this completes */ }
-  }
-
-  function syncTextResetState() {
-    textResetButton.disabled = textInput.value === DEFAULTS.text;
-  }
-
-  // ── Visual + auto-save: global toggle ─────────────────────────────────────
-  function syncGlobalState() {
-    const off = !enabledCheckbox.checked;
-    body.style.opacity = off ? "0.35" : "1";
-    body.style.pointerEvents = off ? "none" : "auto";
-    body.style.filter = off ? "grayscale(0.4)" : "none";
-    body.style.transition = "opacity 0.3s, filter 0.3s";
-    siteBar.style.opacity = off ? "0.35" : "1";
-    siteBar.style.pointerEvents = off ? "none" : "auto";
-    siteBar.style.filter = off ? "grayscale(0.4)" : "none";
-    siteBar.style.transition = "opacity 0.3s, filter 0.3s";
-  }
-
-  enabledCheckbox.addEventListener("change", async () => {
-    syncGlobalState();
-    await browser.storage.local.set({ [KEYS.enabled]: enabledCheckbox.checked });
-    notifyContentScript();
-    showStatus(enabledCheckbox.checked ? msg("statusEnabled") : msg("statusDisabled"));
-  });
-
-  // ── Auto-save: per-site toggle ────────────────────────────────────────────
-  siteCheckbox.addEventListener("change", async () => {
-    if (!activeHostname) return;
-    const result = await browser.storage.local.get(KEYS.disabledDomains);
-    let domains = result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains;
-    if (siteCheckbox.checked) {
-      domains = domains.filter(d => d !== activeHostname);
-    } else if (!domains.includes(activeHostname)) {
-      domains.push(activeHostname);
+    } catch (error) {
+      // Popup may close before this completes.
     }
-    await browser.storage.local.set({ [KEYS.disabledDomains]: domains });
-    notifyContentScript();
-    showStatus(siteCheckbox.checked ? msg("statusEnabledOnHost", activeHostname) : msg("statusDisabledOnHost", activeHostname));
-  });
+  }
 
-  // ── Per-site override logic  ─────────────────────────────────────────
-  async function saveSiteOverride() {
-    if (!activeHostname) return;
-    const result = await browser.storage.local.get(KEYS.siteOverrides);
-    const overrides = result[KEYS.siteOverrides] ?? {};
+  function debounce(fn, delay) {
+    let timer;
+    const debounced = (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+    debounced.cancel = () => {
+      clearTimeout(timer);
+      timer = null;
+    };
+    return debounced;
+  }
 
-    if (overrideCheckbox.checked) {
-      const val = sanitizeThreshold(overrideInput.value);
-      overrides[activeHostname] = val;
-    } else {
-      delete overrides[activeHostname];
+  async function saveThreshold(forcedValue) {
+    const value = forcedValue ?? sanitizeThreshold(globalThresholdControl.input.value);
+    setGlobalThresholdValue(value);
+
+    try {
+      await browser.storage.local.set({ [KEYS.threshold]: value });
+      notifyContentScript();
+      showStatus(msg("statusAutoSaved"));
+    } catch (error) {
+      showStatus(msg("statusError"));
+    }
+  }
+
+  async function saveText() {
+    const text = textInput.value.trim() || DEFAULTS.text;
+    textInput.value = text;
+    syncPreviewText();
+    syncTextResetState();
+
+    try {
+      await browser.storage.local.set({ [KEYS.text]: text });
+      notifyContentScript();
+      showStatus(msg("statusAutoSaved"));
+    } catch (error) {
+      showStatus(msg("statusError"));
+    }
+  }
+
+  async function saveSiteOverride(forcedValue) {
+    if (!activeHostname) {
+      return;
     }
 
-    await browser.storage.local.set({ [KEYS.siteOverrides]: overrides });
-    notifyContentScript();
-    renderOverridesList(overrides);
+    try {
+      const result = await browser.storage.local.get(KEYS.siteOverrides);
+      const overrides = result[KEYS.siteOverrides] ?? {};
+
+      if (overrideSwitch.input.checked) {
+        const value = forcedValue ?? sanitizeThreshold(siteThresholdControl.input.value);
+        setSiteThresholdValue(value);
+        overrides[activeHostname] = value;
+      } else {
+        delete overrides[activeHostname];
+      }
+
+      await browser.storage.local.set({ [KEYS.siteOverrides]: overrides });
+      notifyContentScript();
+      renderOverridesList(overrides);
+    } catch (error) {
+      showStatus(msg("statusError"));
+    }
   }
 
-  overrideCheckbox.addEventListener("change", async () => {
-    if (overrideCheckbox.checked) {
-      overrideControls.classList.remove("hidden");
-      showStatus(msg("statusOverrideEnabled", activeHostname));
-    } else {
-      overrideControls.classList.add("hidden");
-      showStatus(msg("statusOverrideDisabled", activeHostname));
-    }
-    await saveSiteOverride();
-  });
-
-  overrideInput.addEventListener("input", () => {
-    const val = parsePositiveThreshold(overrideInput.value);
-    overrideUnit.textContent = getUnitScreensMsg(val ?? DEFAULTS.threshold);
-    debouncedSaveSiteOverride();
-  });
-
+  const debouncedSaveThreshold = debounce(saveThreshold, 600);
+  const debouncedSaveText = debounce(saveText, 800);
   const debouncedSaveSiteOverride = debounce(saveSiteOverride, 600);
 
-  // Management list
-  manageLink.addEventListener("click", () => {
-    const isOpen = !overridesList.classList.toggle("hidden");
-    manageLink.setAttribute("aria-expanded", String(isOpen));
-  });
+  function adjustThresholdValue(currentValue, delta) {
+    const next = normalizeThreshold(currentValue + delta);
+    return next > 0 ? next : currentValue;
+  }
+
+  function syncOverrideVisibility() {
+    siteOverridePanel.hidden = !activeHostname || !overrideSwitch.input.checked;
+  }
+
+  function syncOverridesListVisibility() {
+    overridesList.hidden = !activeHostname || !isOverridesListOpen;
+    manageButton.setAttribute("aria-expanded", String(!overridesList.hidden));
+  }
 
   function renderOverridesList(overrides) {
     overridesList.textContent = "";
     const entries = Object.entries(overrides).filter(([, value]) => parsePositiveThreshold(value) !== null);
 
     if (entries.length === 0) {
-      const empty = el("div", "no-overrides");
+      const empty = el("div", "empty-state");
       empty.textContent = msg("noOverrides");
       overridesList.appendChild(empty);
       return;
@@ -1307,24 +1422,28 @@ export function mountPopup(platformConfig = {}) {
     entries.forEach(([host, rawValue]) => {
       const value = parsePositiveThreshold(rawValue);
       const item = el("div", "override-item");
+      const copy = el("div", "override-item__copy");
+      const hostLine = el("span", "override-item__host");
+      hostLine.textContent = host;
+      const valueLine = el("span", "override-item__value");
+      valueLine.textContent = `${formatThresholdNumber(value)} ${getUnitScreensMsg(value)}`;
+      copy.append(hostLine, valueLine);
 
-      const hostSpan = el("span", "override-item__host");
-      hostSpan.textContent = host;
-
-      const valSpan = el("span", "override-item__value");
-      valSpan.textContent = `${value} ${getUnitScreensMsg(value)}`;
-
-      const removeBtn = el("button", "override-item__remove");
-      removeBtn.textContent = "✕";
-      removeBtn.addEventListener("click", async () => {
+      const removeButton = el("button", "remove-button", {
+        type: "button",
+        "aria-label": msg("ariaRemoveSiteOverride", host),
+      });
+      removeButton.textContent = "✕";
+      removeButton.addEventListener("click", async () => {
         const result = await browser.storage.local.get(KEYS.siteOverrides);
         const current = result[KEYS.siteOverrides] ?? {};
         delete current[host];
         await browser.storage.local.set({ [KEYS.siteOverrides]: current });
 
         if (host === activeHostname) {
-          overrideCheckbox.checked = false;
-          overrideControls.classList.add("hidden");
+          overrideSwitch.input.checked = false;
+          syncOverrideVisibility();
+          setSiteThresholdValue(currentThreshold);
         }
 
         notifyContentScript();
@@ -1332,104 +1451,210 @@ export function mountPopup(platformConfig = {}) {
         showStatus(msg("statusOverrideRemoved", host));
       });
 
-      item.append(hostSpan, valSpan, removeBtn);
+      item.append(copy, removeButton);
       overridesList.appendChild(item);
     });
   }
 
-  init();
-
-  // ── Debounce helper ─────────────────────────────────────────────────────
-  function debounce(fn, delay) {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), delay);
-    };
-  }
-
-  // ── Auto-save: threshold ──────────────────────────────────────────────────
-  async function saveThreshold() {
-    const val = sanitizeThreshold(badgeInput.value);
-    // Normalise the displayed value too
-    badgeInput.value = val;
-    slider.value = val;
-    updateGauge(val);
-    try {
-      await browser.storage.local.set({ [KEYS.threshold]: val });
-      notifyContentScript();
-      showStatus(msg("statusAutoSaved"));
-    } catch (e) {
-      showStatus(msg("statusError"));
-    }
-  }
-
-  const debouncedSaveThreshold = debounce(saveThreshold, 600);
-
-  // Sync: slider → gauge + badge, then debounced save
-  slider.addEventListener("input", () => {
-    const val = sanitizeThreshold(slider.value);
-    badgeInput.value = val;
-    updateGauge(val);
-    debouncedSaveThreshold();
+  globalSwitch.input.addEventListener("change", async () => {
+    syncGlobalState();
+    await browser.storage.local.set({ [KEYS.enabled]: globalSwitch.input.checked });
+    notifyContentScript();
+    showStatus(globalSwitch.input.checked ? msg("statusEnabled") : msg("statusDisabled"));
   });
 
-  // Sync: badge input → gauge + slider, then debounced save
-  badgeInput.addEventListener("input", () => {
-    const val = parsePositiveThreshold(badgeInput.value);
-    if (val !== null) {
-      slider.value = val;
-      updateGauge(val);
-    }
-    debouncedSaveThreshold();
+  globalThresholdControl.decrementButton.addEventListener("click", () => {
+    debouncedSaveThreshold.cancel();
+    const nextValue = adjustThresholdValue(parsePositiveThreshold(globalThresholdControl.input.value) ?? currentThreshold, -THRESHOLD_STEP);
+    setGlobalThresholdValue(nextValue);
+    saveThreshold(nextValue);
   });
 
-  // Save immediately on blur (user tabbed/clicked away)
-  badgeInput.addEventListener("blur", () => saveThreshold());
+  globalThresholdControl.incrementButton.addEventListener("click", () => {
+    debouncedSaveThreshold.cancel();
+    const nextValue = adjustThresholdValue(parsePositiveThreshold(globalThresholdControl.input.value) ?? currentThreshold, THRESHOLD_STEP);
+    setGlobalThresholdValue(nextValue);
+    saveThreshold(nextValue);
+  });
 
-  // ── Auto-save: notification text ────────────────────────────────────────────
-  async function saveText() {
-    const text = textInput.value.trim() || DEFAULTS.text;
-    try {
-      await browser.storage.local.set({ [KEYS.text]: text });
-      syncTextResetState();
-      notifyContentScript();
-      showStatus(msg("statusAutoSaved"));
-    } catch (e) {
-      showStatus(msg("statusError"));
+  globalThresholdControl.input.addEventListener("input", () => {
+    const value = parseLiveThreshold(globalThresholdControl.input.value);
+    if (value !== null) {
+      setGlobalThresholdValue(value, { syncInput: false });
+      debouncedSaveThreshold();
+      return;
     }
-  }
 
-  const debouncedSaveText = debounce(saveText, 800);
+    debouncedSaveThreshold.cancel();
+  });
+
+  globalThresholdControl.input.addEventListener("blur", () => {
+    debouncedSaveThreshold.cancel();
+    saveThreshold();
+  });
+
+  thresholdHelpButton.addEventListener("click", () => {
+    thresholdHelper.hidden = !thresholdHelper.hidden;
+    syncThresholdHelpVisibility();
+  });
 
   textInput.addEventListener("input", () => {
+    syncPreviewText();
     syncTextResetState();
     debouncedSaveText();
   });
-  textInput.addEventListener("blur", () => {
-    textInput.value = textInput.value.trim() || DEFAULTS.text;
-    syncTextResetState();
-    saveText();
-  });
+
+  textInput.addEventListener("blur", () => saveText());
+
   textResetButton.addEventListener("click", async () => {
     textInput.value = DEFAULTS.text;
+    syncPreviewText();
     syncTextResetState();
     await saveText();
   });
 
-  // ── Status ────────────────────────────────────────────────────────────────
-  let statusTimer = null;
+  siteSwitch.input.addEventListener("change", async () => {
+    if (!activeHostname) {
+      return;
+    }
 
-  function showStatus(msg) {
-    statusEl.textContent = msg;
-    statusEl.classList.add("visible");
-    clearTimeout(statusTimer);
-    statusTimer = setTimeout(() => statusEl.classList.remove("visible"), 2200);
+    const result = await browser.storage.local.get(KEYS.disabledDomains);
+    let domains = result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains;
+
+    if (siteSwitch.input.checked) {
+      domains = domains.filter((domain) => domain !== activeHostname);
+    } else if (!domains.includes(activeHostname)) {
+      domains.push(activeHostname);
+    }
+
+    await browser.storage.local.set({ [KEYS.disabledDomains]: domains });
+    notifyContentScript();
+    showStatus(siteSwitch.input.checked ? msg("statusEnabledOnHost", activeHostname) : msg("statusDisabledOnHost", activeHostname));
+  });
+
+  overrideSwitch.input.addEventListener("change", async () => {
+    if (!activeHostname) {
+      return;
+    }
+
+    if (overrideSwitch.input.checked) {
+      const parsedValue = parsePositiveThreshold(siteThresholdControl.input.value);
+      setSiteThresholdValue(parsedValue ?? currentThreshold);
+      showStatus(msg("statusOverrideEnabled", activeHostname));
+    } else {
+      showStatus(msg("statusOverrideDisabled", activeHostname));
+    }
+
+    syncOverrideVisibility();
+    await saveSiteOverride();
+  });
+
+  siteThresholdControl.decrementButton.addEventListener("click", () => {
+    if (!overrideSwitch.input.checked) {
+      return;
+    }
+    debouncedSaveSiteOverride.cancel();
+    const nextValue = adjustThresholdValue(parsePositiveThreshold(siteThresholdControl.input.value) ?? currentSiteThreshold, -THRESHOLD_STEP);
+    setSiteThresholdValue(nextValue);
+    saveSiteOverride(nextValue);
+  });
+
+  siteThresholdControl.incrementButton.addEventListener("click", () => {
+    if (!overrideSwitch.input.checked) {
+      return;
+    }
+    debouncedSaveSiteOverride.cancel();
+    const nextValue = adjustThresholdValue(parsePositiveThreshold(siteThresholdControl.input.value) ?? currentSiteThreshold, THRESHOLD_STEP);
+    setSiteThresholdValue(nextValue);
+    saveSiteOverride(nextValue);
+  });
+
+  siteThresholdControl.input.addEventListener("input", () => {
+    if (!overrideSwitch.input.checked) {
+      return;
+    }
+
+    const value = parseLiveThreshold(siteThresholdControl.input.value);
+    if (value !== null) {
+      setSiteThresholdValue(value, { syncInput: false });
+      debouncedSaveSiteOverride();
+      return;
+    }
+
+    debouncedSaveSiteOverride.cancel();
+  });
+
+  siteThresholdControl.input.addEventListener("blur", () => {
+    if (!overrideSwitch.input.checked) {
+      return;
+    }
+    debouncedSaveSiteOverride.cancel();
+    saveSiteOverride();
+  });
+
+  manageButton.addEventListener("click", () => {
+    if (!activeHostname) {
+      return;
+    }
+
+    isOverridesListOpen = !isOverridesListOpen;
+    syncOverridesListVisibility();
+  });
+
+  async function init() {
+    try {
+      await resolveActiveTabContext();
+    } catch (error) {
+      activeHostname = "";
+    }
+
+    const result = await browser.storage.local.get(Object.values(KEYS));
+    const threshold = sanitizeThreshold(result[KEYS.threshold]);
+    const enabled = result[KEYS.enabled] ?? DEFAULTS.enabled;
+    const disabledDomains = result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains;
+    const text = result[KEYS.text] ?? DEFAULTS.text;
+    const siteOverrides = result[KEYS.siteOverrides] ?? {};
+
+    setGlobalThresholdValue(threshold);
+    textInput.value = text;
+    syncPreviewText();
+    syncTextResetState();
+    globalSwitch.input.checked = enabled;
+    syncGlobalState();
+
+    syncSiteAvailability();
+
+    if (activeHostname) {
+      siteSwitch.input.checked = !disabledDomains.includes(activeHostname);
+      const siteThreshold = parsePositiveThreshold(siteOverrides[activeHostname]);
+
+      if (siteThreshold !== null) {
+        overrideSwitch.input.checked = true;
+        setSiteThresholdValue(siteThreshold);
+      } else {
+        overrideSwitch.input.checked = false;
+        setSiteThresholdValue(threshold);
+      }
+    } else {
+      siteSwitch.input.checked = false;
+      overrideSwitch.input.checked = false;
+      setSiteThresholdValue(threshold);
+    }
+
+    syncOverrideVisibility();
+    renderOverridesList(siteOverrides);
+    syncOverridesListVisibility();
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
-  spawnBubbles();
-  updateGauge(DEFAULTS.threshold);
   syncTextResetState();
+  syncPreviewText();
+  syncThresholdHelpVisibility();
+  setGlobalThresholdValue(DEFAULTS.threshold);
+  setSiteThresholdValue(DEFAULTS.threshold);
+  syncOverrideVisibility();
+  spawnBubbles();
 
+  init().catch((error) => {
+    console.error("Failed to initialize popup", error);
+  });
 }
