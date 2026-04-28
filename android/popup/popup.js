@@ -1037,16 +1037,32 @@
   }
 
   // ── Globals for active tab ────────────────────────────────────────────────
+  let activeTabId = null;
   let activeHostname = "";
+
+  async function resolveActiveTabContext() {
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    const activeTab = tabs[0];
+
+    activeTabId = Number.isInteger(activeTab?.id) ? activeTab.id : null;
+    activeHostname = "";
+
+    if (!activeTab?.url) {
+      return;
+    }
+
+    try {
+      activeHostname = new URL(activeTab.url).hostname;
+    } catch (e) {
+      activeHostname = "";
+    }
+  }
 
   // ── Load settings ─────────────────────────────────────────────────────────
   async function init() {
     // 1. Get current tab hostname
     try {
-      const tabs = await browser.tabs.query({ active: true });
-      if (tabs[0]?.url) {
-        activeHostname = new URL(tabs[0].url).hostname;
-      }
+      await resolveActiveTabContext();
     } catch (e) { /* default to empty string */ }
 
     // 2. Load settings
@@ -1091,20 +1107,19 @@
   // ── Shared: notify content script of current state ────────────────────────
   async function notifyContentScript() {
     try {
-      const tabs = await browser.tabs.query({ active: true });
-      if (tabs[0]?.id) {
-        const result = await browser.storage.local.get([
-          KEYS.threshold, KEYS.enabled, KEYS.disabledDomains, KEYS.text, KEYS.siteOverrides,
-        ]);
-        browser.tabs.sendMessage(tabs[0].id, {
-          type: "SET_THRESHOLD",
-          value: sanitizeThreshold(result[KEYS.threshold]),
-          enabled: result[KEYS.enabled] ?? DEFAULTS.enabled,
-          disabledDomains: result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains,
-          text: result[KEYS.text] ?? DEFAULTS.text,
-          siteOverrides: result[KEYS.siteOverrides] ?? {},
-        }).catch(() => { });
-      }
+      if (activeTabId === null) return;
+
+      const result = await browser.storage.local.get([
+        KEYS.threshold, KEYS.enabled, KEYS.disabledDomains, KEYS.text, KEYS.siteOverrides,
+      ]);
+      browser.tabs.sendMessage(activeTabId, {
+        type: "SET_THRESHOLD",
+        value: sanitizeThreshold(result[KEYS.threshold]),
+        enabled: result[KEYS.enabled] ?? DEFAULTS.enabled,
+        disabledDomains: result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains,
+        text: result[KEYS.text] ?? DEFAULTS.text,
+        siteOverrides: result[KEYS.siteOverrides] ?? {},
+      }).catch(() => { });
     } catch (e) { /* popup may close before this completes */ }
   }
 

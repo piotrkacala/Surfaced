@@ -52,6 +52,24 @@
     return parsePositiveThreshold(siteOverrides[hostname]);
   }
 
+  function applyStoredSettings(result) {
+    if (Object.prototype.hasOwnProperty.call(result, STORAGE_KEY)) {
+      threshold = sanitizeThreshold(result[STORAGE_KEY]);
+    }
+    if (Object.prototype.hasOwnProperty.call(result, TEXT_STORAGE_KEY)) {
+      notificationText = result[TEXT_STORAGE_KEY] ?? DEFAULT_TEXT;
+    }
+    if (Object.prototype.hasOwnProperty.call(result, "scrollNotifierEnabled")) {
+      isGlobalEnabled = result.scrollNotifierEnabled ?? true;
+    }
+    if (Object.prototype.hasOwnProperty.call(result, "scrollNotifierDisabledDomains")) {
+      disabledDomains = result.scrollNotifierDisabledDomains ?? [];
+    }
+    if (Object.prototype.hasOwnProperty.call(result, OVERRIDES_KEY)) {
+      siteOverrides = result[OVERRIDES_KEY] ?? {};
+    }
+  }
+
   function sendBadgeValue(value) {
     const normalizedValue = value >= 1 ? Math.floor(value) : 0;
     if (normalizedValue === lastSentBadgeValue) {
@@ -111,21 +129,38 @@
     "scrollNotifierDisabledDomains",
     OVERRIDES_KEY
   ]).then((result) => {
-    if (result[STORAGE_KEY] !== undefined) {
-      threshold = sanitizeThreshold(result[STORAGE_KEY]);
+    applyStoredSettings(result);
+    evaluateActiveState();
+  });
+
+  browser.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local") {
+      return;
     }
-    if (result[TEXT_STORAGE_KEY] !== undefined) {
-      notificationText = result[TEXT_STORAGE_KEY];
+
+    const nextSettings = {};
+
+    if (changes[STORAGE_KEY]) {
+      nextSettings[STORAGE_KEY] = changes[STORAGE_KEY].newValue;
     }
-    if (result.scrollNotifierEnabled !== undefined) {
-      isGlobalEnabled = result.scrollNotifierEnabled;
+    if (changes[TEXT_STORAGE_KEY]) {
+      nextSettings[TEXT_STORAGE_KEY] = changes[TEXT_STORAGE_KEY].newValue;
     }
-    if (result.scrollNotifierDisabledDomains !== undefined) {
-      disabledDomains = result.scrollNotifierDisabledDomains;
+    if (changes.scrollNotifierEnabled) {
+      nextSettings.scrollNotifierEnabled = changes.scrollNotifierEnabled.newValue;
     }
-    if (result[OVERRIDES_KEY] !== undefined) {
-      siteOverrides = result[OVERRIDES_KEY];
+    if (changes.scrollNotifierDisabledDomains) {
+      nextSettings.scrollNotifierDisabledDomains = changes.scrollNotifierDisabledDomains.newValue;
     }
+    if (changes[OVERRIDES_KEY]) {
+      nextSettings[OVERRIDES_KEY] = changes[OVERRIDES_KEY].newValue;
+    }
+
+    if (Object.keys(nextSettings).length === 0) {
+      return;
+    }
+
+    applyStoredSettings(nextSettings);
     evaluateActiveState();
   });
 
