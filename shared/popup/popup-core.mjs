@@ -1187,6 +1187,10 @@ export function mountPopup(platformConfig = {}) {
       globalThresholdControl.input.value = String(value);
     }
     globalThresholdControl.unit.textContent = getUnitScreensMsg(value);
+
+    if (!overrideSwitch.input.checked) {
+      setSiteThresholdValue(value);
+    }
   }
 
   function setSiteThresholdValue(value, { syncInput = true } = {}) {
@@ -1532,15 +1536,15 @@ export function mountPopup(platformConfig = {}) {
     }
 
     if (overrideSwitch.input.checked) {
-      const parsedValue = parsePositiveThreshold(siteThresholdControl.input.value);
-      setSiteThresholdValue(parsedValue ?? currentThreshold);
+      setSiteThresholdValue(currentThreshold);
       showStatus(msg("statusOverrideEnabled", activeHostname));
     } else {
+      setSiteThresholdValue(currentThreshold);
       showStatus(msg("statusOverrideDisabled", activeHostname));
     }
 
     syncOverrideVisibility();
-    await saveSiteOverride();
+    await saveSiteOverride(overrideSwitch.input.checked ? currentThreshold : undefined);
   });
 
   siteThresholdControl.decrementButton.addEventListener("click", () => {
