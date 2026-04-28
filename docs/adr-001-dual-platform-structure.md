@@ -20,7 +20,7 @@ Three structural options were considered:
 Option 3. Directory layout:
 
 ```
-shared/     content.js, background.js, content.css, _locales/, icons/
+shared/     content.js, background.js, _locales/, icons/
 desktop/    manifest.json, popup/
 android/    manifest.json, popup/
 ```

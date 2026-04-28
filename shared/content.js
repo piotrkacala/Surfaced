@@ -13,6 +13,7 @@
   let notificationText = DEFAULT_TEXT;
   let notificationVisible = false;
   let shadowHost = null;
+  let lastSentBadgeValue = null;
 
   // Depth Zones
   const ZONES = [
@@ -33,6 +34,33 @@
   let lastScrollTop = 0;
   let currentScrollTarget = null;
   let lastUrl = window.location.href;
+
+  function parsePositiveThreshold(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  function sanitizeThreshold(value, fallback = DEFAULT_THRESHOLD_SCREENS) {
+    return parsePositiveThreshold(value) ?? fallback;
+  }
+
+  function getSiteThresholdOverride(hostname) {
+    if (siteOverrides[hostname] === undefined) {
+      return null;
+    }
+
+    return parsePositiveThreshold(siteOverrides[hostname]);
+  }
+
+  function sendBadgeValue(value) {
+    const normalizedValue = value >= 1 ? Math.floor(value) : 0;
+    if (normalizedValue === lastSentBadgeValue) {
+      return;
+    }
+
+    lastSentBadgeValue = normalizedValue;
+    browser.runtime.sendMessage({ type: "SCROLL_DEPTH", value: normalizedValue }).catch(() => { });
+  }
 
   setInterval(() => {
     if (window.location.href !== lastUrl) {
@@ -72,7 +100,7 @@
     dismissedZoneIndex = -1;
     // Calling removeNotification works here due to function hoisting
     removeNotification();
-    browser.runtime.sendMessage({ type: "SCROLL_DEPTH", value: 0 }).catch(() => { });
+    sendBadgeValue(0);
   }
 
   // ── Load threshold and text from storage ──────────────────────────────────
@@ -84,7 +112,7 @@
     OVERRIDES_KEY
   ]).then((result) => {
     if (result[STORAGE_KEY] !== undefined) {
-      threshold = result[STORAGE_KEY];
+      threshold = sanitizeThreshold(result[STORAGE_KEY]);
     }
     if (result[TEXT_STORAGE_KEY] !== undefined) {
       notificationText = result[TEXT_STORAGE_KEY];
@@ -104,7 +132,7 @@
   // ── Listen for updates from popup ─────────────────────────────────────────
   browser.runtime.onMessage.addListener((message) => {
     if (message.type === "SET_THRESHOLD") {
-      threshold = message.value;
+      threshold = sanitizeThreshold(message.value, threshold);
       if (message.text !== undefined) {
         notificationText = message.text;
       }
@@ -128,14 +156,9 @@
     const myHostname = window.location.hostname;
     isEnabledOnSite = isGlobalEnabled && !disabledDomains.includes(myHostname);
 
-    // Apply site override if present
-    if (isEnabledOnSite && siteOverrides[myHostname] !== undefined) {
-      threshold = siteOverrides[myHostname];
-    } else {
-      // Fallback to global threshold
-      browser.storage.local.get(STORAGE_KEY).then(res => {
-        if (res[STORAGE_KEY] !== undefined) threshold = res[STORAGE_KEY];
-      });
+    const siteThreshold = getSiteThresholdOverride(myHostname);
+    if (isEnabledOnSite && siteThreshold !== null) {
+      threshold = siteThreshold;
     }
 
     if (isEnabledOnSite) {
@@ -170,8 +193,6 @@
     // ── Styles ──────────────────────────────────────────────────────────────
     const style = document.createElement("style");
     style.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&family=Space+Mono:wght@700&display=swap');
-
       .notification {
         display: flex;
         align-items: center;
@@ -200,7 +221,7 @@
           0 0 50px ${color}14,
           inset 0 1px 0 ${color}1a;
 
-        font-family: 'Rubik', system-ui, sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         animation: surface-up 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
       }
 
@@ -311,7 +332,7 @@
       }
 
       .notification__sub {
-        font-family: 'Space Mono', monospace;
+        font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
         font-size: 10px;
         color: rgba(200, 234, 247, 0.7);
         letter-spacing: 0.4px;
@@ -524,7 +545,7 @@
 
     // Update the extension badge with current depth only if past threshold
     const badgeValue = isPastThreshold ? scrolledScreens : 0;
-    browser.runtime.sendMessage({ type: "SCROLL_DEPTH", value: badgeValue }).catch(() => { });
+    sendBadgeValue(badgeValue);
 
     // Handle zone visibility and triggering
     if (isPastThreshold) {

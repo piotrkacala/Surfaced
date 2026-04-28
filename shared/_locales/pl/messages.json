@@ -43,12 +43,6 @@
             }
         }
     },
-    "save": {
-        "message": "Zapisz"
-    },
-    "statusSaved": {
-        "message": "Zapisano ✓"
-    },
     "statusAutoSaved": {
         "message": "Zapisano ✓"
     },
@@ -79,9 +73,6 @@
     },
     "ariaThresholdValue": {
         "message": "Wartość progu głębokości"
-    },
-    "ariaThresholdGauge": {
-        "message": "Próg w ekranach"
     },
     "ariaThresholdSlider": {
         "message": "Suwak progu głębokości"

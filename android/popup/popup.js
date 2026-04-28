@@ -26,6 +26,15 @@
     text: msg("defaultNotificationText"),
   };
 
+  function parsePositiveThreshold(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  function sanitizeThreshold(value, fallback = DEFAULTS.threshold) {
+    return parsePositiveThreshold(value) ?? fallback;
+  }
+
   // ── Shadow DOM mount ──────────────────────────────────────────────────────
   const root = document.getElementById("root");
   const shadow = root.attachShadow({ mode: "open" });
@@ -33,8 +42,6 @@
   // ── Styles ────────────────────────────────────────────────────────────────
   const style = document.createElement("style");
   style.textContent = `
-    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
-
     /* ── Tokens ─────────────────────────────────────────────────────────── */
     :host {
       --deep:        #020d1a;
@@ -49,8 +56,8 @@
       --text-dim:    #5a8fae;
       --border:      rgba(0, 212, 255, 0.18);
       --border-dim:  rgba(0, 212, 255, 0.08);
-      --font-ui:     'Rubik', system-ui, sans-serif;
-      --font-mono:   'Space Mono', monospace;
+      --font-ui:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono:   ui-monospace, 'SFMono-Regular', Consolas, monospace;
 
       display: block;
       width: 100%;
@@ -83,7 +90,7 @@
         0 0 40px rgba(0, 212, 255, 0.08),
         inset 0 1px 0 rgba(0, 212, 255, 0.1);
       border-radius: 8px;
-      font-family: 'Rubik', system-ui, sans-serif;
+      font-family: var(--font-ui);
       animation: surface-up 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
     }
 
@@ -534,19 +541,6 @@
       box-shadow: 0 0 8px rgba(0,212,255,0.5);
     }
 
-    /* ── Divider ─────────────────────────────────────────────────────────── */
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
-    }
-
-    /* ── Settings rows ───────────────────────────────────────────────────── */
-    .settings-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
     .setting {
       display: flex;
       align-items: center;
@@ -561,36 +555,6 @@
       letter-spacing: 0.8px;
       color: var(--text-dim);
       white-space: nowrap;
-    }
-
-    /* Toggle pills */
-    .toggle-group { display: flex; gap: 5px; }
-    .toggle-pill input[type="radio"] { display: none; }
-
-    .toggle-pill span {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      padding: 4px 16px;
-      border-radius: 4px;
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      background: rgba(0, 212, 255, 0.08);
-      color: rgba(90, 143, 174, 0.8);
-      font-size: 11px;
-      font-weight: 500;
-      transition: all 0.15s;
-    }
-
-    .toggle-pill input[type="radio"]:checked + span {
-      background: rgba(0, 212, 255, 0.2);
-      border-color: #00d4ff;
-      color: #c8eaf7;
-    }
-
-    .toggle-pill:active span {
-      border-color: rgba(0, 212, 255, 0.25);
-      color: #c8eaf7;
     }
 
     /* Switch */
@@ -947,7 +911,11 @@
   siteConfigTitle.textContent = msg("siteSettings");
 
   const overrideSwitchWrap = el("label", "switch");
-  const overrideCheckbox = el("input", null, { type: "checkbox", id: "siteOverrideEnabled" });
+  const overrideCheckbox = el("input", null, {
+    type: "checkbox",
+    id: "siteOverrideEnabled",
+    "aria-label": msg("siteOverrideEnabled"),
+  });
   const overrideSwitchTrack = el("span", "switch__track");
   const overrideSwitchThumb = el("span", "switch__thumb");
   overrideSwitchTrack.appendChild(overrideSwitchThumb);
@@ -999,7 +967,11 @@
   const siteLabel = el("span", "site-bar__label");
   siteLabel.textContent = msg("enabledOnSite");
   const siteSwitchWrap = el("label", "switch");
-  const siteCheckbox = el("input", null, { type: "checkbox", id: "siteEnabled" });
+  const siteCheckbox = el("input", null, {
+    type: "checkbox",
+    id: "siteEnabled",
+    "aria-label": msg("enabledOnSite"),
+  });
   siteCheckbox.checked = true;
   const siteSwitchTrack = el("span", "switch__track");
   const siteSwitchThumb = el("span", "switch__thumb");
@@ -1079,7 +1051,7 @@
 
     // 2. Load settings
     const result = await browser.storage.local.get(Object.values(KEYS));
-    const threshold = result[KEYS.threshold] ?? DEFAULTS.threshold;
+    const threshold = sanitizeThreshold(result[KEYS.threshold]);
     const enabled = result[KEYS.enabled] ?? DEFAULTS.enabled;
     const disabledDomains = result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains;
     const text = result[KEYS.text] ?? DEFAULTS.text;
@@ -1092,10 +1064,11 @@
 
     if (activeHostname) {
       siteLabel.textContent = msg("enabledOnHost", activeHostname);
+      siteCheckbox.setAttribute("aria-label", msg("enabledOnHost", activeHostname));
       siteCheckbox.checked = !disabledDomains.includes(activeHostname);
 
-      const siteThreshold = siteOverrides[activeHostname];
-      if (siteThreshold !== undefined) {
+      const siteThreshold = parsePositiveThreshold(siteOverrides[activeHostname]);
+      if (siteThreshold !== null) {
         overrideCheckbox.checked = true;
         overrideInput.value = siteThreshold;
         overrideUnit.textContent = getUnitScreensMsg(siteThreshold);
@@ -1103,6 +1076,7 @@
       }
     } else {
       siteLabel.textContent = msg("enabledOnSite");
+      siteCheckbox.setAttribute("aria-label", msg("enabledOnSite"));
       siteCheckbox.disabled = true;
       overrideCheckbox.disabled = true;
     }
@@ -1124,7 +1098,7 @@
         ]);
         browser.tabs.sendMessage(tabs[0].id, {
           type: "SET_THRESHOLD",
-          value: result[KEYS.threshold] ?? DEFAULTS.threshold,
+          value: sanitizeThreshold(result[KEYS.threshold]),
           enabled: result[KEYS.enabled] ?? DEFAULTS.enabled,
           disabledDomains: result[KEYS.disabledDomains] ?? DEFAULTS.disabledDomains,
           text: result[KEYS.text] ?? DEFAULTS.text,
@@ -1176,7 +1150,7 @@
     const overrides = result[KEYS.siteOverrides] ?? {};
 
     if (overrideCheckbox.checked) {
-      const val = Number(overrideInput.value) || DEFAULTS.threshold;
+      const val = sanitizeThreshold(overrideInput.value);
       overrides[activeHostname] = val;
     } else {
       delete overrides[activeHostname];
@@ -1199,8 +1173,8 @@
   });
 
   overrideInput.addEventListener("input", () => {
-    const val = Number(overrideInput.value);
-    overrideUnit.textContent = getUnitScreensMsg(val);
+    const val = parsePositiveThreshold(overrideInput.value);
+    overrideUnit.textContent = getUnitScreensMsg(val ?? DEFAULTS.threshold);
     debouncedSaveSiteOverride();
   });
 
@@ -1212,25 +1186,26 @@
     overridesList.classList.toggle("hidden");
   });
 
-  async function renderOverridesList(overrides) {
+  function renderOverridesList(overrides) {
     overridesList.textContent = "";
-    const hosts = Object.keys(overrides);
+    const entries = Object.entries(overrides).filter(([, value]) => parsePositiveThreshold(value) !== null);
 
-    if (hosts.length === 0) {
+    if (entries.length === 0) {
       const empty = el("div", "no-overrides");
       empty.textContent = msg("noOverrides");
       overridesList.appendChild(empty);
       return;
     }
 
-    hosts.forEach(host => {
+    entries.forEach(([host, rawValue]) => {
+      const value = parsePositiveThreshold(rawValue);
       const item = el("div", "override-item");
 
       const hostSpan = el("span", "override-item__host");
       hostSpan.textContent = host;
 
       const valSpan = el("span", "override-item__value");
-      valSpan.textContent = `${overrides[host]} ${getUnitScreensMsg(overrides[host])}`;
+      valSpan.textContent = `${value} ${getUnitScreensMsg(value)}`;
 
       const removeBtn = el("button", "override-item__remove");
       removeBtn.textContent = "✕";
@@ -1268,7 +1243,7 @@
 
   // ── Auto-save: threshold ──────────────────────────────────────────────────
   async function saveThreshold() {
-    const val = Number(badgeInput.value) || DEFAULTS.threshold;
+    const val = sanitizeThreshold(badgeInput.value);
     // Normalise the displayed value too
     badgeInput.value = val;
     slider.value = val;
@@ -1286,7 +1261,7 @@
 
   // Sync: slider → gauge + badge, then debounced save
   slider.addEventListener("input", () => {
-    const val = Number(slider.value);
+    const val = sanitizeThreshold(slider.value);
     badgeInput.value = val;
     updateGauge(val);
     debouncedSaveThreshold();
@@ -1294,9 +1269,11 @@
 
   // Sync: badge input → gauge + slider, then debounced save
   badgeInput.addEventListener("input", () => {
-    const val = Number(badgeInput.value);
-    slider.value = val;
-    updateGauge(val);
+    const val = parsePositiveThreshold(badgeInput.value);
+    if (val !== null) {
+      slider.value = val;
+      updateGauge(val);
+    }
     debouncedSaveThreshold();
   });
 

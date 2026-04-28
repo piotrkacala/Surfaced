@@ -3,7 +3,7 @@
 
 browser.runtime.onMessage.addListener((message, sender) => {
     if (message.type === "SCROLL_DEPTH" && sender.tab?.id) {
-        // We only show the badge if the user has scrolled more than 0.1 screens
+        // The content script sends an integer depth, or 0 to clear the badge.
         const depth = message.value;
         const text = depth >= 1 ? Math.floor(depth).toString() : "";
 

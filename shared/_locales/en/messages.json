@@ -57,14 +57,6 @@
       }
     }
   },
-  "save": {
-    "message": "Save",
-    "description": "Label for the save button."
-  },
-  "statusSaved": {
-    "message": "Surfaced ✓",
-    "description": "Status message after saving settings."
-  },
   "statusAutoSaved": {
     "message": "Saved ✓",
     "description": "Brief auto-save confirmation shown after debounced saves."
@@ -104,10 +96,6 @@
   "ariaThresholdValue": {
     "message": "Depth threshold value",
     "description": "Aria label for the threshold input in the header badge."
-  },
-  "ariaThresholdGauge": {
-    "message": "Threshold in screens",
-    "description": "Aria label for the gauge threshold input."
   },
   "ariaThresholdSlider": {
     "message": "Depth threshold slider",

@@ -21,6 +21,7 @@ Read these first before making significant changes:
 - `README.md` — current product behavior, UX, and user-facing terminology
 - `docs/adr-001-dual-platform-structure.md` — why shared logic and platform-specific UI are split this way
 - `docs/adr-002-unified-package.md` — why the unified package exists and which manifest is authoritative
+- `docs/adr-003-threshold-value-policy.md` — why thresholds are sanitized but not constrained to the recommended UI range
 - `build.sh` — packaging contract for desktop, Android, and unified builds
 
 ## Commands
@@ -73,7 +74,7 @@ bash -n build.sh
 - Popup changes are split by platform: `desktop/popup/*` and `android/popup/*`. The unified popup entry point is `shared/popup/popup.html` plus `shared/popup/dispatcher.js`.
 - The dispatcher selects `android/popup.html` or `desktop/popup.html` with `browser.runtime.getPlatformInfo()` and `location.replace()`. If popup routing changes, verify unified packaging as well.
 - Popup CSS files are only shell/fallback styling. The actual popup UI is mounted and styled inside Shadow DOM from `popup.js`.
-- Notification host positioning lives in `shared/content.css`; the notification internals are styled inside the closed shadow root created by `shared/content.js`.
+- Notification host positioning and internals are owned directly by `shared/content.js` inside the injected host and closed shadow root.
 - Current persisted settings keys are `scrollNotifierThreshold`, `scrollNotifierText`, `scrollNotifierEnabled`, `scrollNotifierDisabledDomains`, and `scrollNotifierSiteOverrides`.
 - Locales live in `shared/_locales/{en,pl}/messages.json`. Keep English and Polish in sync when changing copy or adding UI strings.
 
