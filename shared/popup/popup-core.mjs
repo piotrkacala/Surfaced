@@ -740,12 +740,6 @@ export function mountPopup(platformConfig = {}) {
       font-weight: 500;
     }
 
-    .section-row__description {
-      color: var(--text-muted);
-      font-size: ${config.isTouch ? "12px" : "11px"};
-      line-height: 1.4;
-    }
-
     .site-note {
       padding: 10px 12px;
       border-radius: 12px;

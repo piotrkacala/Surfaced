@@ -8,9 +8,6 @@
     "actionTitle": {
         "message": "Ustawienia Surfaced"
     },
-    "logoTagline": {
-        "message": "Wynurz się na chwilę"
-    },
     "popupExplainer": {
         "message": "Delikatne przypomnienie, gdy scrollujesz zbyt daleko."
     },
@@ -28,15 +25,6 @@
     },
     "unitScreensOther": {
         "message": "ekranu"
-    },
-    "depthThreshold": {
-        "message": "Próg głębokości"
-    },
-    "depthThresholdHint": {
-        "message": "ostrzeżenie pojawi się tutaj"
-    },
-    "notificationTextLabel": {
-        "message": "Tekst powiadomienia"
     },
     "popupThresholdTitle": {
         "message": "Po ilu ekranach przypomnieć?"
@@ -104,9 +92,6 @@
     "ariaThresholdValue": {
         "message": "Wartość progu pierwszego przypomnienia"
     },
-    "ariaThresholdSlider": {
-        "message": "Suwak progu głębokości"
-    },
     "ariaDecreaseThreshold": {
         "message": "Zmniejsz próg pierwszego przypomnienia"
     },
@@ -143,9 +128,6 @@
     "notificationDeep": {
         "message": "Jesteś tu już od dłuższego czasu. Czas wypłynąć na powierzchnię."
     },
-    "siteSettings": {
-        "message": "Ustawienia strony"
-    },
     "popupSiteTitle": {
         "message": "Ta strona: $HOST$",
         "placeholders": {
@@ -162,9 +144,6 @@
     },
     "popupCurrentSiteUnavailable": {
         "message": "Ustawienia dla tej strony są tutaj niedostępne, bo Surfaced nie może odczytać bieżącego adresu strony."
-    },
-    "siteOverride": {
-        "message": "Własny próg"
     },
     "siteOverrideEnabled": {
         "message": "Użyj innej wartości na tej stronie"

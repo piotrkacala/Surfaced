@@ -11,10 +11,6 @@
     "message": "Surfaced Settings",
     "description": "Tooltip shown when hovering the toolbar icon."
   },
-  "logoTagline": {
-    "message": "Come up for air",
-    "description": "Tagline shown below the extension name in the popup header."
-  },
   "popupExplainer": {
     "message": "A gentle reminder when you scroll too far.",
     "description": "Short explainer sentence shown in the popup header."
@@ -38,18 +34,6 @@
   "unitScreensOther": {
     "message": "screens",
     "description": "Unit label for number of screens scrolled (other)."
-  },
-  "depthThreshold": {
-    "message": "Depth threshold",
-    "description": "Label for the depth threshold gauge section."
-  },
-  "depthThresholdHint": {
-    "message": "surface warning triggers here",
-    "description": "Hint text below the depth threshold label."
-  },
-  "notificationTextLabel": {
-    "message": "Notification text",
-    "description": "Label for the notification text input."
   },
   "popupThresholdTitle": {
     "message": "After how many screens should Surfaced remind you?",
@@ -137,10 +121,6 @@
     "message": "First reminder threshold value",
     "description": "Aria label for the main threshold input."
   },
-  "ariaThresholdSlider": {
-    "message": "Depth threshold slider",
-    "description": "Aria label for the depth threshold slider."
-  },
   "ariaDecreaseThreshold": {
     "message": "Decrease the global reminder threshold",
     "description": "Aria label for the button that decreases the global threshold."
@@ -189,10 +169,6 @@
     "message": "You've been down here a while. Time to surface.",
     "description": "Notification text for the Deep (3x threshold) depth zone."
   },
-  "siteSettings": {
-    "message": "Site settings",
-    "description": "Label for the per-site configuration section."
-  },
   "popupSiteTitle": {
     "message": "This site: $HOST$",
     "description": "Section title for the current site settings block.",
@@ -214,10 +190,6 @@
   "popupCurrentSiteUnavailable": {
     "message": "Site-specific settings are unavailable here because Surfaced could not read the current page address.",
     "description": "Fallback message shown when the popup cannot resolve the current hostname."
-  },
-  "siteOverride": {
-    "message": "Custom threshold",
-    "description": "Label for the site-specific threshold override."
   },
   "siteOverrideEnabled": {
     "message": "Use a different value on this site",
