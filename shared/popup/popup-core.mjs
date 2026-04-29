@@ -115,7 +115,10 @@ export function mountPopup(platformConfig = {}) {
 
       display: block;
       width: 100%;
-      height: 100%;
+      min-height: ${config.isTouch ? "0" : "auto"};
+      height: ${config.isTouch ? "auto" : "100%"};
+      overflow: ${config.isTouch ? "visible" : "hidden"};
+      ${config.isTouch ? "touch-action: pan-y;" : ""}
       color: var(--text);
       font-family: var(--font-ui);
       font-size: ${config.isTouch ? "14px" : "12px"};
@@ -135,11 +138,12 @@ export function mountPopup(platformConfig = {}) {
     .shell {
       position: relative;
       width: 100%;
-      min-height: ${config.isTouch ? "100vh" : "auto"};
+      min-height: ${config.isTouch ? "100dvh" : "auto"};
       height: ${config.isTouch ? "auto" : "100%"};
       display: flex;
       flex-direction: column;
       overflow: ${config.isTouch ? "visible" : "hidden"};
+      ${config.isTouch ? "touch-action: pan-y;" : ""}
       background:
         radial-gradient(circle at top left, rgba(26, 111, 168, 0.16), transparent 28%),
         radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.08), transparent 32%),
@@ -349,6 +353,7 @@ export function mountPopup(platformConfig = {}) {
       z-index: 1;
       flex: ${config.isTouch ? "0 0 auto" : "1 1 auto"};
       overflow-y: ${config.isTouch ? "visible" : "auto"};
+      ${config.isTouch ? "touch-action: pan-y;" : ""}
       padding: ${config.isTouch ? "16px" : "14px"};
       display: flex;
       flex-direction: column;
