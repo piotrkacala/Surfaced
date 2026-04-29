@@ -8,6 +8,8 @@ Works on Firefox for desktop and Firefox for Android.
 
 Surfaced keeps everything local in your browser. No analytics, no account, no remote services.
 
+Install from Firefox Add-ons: https://addons.mozilla.org/firefox/addon/surfaced/
+
 Project source: https://github.com/piotrkacala/Surfaced
 
 Please add bug reports and feature requests as GitHub Issues there.
@@ -35,11 +37,11 @@ It is meant to feel calm, not punitive: a quiet tap on the shoulder when you hav
 
 ## What it looks like
 
-The current accepted listing assets live in [`screenshots/`](/home/k/Projekty/Surfaced/screenshots) and are regenerated from the capture tooling in [`tools/capture/`](/home/k/Projekty/Surfaced/tools/capture).
+The current accepted listing assets live in [`screenshots/`](screenshots/) and are regenerated from the capture tooling in [`tools/capture/`](tools/capture/).
 
 **In-page reminder**
 
-![Surfaced reminder in context](screenshots/amo-s1-desktop-reminder-context.png)
+![Surfaced reminder in context](screenshots/animations/anim-reminder-depth.gif)
 
 **Threshold control**
 
@@ -47,11 +49,11 @@ The current accepted listing assets live in [`screenshots/`](/home/k/Projekty/Su
 
 **Custom reminder preview**
 
-![Surfaced custom reminder preview](screenshots/amo-s3-desktop-custom-preview.png)
+![Surfaced custom reminder preview](screenshots/animations/anim-preview-edit.gif)
 
 **Per-site settings**
 
-![Surfaced per-site settings](screenshots/amo-s4-desktop-site-settings.png)
+![Surfaced per-site settings](screenshots/animations/anim-site-override.gif)
 
 **Android popup**
 
@@ -62,7 +64,7 @@ The current accepted listing assets live in [`screenshots/`](/home/k/Projekty/Su
 ## How it works
 
 **1. Install the extension**  
-Install Surfaced from Firefox Add-ons on desktop or Android.
+Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/) on desktop or Android.
 
 **2. Choose your threshold**  
 Open the Surfaced popup and set the first reminder threshold in screens. The default is **7**. The UI is optimized around a recommended band of **7–14** screens, but custom positive values such as `5.5` or `20` are supported too.
