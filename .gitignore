@@ -3,4 +3,8 @@ claude.md
 CLAUDE.md
 .codex
 
+# Build artifacts
 dist/
+
+# Generated capture output. Promote approved public assets to screenshots/.
+output/

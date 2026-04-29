@@ -1,10 +1,12 @@
-# Surfaced 🌊
+# Surfaced
 
 **Come up for air.**
 
-Surfaced is a Firefox extension that taps you on the shoulder when you've scrolled too far down a page. You set the threshold (say, 7 screens) and when you drift past it, a quiet notification appears at the bottom of the screen. A gentle reminder that you've been in the feed for a while.
+Surfaced is a Firefox extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It tracks cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle notification when you've gone deeper than you meant to.
 
 Works on Firefox for desktop and Firefox for Android.
+
+Surfaced keeps everything local in your browser. No analytics, no account, no remote services.
 
 Project source: https://github.com/piotrkacala/Surfaced
 
@@ -12,79 +14,125 @@ Please add bug reports and feature requests as GitHub Issues there.
 
 ---
 
-## Why?
+## Why Surfaced?
 
-Infinite scroll is designed to be invisible. There's no bottom, no natural stopping point, no sense of how long you've been going. Surfaced puts a marker in the water so you always know how deep you've gone.
+Infinite scroll removes natural stopping points. There is no bottom, no page break, and often no clear sense of how far you have gone. Surfaced adds that missing depth cue without blocking the page or breaking your flow.
+
+It is meant to feel calm, not punitive: a quiet tap on the shoulder when you have drifted farther than intended.
+
+---
+
+## What it does
+
+- Reminds you after a scroll-depth threshold you choose, measured in screens.
+- Shows deeper follow-up reminders at `2×` and `3×` your chosen threshold.
+- Lets you customize the first reminder text and preview it in the popup.
+- Supports per-site disable and per-site threshold overrides.
+- Shows your current depth in the toolbar badge once you are past your threshold.
+- Tracks cumulative scroll distance, which works better on long feeds and many single-page apps than a simple `scrollY` check.
 
 ---
 
 ## What it looks like
 
-![Notification (shallow zone)](screenshots/notification-shallow.png)
+The current accepted listing assets live in [`screenshots/`](/home/k/Projekty/Surfaced/screenshots) and are regenerated from the capture tooling in [`tools/capture/`](/home/k/Projekty/Surfaced/tools/capture).
 
-![Settings popup](screenshots/popup.png)
+**In-page reminder**
+
+![Surfaced reminder in context](screenshots/amo-s1-desktop-reminder-context.png)
+
+**Threshold control**
+
+![Surfaced desktop threshold control](screenshots/amo-s2-desktop-threshold-control.png)
+
+**Custom reminder preview**
+
+![Surfaced custom reminder preview](screenshots/amo-s3-desktop-custom-preview.png)
+
+**Per-site settings**
+
+![Surfaced per-site settings](screenshots/amo-s4-desktop-site-settings.png)
+
+**Android popup**
+
+![Surfaced Android popup](screenshots/amo-s5-android-popup.png)
 
 ---
 
-## How to use it
+## How it works
 
-**1. Install the extension**
-Head to the Firefox Add-ons page and click **Add to Firefox** (or **Add to Firefox for Android**).
+**1. Install the extension**  
+Install Surfaced from Firefox Add-ons on desktop or Android.
 
-**2. Set your threshold**
-Click the Surfaced icon in your toolbar. Use the depth gauge or type a number directly into the badge in the top-right of the popup. The default is **7 screens** (seven full screen-heights past the top). Settings save automatically as you adjust them.
+**2. Choose your threshold**  
+Open the Surfaced popup and set the first reminder threshold in screens. The default is **7**. The UI is optimized around a recommended band of **7–14** screens, but custom positive values such as `5.5` or `20` are supported too.
 
-**3. Browse normally**
-Surfaced runs quietly in the background. When you scroll past your threshold on any page, a notification slides up from the bottom of the screen.
+**3. Browse normally**  
+Surfaced runs quietly in the background. When you pass your threshold, a notification appears at the bottom of the page.
 
-**4. Depth zones**
-The further you scroll, the more urgent the notification becomes. There are three zones, each with a distinct color and message:
+**4. Go deeper, get stronger reminders**  
+There are three depth zones:
 
 | Zone | Trigger | Color |
 |---|---|---|
-| Shallow | 1× your threshold | Cyan |
-| Mid | 2× your threshold | Amber |
-| Deep | 3× your threshold | Coral |
+| Shallow | `1×` your threshold | Cyan |
+| Mid | `2×` your threshold | Amber |
+| Deep | `3×` your threshold | Coral |
 
-**5. Dismiss it**
-Hit **✕** on the notification to dismiss it for that zone. Scroll even deeper and the next zone will trigger. Scroll back up above your threshold and the notification clears automatically.
+**5. Dismiss or keep scrolling**  
+Dismiss the current reminder with `✕`. If you scroll deeper, the next zone can still trigger. If you come back up below the threshold, the reminder clears and the cycle resets.
 
-**6. Watch your depth**
-While scrolling, the toolbar icon badge shows exactly how many screens deep into the page you are.
+**6. Check the badge when you're deep**  
+Once you are past your threshold, the toolbar badge shows your current depth as an integer number of screens.
 
 ---
 
-## Settings
+## Settings overview
 
 | Setting | What it does |
 |---|---|
-| **Enable** (top-right toggle) | Master on/off switch. Disables the extension entirely without uninstalling it. |
-| **Enabled on this site** (below header) | Disables Surfaced just for the site you're currently on. |
-| **Depth threshold** | How many screens deep before the first notification. Range: 7–14 screens. |
-| **Notification text** | Customise the message shown at the shallow zone. The mid and deep zone messages are fixed. |
-| **Site threshold override** | Set a different threshold for the current site, independent of the global setting. Toggle the switch in the "Site settings" section to enable it. |
+| **Enabled** | Master on/off switch for Surfaced. |
+| **Reminder threshold** | Sets when the first reminder appears. Defaults to `7`. Supports any finite positive value. |
+| **First reminder text** | Customizes the shallow-zone reminder. Mid and deep reminder text stays fixed. |
+| **Enabled on this site** | Turns Surfaced off only for the current site. |
+| **Use a different value on this site** | Applies a site-specific threshold override for the current host. |
+| **Manage site settings** | Opens the saved per-site settings list so you can review or remove overrides. |
+
+---
+
+## Privacy
+
+Surfaced is intentionally simple and local-first:
+
+- no analytics
+- no remote APIs
+- no account
+- no synced backend
+- settings stored only in `browser.storage.local`
+
+Nothing leaves your browser.
 
 ---
 
 ## FAQ
 
-**What's a "screen"?**
-One screen equals one full height of your browser window. A threshold of 7 means you've scrolled down a distance equal to seven times the visible area.
+**What is a "screen"?**  
+One screen equals one full height of the visible page area. A threshold of `7` means a scroll distance equal to seven visible screen-heights.
 
-**Will it slow down my browser?**
-No. The scroll listener is throttled and passive, so it has no meaningful impact on performance.
+**Does Surfaced block websites or stop scrolling?**  
+No. Surfaced is reminder-first, not blocker-first. It adds awareness without locking the interface.
 
-**Does it track my browsing?**
-Absolutely not. Surfaced has no network access and stores all settings locally on your device. Nothing ever leaves your browser.
+**Will it slow down my browser?**  
+No meaningful impact is expected. The scroll listener is passive and throttled.
 
-**It didn't show up on a page I expected.**
-Some pages use custom scroll containers or virtual lists (common in single-page apps). Surfaced uses a cumulative scroll distance approach to handle these better than a simple `scrollY` check, but some edge cases may still slip through.
+**Why did it not show up on a page I expected?**  
+Some sites use unusual virtual lists, custom scroll containers, or aggressive UI updates. Surfaced handles many of these better than a naive page-position check because it tracks cumulative scroll distance, but some edge cases may still slip through.
 
-**Is it available in other languages?**
-Yes. English and Polish are supported natively, and the extension responds to your browser's language setting automatically.
+**What happens on single-page apps or URL changes without a full reload?**  
+Surfaced detects many in-app navigations and resets scroll tracking when you move to a new view, so the threshold applies fresh on the next page state.
 
-**What happens when the page URL changes without a full reload?**
-Surfaced detects single-page app navigation and resets its scroll tracking when you move to a new view, so the threshold applies fresh on each page you visit.
+**Is it available in other languages?**  
+Yes. English and Polish are supported, and Surfaced follows your browser language.
 
 ---
 

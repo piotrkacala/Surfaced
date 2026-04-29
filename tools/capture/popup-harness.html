@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surfaced Popup Harness</title>
+  <link rel="stylesheet" href="./popup-harness.css" />
+</head>
+<body>
+  <main class="stage">
+    <section class="stage__copy" id="copyPanel">
+      <div class="stage__eyebrow" id="copyEyebrow"></div>
+      <h1 class="stage__title" id="copyTitle"></h1>
+      <p class="stage__subtitle" id="copySubtitle"></p>
+    </section>
+    <section class="stage__product">
+      <div class="popup-shell" id="popupShell">
+        <div class="popup-shell__screen" id="popupScreen">
+          <div id="root"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./popup-harness.mjs"></script>
+</body>
+</html>
