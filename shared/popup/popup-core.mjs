@@ -94,6 +94,7 @@ export function mountPopup(platformConfig = {}) {
   const style = document.createElement("style");
   style.textContent = `
     :host {
+      box-sizing: border-box;
       --deep: #020d1a;
       --mid: #041628;
       --panel: rgba(4, 24, 46, 0.9);
@@ -121,6 +122,12 @@ export function mountPopup(platformConfig = {}) {
       -webkit-font-smoothing: antialiased;
     }
 
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
     [hidden] {
       display: none !important;
     }
@@ -128,10 +135,11 @@ export function mountPopup(platformConfig = {}) {
     .shell {
       position: relative;
       width: 100%;
-      height: 100%;
+      min-height: ${config.isTouch ? "100vh" : "auto"};
+      height: ${config.isTouch ? "auto" : "100%"};
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow: ${config.isTouch ? "visible" : "hidden"};
       background:
         radial-gradient(circle at top left, rgba(26, 111, 168, 0.16), transparent 28%),
         radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.08), transparent 32%),
@@ -339,8 +347,8 @@ export function mountPopup(platformConfig = {}) {
     .content {
       position: relative;
       z-index: 1;
-      flex: 1;
-      overflow-y: auto;
+      flex: ${config.isTouch ? "0 0 auto" : "1 1 auto"};
+      overflow-y: ${config.isTouch ? "visible" : "auto"};
       padding: ${config.isTouch ? "16px" : "14px"};
       display: flex;
       flex-direction: column;
