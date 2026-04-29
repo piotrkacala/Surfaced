@@ -1068,11 +1068,11 @@ export function mountPopup(platformConfig = {}) {
   const textSection = el("section", "section");
   const textHeader = el("div", "section__header");
   const textHeaderRow = el("div", "section__header-row");
-  const textTitle = el("h2", "section__title");
+  const textTitle = el("h2", "section__title", { id: "notificationTextLabel" });
   textTitle.textContent = msg("popupNotificationTextTitle");
   const textResetButton = el("button", "ghost-button", { type: "button" });
   textResetButton.textContent = msg("notificationTextReset");
-  const textDescription = el("p", "section__description");
+  const textDescription = el("p", "section__description", { id: "notificationTextHint" });
   textDescription.textContent = msg("popupNotificationTextHint");
   textHeaderRow.append(textTitle, textResetButton);
   textHeader.append(textHeaderRow, textDescription);
@@ -1081,6 +1081,8 @@ export function mountPopup(platformConfig = {}) {
     type: "text",
     id: "notificationText",
     placeholder: DEFAULTS.text,
+    "aria-labelledby": "notificationTextLabel",
+    "aria-describedby": "notificationTextHint",
   });
 
   const previewBlock = el("div", "preview-block");

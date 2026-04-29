@@ -9,6 +9,7 @@
   const NOTIFICATION_ID = "surfaced-notification-host";
 
   // ── State ─────────────────────────────────────────────────────────────────
+  let globalThreshold = DEFAULT_THRESHOLD_SCREENS;
   let threshold = DEFAULT_THRESHOLD_SCREENS;
   let notificationText = DEFAULT_TEXT;
   let notificationVisible = false;
@@ -54,7 +55,7 @@
 
   function applyStoredSettings(result) {
     if (Object.prototype.hasOwnProperty.call(result, STORAGE_KEY)) {
-      threshold = sanitizeThreshold(result[STORAGE_KEY]);
+      globalThreshold = sanitizeThreshold(result[STORAGE_KEY]);
     }
     if (Object.prototype.hasOwnProperty.call(result, TEXT_STORAGE_KEY)) {
       notificationText = result[TEXT_STORAGE_KEY] ?? DEFAULT_TEXT;
@@ -167,7 +168,7 @@
   // ── Listen for updates from popup ─────────────────────────────────────────
   browser.runtime.onMessage.addListener((message) => {
     if (message.type === "SET_THRESHOLD") {
-      threshold = sanitizeThreshold(message.value, threshold);
+      globalThreshold = sanitizeThreshold(message.value, globalThreshold);
       if (message.text !== undefined) {
         notificationText = message.text;
       }
@@ -192,9 +193,7 @@
     isEnabledOnSite = isGlobalEnabled && !disabledDomains.includes(myHostname);
 
     const siteThreshold = getSiteThresholdOverride(myHostname);
-    if (isEnabledOnSite && siteThreshold !== null) {
-      threshold = siteThreshold;
-    }
+    threshold = isEnabledOnSite && siteThreshold !== null ? siteThreshold : globalThreshold;
 
     if (isEnabledOnSite) {
       handleScroll(null);
