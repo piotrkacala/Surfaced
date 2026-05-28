@@ -19,9 +19,15 @@ build_platform() {
   tmpdir=$(mktemp -d)
 
   cp -r shared/. "$tmpdir/"
+  if [[ "$platform" == "chrome" ]]; then
+    mkdir -p "$tmpdir/popup"
+    cp -r desktop/popup/. "$tmpdir/popup/"
+  fi
   cp -r "$platform/." "$tmpdir/"
+  rm -f "$tmpdir/popup/dispatcher.js"
 
   mkdir -p dist
+  rm -f "$output"
   (cd "$tmpdir" && zip -qr "$OLDPWD/$output" . -x "*.DS_Store" -x "__MACOSX/*")
   rm -rf "$tmpdir"
 
@@ -47,6 +53,7 @@ build_unified() {
   cp -r android/popup/. "$tmpdir/popup/android/"
 
   mkdir -p dist
+  rm -f "$output"
   (cd "$tmpdir" && zip -qr "$OLDPWD/$output" . -x "*.DS_Store" -x "__MACOSX/*")
   rm -rf "$tmpdir"
 
@@ -54,7 +61,7 @@ build_unified() {
 }
 
 case "$PLATFORM" in
-  desktop|android)
+  desktop|android|chrome)
     build_platform "$PLATFORM"
     ;;
   unified)
@@ -63,10 +70,11 @@ case "$PLATFORM" in
   all)
     build_platform desktop
     build_platform android
+    build_platform chrome
     build_unified
     ;;
   *)
-    echo "Usage: ./build.sh [desktop|android|unified|all]" >&2
+    echo "Usage: ./build.sh [desktop|android|chrome|unified|all]" >&2
     exit 1
     ;;
 esac

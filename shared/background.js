@@ -1,6 +1,10 @@
 // ── Background Script ───────────────────────────────────────────────────────
 // Receives scroll depth updates from content scripts and updates the toolbar badge.
 
+if (typeof browser === "undefined" && typeof importScripts === "function") {
+    importScripts("extension-api.js");
+}
+
 browser.runtime.onMessage.addListener((message, sender) => {
     if (message.type === "SCROLL_DEPTH" && sender.tab?.id) {
         // The content script sends an integer depth, or 0 to clear the badge.

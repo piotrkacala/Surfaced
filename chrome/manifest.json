@@ -4,6 +4,7 @@
   "version": "1.1.4",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
+  "minimum_chrome_version": "88",
   "icons": {
     "48": "icons/icon-48.png",
     "96": "icons/icon-96.png"
@@ -16,10 +17,7 @@
     "default_title": "__MSG_actionTitle__"
   },
   "background": {
-    "scripts": [
-      "extension-api.js",
-      "background.js"
-    ]
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
@@ -39,17 +37,5 @@
   ],
   "host_permissions": [
     "<all_urls>"
-  ],
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "oakc888md@mozmail.com",
-      "strict_min_version": "109.0",
-      "data_collection_permissions": {
-        "required": ["none"]
-      }
-    },
-    "gecko_android": {
-      "strict_min_version": "120.0"
-    }
-  }
+  ]
 }

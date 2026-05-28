@@ -17,6 +17,7 @@
   },
   "background": {
     "scripts": [
+      "extension-api.js",
       "background.js"
     ]
   },
@@ -26,6 +27,7 @@
         "<all_urls>"
       ],
       "js": [
+        "extension-api.js",
         "content.js"
       ],
       "run_at": "document_idle"

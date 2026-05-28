@@ -2,13 +2,15 @@
 
 **Come up for air.**
 
-Surfaced is a Firefox extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It tracks cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle notification when you've gone deeper than you meant to.
+Surfaced is a browser extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It tracks cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle notification when you've gone deeper than you meant to.
 
-Works on Firefox for desktop and Firefox for Android.
+Works on Firefox for desktop, Firefox for Android, and Chrome desktop.
 
 Surfaced keeps everything local in your browser. No analytics, no account, no remote services.
 
 Install from Firefox Add-ons: https://addons.mozilla.org/firefox/addon/surfaced/
+
+Chrome desktop builds can be generated from source with `./build.sh chrome`. A Chrome Web Store listing is not published yet.
 
 Project source: https://github.com/piotrkacala/Surfaced
 
@@ -64,7 +66,7 @@ The current accepted listing assets live in [`screenshots/`](screenshots/) and a
 ## How it works
 
 **1. Install the extension**  
-Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/) on desktop or Android.
+Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/) on Firefox desktop or Android. For Chrome desktop, build the Chrome package from source until a store listing exists.
 
 **2. Choose your threshold**  
 Open the Surfaced popup and set the first reminder threshold in screens. The default is **7**. The UI is optimized around a recommended band of **7–14** screens, but custom positive values such as `5.5` or `20` are supported too.
