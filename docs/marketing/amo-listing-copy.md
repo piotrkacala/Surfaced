@@ -1,47 +1,60 @@
 # AMO Listing Copy
 
-**Status:** Draft accepted for manual publishing on AMO  
-**Last updated:** 2026-04-29
+**Status:** Draft for manual update in AMO  
+**Last updated:** 2026-05-15
 
-This file is the canonical copy source for the Firefox Add-ons listing.
+This file contains ready-to-paste listing copy for Firefox Add-ons (AMO).
+
+Notes:
+
+- AMO supports separate translated `summary` and `description` fields.
+- The AMO `description` field supports Markdown, so the long descriptions below are formatted accordingly.
+- The copy below is intentionally concise and should fit comfortably even if AMO UI constraints change.
 
 ## English
 
 ### Summary
 
-Gentle scroll-depth reminders for Firefox, with private local-only settings.
+Endless-scroll reminders for Firefox. Track scroll depth and stay in control on desktop and Android.
 
 ### Description
 
 **Come up for air.**
 
-Surfaced is a Firefox extension for people who want a gentle reminder before endless scrolling turns into mindless drifting.
+You opened a feed for a quick check. A few minutes later, you are 20 screens deep.
 
-It tracks cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle reminder when you've gone deeper than you meant to.
+Surfaced is a private Firefox extension that helps you notice endless scrolling before it turns into doomscrolling. It tracks cumulative scroll depth and shows a gentle reminder when you have gone farther than you meant to.
+
+**Where it helps**
+
+- Social feeds and infinite-scroll timelines
+- News sites with endless recommendations
+- Forums, long threads, and comment sections
+- Single-page apps with no natural stopping point
 
 **What Surfaced does**
 
-- Reminds you after a scroll-depth threshold you choose, measured in screens
-- Shows stronger follow-up reminders at `2×` and `3×` your chosen threshold
-- Lets you customize the first reminder text and preview it in the popup
+- Lets you choose the first reminder threshold in screens
+- Shows follow-up reminders at `2×` and `3×` your threshold
+- Lets you customize the first reminder text
 - Supports per-site disable and per-site threshold overrides
-- Shows your current depth in the toolbar badge once you are past your threshold
+- Shows your current depth in the toolbar badge after you pass the threshold
+- Works on Firefox for desktop and Firefox for Android
 
 **Why it feels different**
 
-Surfaced is reminder-first, not blocker-first. It does not lock the page or interrupt your browsing flow. It adds a missing depth cue and helps you notice when you have drifted farther than intended.
+Surfaced is reminder-first, not blocker-first. It does not lock pages, force timers, or shame you for browsing. It adds a calm scroll-depth cue so you can notice the moment and decide what to do next.
 
-It also tracks cumulative scroll distance, which makes it more useful on long feeds and many single-page apps than a simple `scrollY` check.
+Because it tracks cumulative scroll distance, Surfaced is more useful on infinite feeds and many single-page apps than a simple page-position check.
 
 **Private by design**
 
 - No analytics
 - No account
 - No remote services
-- No synced backend
-- Settings stored only in `browser.storage.local`
+- No data sent anywhere
 
-Everything stays in your browser.
+All settings stay in your browser in `browser.storage.local`.
 
 Available in English and Polish.
 
@@ -49,38 +62,45 @@ Available in English and Polish.
 
 ### Summary
 
-Delikatne przypomnienia o głębokości scrollowania w Firefoksie, w pełni lokalnie.
+Przypomnienia przy endless scrollu w Firefoksie. Kontroluj głębokość przewijania na desktopie i Androidzie.
 
 ### Description
 
 **Złap oddech.**
 
-Surfaced to rozszerzenie do Firefoksa dla osób, które chcą dostać delikatne przypomnienie, zanim endless scroll zamieni się w bezwładne przewijanie.
+Wchodzisz do feedu tylko na chwilę. Kilka minut później jesteś 20 ekranów niżej.
 
-Rozszerzenie śledzi skumulowaną głębokość scrollowania na długich stronach i w interfejsach przypominających feed, a potem pokazuje subtelne przypomnienie, gdy zejdziesz głębiej, niż planowałeś.
+Surfaced to prywatne rozszerzenie do Firefoksa, które pomaga zauważyć moment, w którym endless scroll zamienia się w doomscrolling. Śledzi skumulowaną głębokość przewijania i pokazuje delikatne przypomnienie, gdy zjedziesz dalej, niż planowałeś.
+
+**Gdzie pomaga**
+
+- Feedy społecznościowe i strony z nieskończonym przewijaniem
+- Serwisy newsowe z niekończącymi się rekomendacjami
+- Fora, długie wątki i sekcje komentarzy
+- Aplikacje single-page bez naturalnego punktu zatrzymania
 
 **Co robi Surfaced**
 
-- Przypomina po przekroczeniu wybranego progu głębokości scrollowania, mierzonego w ekranach
-- Pokazuje mocniejsze kolejne przypomnienia przy `2×` i `3×` wybranego progu
-- Pozwala zmienić tekst pierwszego przypomnienia i podejrzeć go w popupie
-- Obsługuje wyłączenie na wybranych stronach i progi ustawiane per site
-- Pokazuje aktualną głębokość na badge'u, gdy jesteś już po przekroczeniu progu
+- Pozwala ustawić próg pierwszego przypomnienia w ekranach
+- Pokazuje kolejne przypomnienia przy `2×` i `3×` ustawionego progu
+- Pozwala zmienić treść pierwszego przypomnienia
+- Obsługuje wyłączenie na konkretnych stronach i osobne progi dla wybranych witryn
+- Pokazuje aktualną głębokość na ikonie dodatku po przekroczeniu progu
+- Działa w Firefoksie na desktopie i Androidzie
 
 **Dlaczego działa inaczej**
 
-Surfaced jest reminder-first, a nie blocker-first. Nie blokuje strony i nie rozbija flow przeglądania. Dodaje brakującą informację o głębokości i pomaga zauważyć moment, w którym odpłynąłeś dalej, niż chciałeś.
+Surfaced jest reminder-first, a nie blocker-first. Nie blokuje stron, nie narzuca timerów i nie zawstydza Cię za przeglądanie. Dodaje spokojny sygnał głębokości, żebyś mógł zauważyć ten moment i sam zdecydować, co dalej.
 
-Śledzi też skumulowany dystans scrollowania, więc działa lepiej na długich feedach i wielu single-page appach niż prosty pomiar `scrollY`.
+Ponieważ śledzi skumulowany dystans przewijania, lepiej sprawdza się na nieskończonych feedach i wielu aplikacjach single-page niż prosty pomiar pozycji strony.
 
 **Prywatność by design**
 
-- Brak analityki
-- Brak konta
-- Brak zdalnych usług
-- Brak backendu do synchronizacji
-- Ustawienia zapisywane wyłącznie w `browser.storage.local`
+- Bez analityki
+- Bez konta
+- Bez zdalnych usług
+- Bez wysyłania danych gdziekolwiek
 
-Wszystko zostaje w Twojej przeglądarce.
+Wszystkie ustawienia zostają lokalnie w Twojej przeglądarce w `browser.storage.local`.
 
 Dostępne po angielsku i po polsku.
