@@ -38,69 +38,83 @@ English
 
 ### Detailed Description: English
 
-**Come up for air.**
+Come up for air.
 
-Surfaced is a browser extension for people who want a gentle reminder before endless scrolling turns into mindless drifting.
+You opened a long page for a quick check. A few minutes later, you are 20 screens deep.
 
-It tracks cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle reminder when you've gone deeper than you meant to.
+Surfaced is a private browser extension that helps you notice endless scrolling before it turns into doomscrolling. It tracks cumulative scroll depth and shows a gentle reminder when you have gone farther than you meant to.
 
-**What Surfaced does**
+Where it helps
 
-- Reminds you after a scroll-depth threshold you choose, measured in screens
-- Shows follow-up reminders at `2x` and `3x` your chosen threshold
-- Lets you customize the first reminder text and preview it in the popup
+- Social feeds and infinite-scroll timelines
+- News sites with endless recommendations
+- Forums, long threads, and comment sections
+- Single-page apps with no natural stopping point
+
+What Surfaced does
+
+- Lets you choose the first reminder threshold in screens
+- Shows follow-up reminders at 2× and 3× your threshold
+- Lets you customize the first reminder text
 - Supports per-site disable and per-site threshold overrides
-- Shows your current depth in the toolbar badge once you are past your threshold
+- Shows your current depth in the toolbar badge after you pass the threshold
+- Works on desktop and Android
 
-**Why it feels different**
+Why it feels different
 
-Surfaced is reminder-first, not blocker-first. It does not lock the page, force timers, or interrupt your browsing flow. It adds a missing depth cue and helps you notice when you have drifted farther than intended.
+Surfaced is built around reminders, not blocks. It does not lock pages, force timers, or shame you for browsing. It adds a calm scroll-depth cue so you can notice the moment and decide what to do next.
 
-Because it tracks cumulative scroll distance, Surfaced is more useful on long feeds and many single-page apps than a simple page-position check.
+Because it tracks cumulative scroll distance, Surfaced is more useful on infinite feeds and many single-page apps than a simple page-position check.
 
-**Private by design**
+Private by design
 
 - No analytics
 - No account
 - No remote services
-- No synced backend
-- Settings stored only in local browser extension storage
+- No data sent anywhere
 
-Everything stays in your browser.
+All settings stay in your browser in browser.storage.local.
 
 Available in English and Polish.
 
 ### Detailed Description: Polish
 
-**Złap oddech.**
+Złap oddech.
 
-Surfaced to rozszerzenie przeglądarki dla osób, które chcą dostać delikatne przypomnienie, zanim endless scroll zamieni się w bezwładne przewijanie.
+Wchodzisz na długą stronę tylko na chwilę. Kilka minut później jesteś 20 ekranów niżej.
 
-Rozszerzenie śledzi skumulowaną głębokość scrollowania na długich stronach i w interfejsach przypominających feed, a potem pokazuje subtelne przypomnienie, gdy zejdziesz głębiej, niż planowałeś.
+Surfaced to prywatne rozszerzenie przeglądarki, które pomaga zauważyć moment, w którym nieskończone przewijanie zmienia się w bezwładne przeglądanie. Śledzi skumulowaną głębokość przewijania i pokazuje delikatne przypomnienie, gdy zjedziesz dalej, niż planowałeś.
 
-**Co robi Surfaced**
+Gdzie pomaga
 
-- Przypomina po przekroczeniu wybranego progu głębokości scrollowania, mierzonego w ekranach
-- Pokazuje kolejne przypomnienia przy `2x` i `3x` wybranego progu
-- Pozwala zmienić tekst pierwszego przypomnienia i podejrzeć go w popupie
-- Obsługuje wyłączenie na wybranych stronach i progi ustawiane per site
-- Pokazuje aktualną głębokość na badge'u, gdy jesteś już po przekroczeniu progu
+- Strony społecznościowe i kanały z nieskończonym przewijaniem
+- Serwisy informacyjne z niekończącymi się rekomendacjami
+- Fora, długie wątki i sekcje komentarzy
+- Aplikacje jednostronicowe bez naturalnego punktu zatrzymania
 
-**Dlaczego działa inaczej**
+Co robi Surfaced
 
-Surfaced jest reminder-first, a nie blocker-first. Nie blokuje strony, nie narzuca timerów i nie rozbija flow przeglądania. Dodaje brakującą informację o głębokości i pomaga zauważyć moment, w którym odpłynąłeś dalej, niż chciałeś.
+- Pozwala ustawić próg pierwszego przypomnienia w ekranach
+- Pokazuje kolejne przypomnienia przy 2× i 3× ustawionego progu
+- Pozwala zmienić treść pierwszego przypomnienia
+- Obsługuje wyłączenie na konkretnych stronach i osobne progi dla wybranych witryn
+- Pokazuje aktualną głębokość na ikonie dodatku po przekroczeniu progu
+- Działa na desktopie i Androidzie
 
-Ponieważ śledzi skumulowany dystans scrollowania, działa lepiej na długich feedach i wielu single-page appach niż prosty pomiar pozycji strony.
+Dlaczego działa inaczej
 
-**Prywatność by design**
+Surfaced opiera się na przypomnieniach, a nie blokadach. Nie blokuje stron, nie narzuca minutników i nie zawstydza Cię za przeglądanie. Dodaje spokojny sygnał głębokości, żebyś mógł zauważyć ten moment i sam zdecydować, co dalej.
 
-- Brak analityki
-- Brak konta
-- Brak zdalnych usług
-- Brak backendu do synchronizacji
-- Ustawienia zapisywane wyłącznie lokalnie w pamięci rozszerzenia
+Ponieważ śledzi skumulowany dystans przewijania, lepiej sprawdza się na nieskończonych kanałach i wielu aplikacjach jednostronicowych niż prosty pomiar pozycji strony.
 
-Wszystko zostaje w Twojej przeglądarce.
+Prywatność z założenia
+
+- Bez analityki
+- Bez konta
+- Bez zdalnych usług
+- Bez wysyłania danych gdziekolwiek
+
+Wszystkie ustawienia zostają lokalnie w Twojej przeglądarce w browser.storage.local.
 
 Dostępne po angielsku i po polsku.
 

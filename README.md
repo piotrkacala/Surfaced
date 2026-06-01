@@ -8,9 +8,11 @@ Works on Firefox for desktop, Firefox for Android, and Chrome desktop.
 
 Surfaced keeps everything local in your browser. No analytics, no account, no remote services.
 
-Install from Firefox Add-ons: https://addons.mozilla.org/firefox/addon/surfaced/
+Firefox: install from Firefox Add-ons: https://addons.mozilla.org/firefox/addon/surfaced/
 
-Chrome desktop builds can be generated from source with `./build.sh chrome`. A Chrome Web Store listing is not published yet.
+Chrome desktop: install from Chrome Web Store: https://chrome.google.com/webstore/detail/bpbidikjpaffmpcbincadomhbfnoaaem
+
+Chrome desktop builds can also be generated from source with `./build.sh chrome`.
 
 Project source: https://github.com/piotrkacala/Surfaced
 
@@ -66,7 +68,7 @@ The current accepted listing assets live in [`screenshots/`](screenshots/) and a
 ## How it works
 
 **1. Install the extension**  
-Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/) on Firefox desktop or Android. For Chrome desktop, build the Chrome package from source until a store listing exists.
+Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/) on Firefox desktop or Android. On Chrome desktop, install it from the Chrome Web Store placeholder link above or build the separate Chrome package from source until the listing is published.
 
 **2. Choose your threshold**  
 Open the Surfaced popup and set the first reminder threshold in screens. The default is **7**. The UI is optimized around a recommended band of **7–14** screens, but custom positive values such as `5.5` or `20` are supported too.

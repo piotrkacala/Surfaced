@@ -1,13 +1,13 @@
 # Surfaced Asset Storyboard
 
 **Status:** Draft for screenshot and animation production  
-**Last updated:** 2026-04-28
+**Last updated:** 2026-05-28
 
 This document is the source of truth for the next round of public-facing visuals for Surfaced.
 
 It is written for:
 
-- AMO listing screenshots
+- AMO and Chrome Web Store listing screenshots
 - optional animated assets for GitHub, social posts, and release notes
 
 ## Goal
@@ -17,7 +17,7 @@ Show Surfaced as:
 - gentle, not punitive
 - privacy-friendly and local-first
 - visually polished
-- useful on both Firefox desktop and Firefox for Android
+- useful on Firefox desktop, Firefox for Android, and Chrome desktop
 
 The visuals should explain the product in a simple sequence:
 
@@ -25,7 +25,7 @@ The visuals should explain the product in a simple sequence:
 2. Surfaced gives you a calm reminder.
 3. You can tune when and how it reminds you.
 4. You can adapt it per site.
-5. The same idea works on Android too.
+5. The same idea works on Android and Chrome desktop too.
 
 ## Creative direction
 
@@ -289,8 +289,8 @@ C. Enable site override and set custom threshold
 
 **Suggested support line**
 
-- EN: `Surfaced works on Firefox desktop and Firefox for Android.`
-- PL: `Surfaced działa w Firefoksie na desktopie i Androidzie.`
+- EN: `Surfaced works on Firefox desktop, Firefox for Android, and Chrome desktop.`
+- PL: `Surfaced działa w Firefoksie na desktopie, Firefoksie na Androidzie i Chrome na desktopie.`
 
 **Do not**
 
@@ -404,7 +404,7 @@ C. Enable site override and set custom threshold
 Before capture:
 
 - use current product build and current popup UI only
-- confirm Firefox desktop and Firefox for Android visuals from real runtime
+- confirm Firefox desktop, Firefox for Android, and Chrome desktop visuals from real runtime
 - use a neutral, reusable capture page where possible
 - decide whether the batch is pure product capture or composited marketing canvas
 

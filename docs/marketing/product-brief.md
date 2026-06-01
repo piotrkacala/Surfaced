@@ -1,15 +1,15 @@
 # Surfaced Product Brief
 
 **Status:** Working brief  
-**Last updated:** 2026-04-28
+**Last updated:** 2026-05-28
 
 ## One-line summary
 
-Surfaced is a Firefox extension that helps people notice when they have gone too deep into endless scrolling by showing a gentle reminder after a user-defined scroll depth.
+Surfaced is a Firefox-first browser extension, also available for Chrome desktop, that helps people notice when they have gone too deep into endless scrolling by showing a gentle reminder after a user-defined scroll depth.
 
 ## Product in one paragraph
 
-Surfaced is for Firefox users who do not want aggressive blockers, shame-heavy nudges, or data-hungry productivity software. It quietly tracks cumulative scroll depth on long pages and feed-like interfaces, then surfaces a calm reminder once the browsing session has gone deeper than intended. It works on Firefox desktop and Firefox for Android, stores everything locally, and keeps the intervention intentionally light.
+Surfaced is for Firefox users first, with Chrome desktop support for people who want the same calm scroll-depth reminders outside Firefox. It quietly tracks cumulative scroll depth on long pages and feed-like interfaces, then surfaces a calm reminder once the browsing session has gone deeper than intended. It works on Firefox desktop, Firefox for Android, and Chrome desktop, stores everything locally, and keeps the intervention intentionally light.
 
 ## Problem
 
@@ -18,6 +18,7 @@ Infinite scroll removes natural stopping points. People open a page with a clear
 ## Target audience
 
 - Firefox users on desktop or Android who want lighter digital self-control.
+- Chrome desktop users who want the same local, reminder-first experience.
 - People who regularly browse feed-heavy or thread-heavy sites with long continuous scroll.
 - Privacy-conscious users who prefer tools that stay fully local.
 
@@ -25,7 +26,7 @@ Infinite scroll removes natural stopping points. People open a page with a clear
 
 - Users who want hard limits, blocking, or strict parental-control behavior.
 - Users looking for analytics dashboards, synced accounts, or habit-tracking systems.
-- Non-Firefox users, unless the product scope expands later.
+- Users on browsers outside Firefox and Chrome desktop, unless the product scope expands later.
 
 ## Product promise
 
@@ -46,7 +47,7 @@ Surfaced gives people back a sense of depth and stopping cues inside endless scr
 
 - **Gentle by design:** reminder-first, not punishment-first.
 - **Private by default:** no analytics, no remote APIs, no account, local storage only.
-- **Cross-platform Firefox support:** desktop and Android from one product.
+- **Firefox-first cross-browser support:** Firefox desktop and Android remain primary, with Chrome desktop supported as a separate package.
 - **Built for modern scrolling:** cumulative distance helps with long feeds, SPA transitions, and non-trivial scroll behavior better than a simple `scrollY` threshold.
 - **Flexible controls:** global threshold, custom values, per-site disable, per-site threshold override.
 
@@ -57,7 +58,7 @@ Lead with these ideas:
 - gentle reminder
 - endless scroll awareness
 - private and local-only
-- works on Firefox desktop and Android
+- works on Firefox desktop, Firefox for Android, and Chrome desktop
 - regain orientation, not control through force
 
 ## Messaging guardrails
@@ -86,4 +87,4 @@ Calm, observant, slightly poetic, and non-judgmental. Surfaced should feel like 
 - What the reminder looks like in context on a real page.
 - That the product is subtle, not disruptive.
 - That users can tune behavior for a specific site.
-- When possible, that Surfaced exists on both desktop Firefox and Firefox for Android.
+- When possible, that Surfaced exists on Firefox desktop, Firefox for Android, and Chrome desktop.
