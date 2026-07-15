@@ -24,6 +24,7 @@ Read these first before making significant changes:
 - `docs/adr-002-unified-package.md` — why the unified package exists and which manifest is authoritative
 - `docs/adr-003-threshold-value-policy.md` — why thresholds are sanitized but not constrained to the recommended UI range
 - `docs/adr-004-chrome-desktop-target.md` — why Chrome desktop is a separate package and how API compatibility is handled
+- `docs/release-checklist.md` — automated and manual gates for a release candidate
 - `build.sh` — packaging contract for desktop, Android, Chrome, and unified builds
 
 ## Commands
@@ -106,6 +107,7 @@ Before considering a change done:
 - Run `./build.sh desktop` and/or `./build.sh android` when a platform-specific manifest or popup changed.
 - Run `./build.sh chrome` when Chrome manifest, API compatibility, shared runtime, or desktop popup behavior changed.
 - Run the relevant automated browser smoke and manually smoke-test browser/permission flows that the harness cannot exercise.
+- Before tagging or publishing a release, complete `docs/release-checklist.md` and record any unavailable manual gate explicitly.
 
 ## Environment Blockers
 
