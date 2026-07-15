@@ -27,7 +27,7 @@ popup/
 
 Platform detection uses `browser.runtime.getPlatformInfo()` which returns `{ os: "android" }` on Fenix. The redirect uses `location.replace()` so the platform popup.html becomes the actual history entry — the dispatcher leaves no trace.
 
-The unified manifest is `android/manifest.json` (source of truth), which contains both `gecko` and `gecko_android` fields. The desktop manifest (`desktop/manifest.json`) is kept for platform-specific test builds only.
+The unified manifest is `android/manifest.json` (source of truth for unified Firefox metadata and release version), which contains both `gecko` and `gecko_android` fields. The desktop and Chrome manifests remain authoritative for their own packages and must repeat the Android manifest's version. Before any target is built, `build.sh` parses all three manifests as JSON, requires their versions to be present and identical, and uses the Android value for artifact names and build messages. There is no separate release-version constant in the build script.
 
 ## Build commands
 
@@ -35,11 +35,15 @@ The unified manifest is `android/manifest.json` (source of truth), which contain
 ./build.sh            # unified package → dist/surfaced-x.y.z.zip  (AMO)
 ./build.sh desktop    # desktop-only    → dist/surfaced-desktop-x.y.z.zip  (testing)
 ./build.sh android    # android-only    → dist/surfaced-android-x.y.z.zip  (testing)
+./build.sh chrome     # Chrome desktop  → dist/surfaced-chrome-x.y.z.zip
+./build.sh all        # all four artifacts plus their SHA-256 checksums
 ```
+
+Builds replace only the exact output for the requested target and current version. Older Surfaced ZIPs and unrelated files in `dist/` are preserved and reported separately from the current release list.
 
 ## Consequences
 
 - One AMO listing, one review queue, one install link.
-- Version bump touches `android/manifest.json` only (source of truth). `desktop/manifest.json` should be kept in sync manually.
+- A version bump starts in `android/manifest.json`, then updates `desktop/manifest.json` and `chrome/manifest.json` to the same value. The build gate rejects missing, malformed, or divergent versions before replacing any artifact.
 - The dispatcher adds one async round-trip before the popup renders. In practice imperceptible — extension popups open fresh each time.
 - If a third platform is ever needed, add a directory and extend the dispatcher condition.

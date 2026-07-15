@@ -67,6 +67,114 @@
     "statusError": {
         "message": "Błąd zapisu"
     },
+    "storageLoading": {
+        "message": "Wczytywanie ustawień…"
+    },
+    "storageReadError": {
+        "message": "Surfaced nie może wczytać zapisanych ustawień. Nic nie zostało zmienione. Spróbuj ponownie, aby kontynuować."
+    },
+    "storageWriteError": {
+        "message": "Surfaced nie może zapisać ostatniej zmiany. Spróbuj ponownie przed dalszą edycją ustawień."
+    },
+    "storageRetry": {
+        "message": "Spróbuj ponownie"
+    },
+    "permissionHealthTitle": {
+        "message": "Dostęp do stron"
+    },
+    "permissionHealthLoading": {
+        "message": "Sprawdzanie dostępu do stron…"
+    },
+    "permissionHealthRequesting": {
+        "message": "Oczekiwanie na decyzję przeglądarki o uprawnieniu…"
+    },
+    "permissionHealthGranted": {
+        "message": "Surfaced ma dostęp do obsługiwanych stron. Zapisane ustawienia są dostępne."
+    },
+    "permissionHealthMissing": {
+        "message": "Zapisane ustawienia są dostępne, ale Surfaced nie ma obecnie dostępu do wszystkich stron. Przypomnienia mogą nie działać."
+    },
+    "permissionHealthPartial": {
+        "message": "Zapisane ustawienia są dostępne, ale dostęp do stron jest ograniczony tylko do części witryn. Przypomnienia mogą nie działać wszędzie."
+    },
+    "permissionHealthUnavailable": {
+        "message": "Zapisane ustawienia są dostępne, ale Surfaced nie może zweryfikować dostępu do stron w tej przeglądarce."
+    },
+    "permissionRestoreAction": {
+        "message": "Przywróć dostęp do stron"
+    },
+    "permissionRequestingAction": {
+        "message": "Sprawdzanie decyzji przeglądarki…"
+    },
+    "ariaRestorePageAccess": {
+        "message": "Poproś przeglądarkę o przywrócenie Surfaced dostępu do obsługiwanych stron"
+    },
+    "permissionRestored": {
+        "message": "Dostęp do stron został przywrócony i zweryfikowany."
+    },
+    "permissionReloadHint": {
+        "message": "Przeładuj bieżącą kartę przed sprawdzeniem na niej Surfaced; skrypt strony może wymagać ponownego uruchomienia."
+    },
+    "permissionRequestDenied": {
+        "message": "Dostęp do stron nie został przyznany. Zapisane ustawienia nie zostały zmienione."
+    },
+    "permissionRequestPartial": {
+        "message": "Przeglądarka przyznała tylko ograniczony dostęp. Surfaced nadal nie może zweryfikować dostępu do wszystkich obsługiwanych stron."
+    },
+    "permissionRequestException": {
+        "message": "Przeglądarka nie mogła dokończyć prośby o dostęp do stron. Zapisane ustawienia nie zostały zmienione."
+    },
+    "permissionRequestUnverified": {
+        "message": "Przeglądarka zakończyła obsługę prośby, ale Surfaced nadal nie może zweryfikować dostępu do stron. Dostęp nie został oznaczony jako przywrócony."
+    },
+    "permissionPanelFallback": {
+        "message": "Otwórz panel Rozszerzenia lub Dodatki w przeglądarce, wybierz Surfaced, a następnie zezwól na dostęp w sekcji Uprawnienia lub Dostęp do witryn."
+    },
+    "sessionStateLoadingTitle": {
+        "message": "Wstrzymanie sesji"
+    },
+    "sessionStateLoadingDescription": {
+        "message": "Sprawdzanie, czy przypomnienia są wstrzymane…"
+    },
+    "sessionStateLoadingAction": {
+        "message": "Sprawdzanie stanu sesji…"
+    },
+    "sessionPauseTitle": {
+        "message": "Wstrzymaj przypomnienia"
+    },
+    "sessionPauseDescription": {
+        "message": "Zatrzymaj przypomnienia i aktualizacje odznaki we wszystkich kartach do restartu przeglądarki."
+    },
+    "sessionPauseAction": {
+        "message": "Wstrzymaj do restartu przeglądarki"
+    },
+    "sessionPausedTitle": {
+        "message": "Powiadomienia wstrzymane"
+    },
+    "sessionPausedDescription": {
+        "message": "Przypomnienia i aktualizacje odznaki są wstrzymane do restartu przeglądarki."
+    },
+    "sessionResumeAction": {
+        "message": "Wznów teraz"
+    },
+    "sessionStateErrorTitle": {
+        "message": "Wstrzymanie sesji jest niedostępne"
+    },
+    "sessionStateErrorDescription": {
+        "message": "Surfaced nie może sprawdzić tymczasowego stanu wstrzymania. Zapisane ustawienia nie zostały zmienione."
+    },
+    "sessionStateRetryAction": {
+        "message": "Spróbuj ponownie"
+    },
+    "ariaSessionPause": {
+        "message": "Wstrzymaj przypomnienia we wszystkich kartach do restartu przeglądarki"
+    },
+    "ariaSessionResume": {
+        "message": "Wznów teraz przypomnienia we wszystkich kartach"
+    },
+    "ariaSessionRetry": {
+        "message": "Spróbuj ponownie wczytać stan wstrzymania sesji"
+    },
     "statusEnabled": {
         "message": "Włączono ✓"
     },
@@ -157,6 +265,75 @@
     "manageSites": {
         "message": "Zarządzaj ustawieniami stron"
     },
+    "siteManagerTitle": { "message": "Zapisane ustawienia stron" },
+    "siteManagerClose": { "message": "Zamknij manager ustawień stron" },
+    "siteManagerEmpty": { "message": "Brak zapisanych ustawień dla stron." },
+    "siteManagerEnabled": { "message": "Włączone" },
+    "siteManagerDisabled": { "message": "Wyłączone" },
+    "siteManagerGlobalThreshold": {
+        "message": "Próg globalny: $VALUE$",
+        "placeholders": { "value": { "content": "$1" } }
+    },
+    "siteManagerOverrideThreshold": {
+        "message": "Próg witryny: $VALUE$",
+        "placeholders": { "value": { "content": "$1" } }
+    },
+    "siteManagerEnable": { "message": "Włącz" },
+    "siteManagerDisable": { "message": "Wyłącz" },
+    "siteManagerSetOverride": { "message": "Ustaw własny próg" },
+    "siteManagerEditOverride": { "message": "Edytuj własny próg" },
+    "siteManagerRemoveOverride": { "message": "Usuń własny próg" },
+    "siteManagerRemoveSite": { "message": "Usuń ustawienia strony" },
+    "siteManagerOverrideInput": {
+        "message": "Własny próg dla $HOST$",
+        "placeholders": { "host": { "content": "$1" } }
+    },
+    "siteManagerSaveOverride": { "message": "Zapisz własny próg" },
+    "siteManagerCancel": { "message": "Anuluj" },
+    "siteManagerConfirmOverride": {
+        "message": "Usunąć własny próg dla $HOST$?",
+        "placeholders": { "host": { "content": "$1" } }
+    },
+    "siteManagerConfirmRemove": {
+        "message": "Usunąć wszystkie zapisane ustawienia dla $HOST$?",
+        "placeholders": { "host": { "content": "$1" } }
+    },
+    "siteManagerConfirmAction": { "message": "Potwierdź usunięcie" },
+    "statusSiteSettingsRemoved": {
+        "message": "Usunięto ustawienia strony $HOST$",
+        "placeholders": { "host": { "content": "$1" } }
+    },
+    "settingsBackupTitle": { "message": "Import i eksport" },
+    "settingsBackupDescription": { "message": "Zapisz lub przywróć wszystkie trwałe ustawienia z lokalnego pliku JSON. Wstrzymanie sesji nie jest uwzględniane." },
+    "settingsExportAction": { "message": "Eksportuj ustawienia" },
+    "settingsImportAction": { "message": "Importuj ustawienia" },
+    "ariaExportSettings": { "message": "Eksportuj wszystkie trwałe ustawienia Surfaced do lokalnego pliku JSON" },
+    "ariaImportSettings": { "message": "Wybierz lokalny plik ustawień Surfaced do importu" },
+    "ariaImportSettingsFile": { "message": "Lokalny plik JSON z ustawieniami Surfaced" },
+    "settingsImportPreviewTitle": { "message": "Sprawdź importowane ustawienia" },
+    "settingsImportPreviewThreshold": { "message": "Próg przypomnienia" },
+    "settingsImportPreviewText": { "message": "Tekst pierwszego przypomnienia" },
+    "settingsImportPreviewEnabled": { "message": "Globalnie włączone" },
+    "settingsImportPreviewDisabledDomains": { "message": "Wyłączone witryny" },
+    "settingsImportPreviewOverrides": { "message": "Własne ustawienia witryn" },
+    "settingsImportStateEnabled": { "message": "Tak" },
+    "settingsImportStateDisabled": { "message": "Nie" },
+    "settingsImportReplaceAction": { "message": "Zastąp ustawienia" },
+    "settingsImportCancelAction": { "message": "Anuluj" },
+    "ariaReplaceSettings": { "message": "Zastąp wszystkie trwałe ustawienia tym importowanym zestawem" },
+    "ariaCancelSettingsImport": { "message": "Anuluj import bez zmieniania bieżących ustawień" },
+    "settingsExportSuccess": { "message": "Wyeksportowano ustawienia ✓" },
+    "settingsExportError": { "message": "Surfaced nie może wyeksportować ustawień." },
+    "settingsImportSuccess": { "message": "Zastąpiono ustawienia ✓" },
+    "settingsImportErrorTooLarge": { "message": "Ten plik jest za duży. Wybierz plik ustawień Surfaced mniejszy niż 256 KB." },
+    "settingsImportErrorJson": { "message": "Ten plik nie jest poprawnym JSON-em. Ustawienia nie zostały zmienione." },
+    "settingsImportErrorVersion": { "message": "Ta kopia używa nieobsługiwanej wersji formatu. Zaktualizuj Surfaced albo wybierz kopię w wersji 1." },
+    "settingsImportErrorStructure": { "message": "To nie jest kompletna kopia ustawień Surfaced. Ustawienia nie zostały zmienione." },
+    "settingsImportErrorValues": { "message": "Co najmniej jedno importowane ustawienie ma nieprawidłową wartość lub typ. Ustawienia nie zostały zmienione." },
+    "settingsImportErrorHostname": { "message": "Kopia zawiera niebezpieczną lub nieprawidłową nazwę hosta. Ustawienia nie zostały zmienione." },
+    "settingsImportErrorDuplicateHost": { "message": "Kopia zawiera tę samą witrynę więcej niż raz. Ustawienia nie zostały zmienione." },
+    "settingsImportErrorRead": { "message": "Surfaced nie może odczytać tego lokalnego pliku. Ustawienia nie zostały zmienione." },
+    "settingsImportErrorWrite": { "message": "Surfaced nie może zastąpić ustawień. Nic nie zostało zastosowane; spróbuj ponownie." },
     "noOverrides": {
         "message": "Brak zapisanych ustawień dla stron."
     },

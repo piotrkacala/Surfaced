@@ -1,10 +1,11 @@
 (() => {
   // ── Configuration defaults ────────────────────────────────────────────────
-  const STORAGE_KEY = "scrollNotifierThreshold";
-  const TEXT_STORAGE_KEY = "scrollNotifierText";
-  const OVERRIDES_KEY = "scrollNotifierSiteOverrides";
-  const DEFAULT_THRESHOLD_SCREENS = 7;
+  const { KEYS, STORAGE_KEYS, createDefaults, normalizeSettings } = SurfacedSettings;
   const DEFAULT_TEXT = browser.i18n.getMessage("defaultNotificationText");
+  const DEFAULT_SETTINGS = createDefaults(DEFAULT_TEXT);
+  const DEFAULT_THRESHOLD_SCREENS = DEFAULT_SETTINGS[KEYS.threshold];
+  const { MESSAGE_TYPES: SESSION_MESSAGE_TYPES } = SurfacedSessionPause;
+  const { createTrailingThrottle } = SurfacedScrollTracker;
   const THROTTLE_MS = 100;
   const NOTIFICATION_ID = "surfaced-notification-host";
 
@@ -15,6 +16,17 @@
   let notificationVisible = false;
   let shadowHost = null;
   let lastSentBadgeValue = null;
+  // Do not track with defaults until the persisted five-key snapshot is known.
+  // The revision prevents a late startup read from replacing a newer change.
+  let settingsStateKnown = false;
+  let settingsStateRevision = 0;
+  // Unknown session state is fail-closed until the background answers. A
+  // transient read failure then falls back to an unpaused, usable content script.
+  let sessionPaused = true;
+  let sessionStateKnown = false;
+  let sessionStateRevision = 0;
+  let lastScrollTarget = document.documentElement;
+  let throttledScroll = null;
 
   // Depth Zones
   const ZONES = [
@@ -22,8 +34,11 @@
     { multiplier: 2, color: "#f0a500", messageKey: "notificationMid" },
     { multiplier: 3, color: "#ff4f4f", messageKey: "notificationDeep" }
   ];
-  let currentZoneIndex = -1;
-  let dismissedZoneIndex = -1;
+  const scrollTracker = SurfacedScrollTracker.createTracker({
+    threshold: DEFAULT_THRESHOLD_SCREENS,
+    viewportHeight: window.innerHeight,
+    zoneMultipliers: ZONES.map((zone) => zone.multiplier),
+  });
 
   // New global state flags
   let isGlobalEnabled = true;
@@ -31,48 +46,27 @@
   let siteOverrides = {};
 
   // Virtual scrolling & SPA state
-  let totalDistanceScrolled = 0;
-  let lastScrollTop = 0;
-  let currentScrollTarget = null;
   let lastUrl = window.location.href;
-
-  function parsePositiveThreshold(value) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  }
-
-  function sanitizeThreshold(value, fallback = DEFAULT_THRESHOLD_SCREENS) {
-    return parsePositiveThreshold(value) ?? fallback;
-  }
+  let storedSettings = DEFAULT_SETTINGS;
 
   function getSiteThresholdOverride(hostname) {
-    if (siteOverrides[hostname] === undefined) {
-      return null;
-    }
-
-    return parsePositiveThreshold(siteOverrides[hostname]);
+    return siteOverrides[hostname] ?? null;
   }
 
-  function applyStoredSettings(result) {
-    if (Object.prototype.hasOwnProperty.call(result, STORAGE_KEY)) {
-      globalThreshold = sanitizeThreshold(result[STORAGE_KEY]);
-    }
-    if (Object.prototype.hasOwnProperty.call(result, TEXT_STORAGE_KEY)) {
-      notificationText = result[TEXT_STORAGE_KEY] ?? DEFAULT_TEXT;
-    }
-    if (Object.prototype.hasOwnProperty.call(result, "scrollNotifierEnabled")) {
-      isGlobalEnabled = result.scrollNotifierEnabled ?? true;
-    }
-    if (Object.prototype.hasOwnProperty.call(result, "scrollNotifierDisabledDomains")) {
-      disabledDomains = result.scrollNotifierDisabledDomains ?? [];
-    }
-    if (Object.prototype.hasOwnProperty.call(result, OVERRIDES_KEY)) {
-      siteOverrides = result[OVERRIDES_KEY] ?? {};
-    }
+  function applyStoredSettings(result, { replace = false } = {}) {
+    storedSettings = normalizeSettings(
+      replace ? result : { ...storedSettings, ...result },
+      { defaultText: DEFAULT_TEXT }
+    );
+    globalThreshold = storedSettings[KEYS.threshold];
+    notificationText = storedSettings[KEYS.text];
+    isGlobalEnabled = storedSettings[KEYS.enabled];
+    disabledDomains = storedSettings[KEYS.disabledDomains];
+    siteOverrides = storedSettings[KEYS.siteOverrides];
   }
 
   function sendBadgeValue(value) {
-    const normalizedValue = value >= 1 ? Math.floor(value) : 0;
+    const normalizedValue = !sessionPaused && value >= 1 ? Math.floor(value) : 0;
     if (normalizedValue === lastSentBadgeValue) {
       return;
     }
@@ -98,7 +92,9 @@
         // This prevents the notification from disappearing on sites like Pepper.pl
         // where scrolling deep triggers a URL query update (?page=2) but is still the same list.
         const pathChanged = oldObj.pathname !== newObj.pathname;
-        const scrollTop = window.scrollY || document.documentElement.scrollTop || (currentScrollTarget ? currentScrollTarget.scrollTop : 0);
+        const scrollTop = window.scrollY
+          || document.documentElement.scrollTop
+          || scrollTracker.snapshot().scrollTop;
         const nearTop = scrollTop < window.innerHeight * 0.5;
 
         if (pathChanged || nearTop) {
@@ -111,28 +107,38 @@
     }
   }, 500);
 
-  function resetScrollTracking() {
-    totalDistanceScrolled = 0;
-    lastScrollTop = 0;
-    currentScrollTarget = null;
-    currentZoneIndex = -1;
-    dismissedZoneIndex = -1;
-    // Calling removeNotification works here due to function hoisting
+  function resetScrollTracking({ cancelPending = true } = {}) {
+    if (cancelPending) {
+      throttledScroll?.cancel();
+    }
+    scrollTracker.reset("runtime-reset");
     removeNotification();
     sendBadgeValue(0);
   }
 
-  // ── Load threshold and text from storage ──────────────────────────────────
-  browser.storage.local.get([
-    STORAGE_KEY,
-    TEXT_STORAGE_KEY,
-    "scrollNotifierEnabled",
-    "scrollNotifierDisabledDomains",
-    OVERRIDES_KEY
-  ]).then((result) => {
-    applyStoredSettings(result);
-    evaluateActiveState();
-  });
+  // ── Load settings from storage ────────────────────────────────────────────
+  function loadStoredSettings() {
+    const requestRevision = settingsStateRevision;
+
+    browser.storage.local.get(STORAGE_KEYS).then((result) => {
+      if (requestRevision !== settingsStateRevision) {
+        return;
+      }
+
+      applyStoredSettings(result, { replace: true });
+      settingsStateKnown = true;
+      evaluateActiveState();
+    }).catch((error) => {
+      if (requestRevision !== settingsStateRevision) {
+        return;
+      }
+
+      console.error("Failed to load Surfaced settings", error);
+      resetScrollTracking();
+    });
+  }
+
+  loadStoredSettings();
 
   browser.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "local") {
@@ -141,23 +147,21 @@
 
     const nextSettings = {};
 
-    if (changes[STORAGE_KEY]) {
-      nextSettings[STORAGE_KEY] = changes[STORAGE_KEY].newValue;
-    }
-    if (changes[TEXT_STORAGE_KEY]) {
-      nextSettings[TEXT_STORAGE_KEY] = changes[TEXT_STORAGE_KEY].newValue;
-    }
-    if (changes.scrollNotifierEnabled) {
-      nextSettings.scrollNotifierEnabled = changes.scrollNotifierEnabled.newValue;
-    }
-    if (changes.scrollNotifierDisabledDomains) {
-      nextSettings.scrollNotifierDisabledDomains = changes.scrollNotifierDisabledDomains.newValue;
-    }
-    if (changes[OVERRIDES_KEY]) {
-      nextSettings[OVERRIDES_KEY] = changes[OVERRIDES_KEY].newValue;
-    }
+    STORAGE_KEYS.forEach((key) => {
+      if (changes[key]) {
+        nextSettings[key] = changes[key].newValue;
+      }
+    });
 
     if (Object.keys(nextSettings).length === 0) {
+      return;
+    }
+
+    settingsStateRevision += 1;
+    if (!settingsStateKnown) {
+      // A change can race the startup read. Reload the complete snapshot so
+      // unchanged persisted fields are not replaced with defaults.
+      loadStoredSettings();
       return;
     }
 
@@ -167,24 +171,63 @@
 
   // ── Listen for updates from popup ─────────────────────────────────────────
   browser.runtime.onMessage.addListener((message) => {
+    if (message.type === SESSION_MESSAGE_TYPES.changed) {
+      sessionStateRevision += 1;
+      applySessionPaused(message.paused, "session-broadcast");
+      return;
+    }
+
     if (message.type === "SET_THRESHOLD") {
-      globalThreshold = sanitizeThreshold(message.value, globalThreshold);
+      settingsStateRevision += 1;
+      const nextSettings = {
+        [KEYS.threshold]: message.value,
+      };
       if (message.text !== undefined) {
-        notificationText = message.text;
+        nextSettings[KEYS.text] = message.text;
       }
       if (message.enabled !== undefined) {
-        isGlobalEnabled = message.enabled;
+        nextSettings[KEYS.enabled] = message.enabled;
       }
       if (message.disabledDomains !== undefined) {
-        disabledDomains = message.disabledDomains;
+        nextSettings[KEYS.disabledDomains] = message.disabledDomains;
       }
       if (message.siteOverrides !== undefined) {
-        siteOverrides = message.siteOverrides;
+        nextSettings[KEYS.siteOverrides] = message.siteOverrides;
       }
 
+      applyStoredSettings(nextSettings);
+      if (!settingsStateKnown) {
+        loadStoredSettings();
+        return;
+      }
       evaluateActiveState();
     }
   });
+
+  function loadSessionState() {
+    const requestRevision = sessionStateRevision;
+
+    browser.runtime.sendMessage({ type: SESSION_MESSAGE_TYPES.get })
+      .then((response) => {
+        if (requestRevision !== sessionStateRevision) {
+          return;
+        }
+
+        if (!response?.ok) {
+          throw new Error(response?.error || "SESSION_STATE_UNAVAILABLE");
+        }
+
+        applySessionPaused(response.paused, "session-startup");
+      })
+      .catch((error) => {
+        if (requestRevision !== sessionStateRevision) {
+          return;
+        }
+
+        console.warn("Failed to load Surfaced session pause state", error);
+        applySessionPaused(false, "session-read-failed");
+      });
+  }
 
   let isEnabledOnSite = true;
 
@@ -195,7 +238,8 @@
     const siteThreshold = getSiteThresholdOverride(myHostname);
     threshold = isEnabledOnSite && siteThreshold !== null ? siteThreshold : globalThreshold;
 
-    if (isEnabledOnSite) {
+    if (settingsStateKnown && isEnabledOnSite && sessionStateKnown && !sessionPaused) {
+      applyTrackerResult(scrollTracker.setThreshold(threshold));
       handleScroll(null);
     } else {
       resetScrollTracking();
@@ -228,6 +272,7 @@
     const style = document.createElement("style");
     style.textContent = `
       .notification {
+        box-sizing: border-box;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -235,7 +280,8 @@
 
         position: relative;
         margin: 0 auto 24px auto;
-        min-width: 340px;
+        width: calc(100% - 24px);
+        min-width: 0;
         max-width: 580px;
         padding: 16px 22px;
         border-radius: 14px;
@@ -416,6 +462,51 @@
         85%  { opacity: 0.4; }
         100% { transform: translateY(-60px) translateX(var(--dx, 0px)); opacity: 0; }
       }
+
+      @media (max-width: 386px) {
+        .notification {
+          gap: 10px;
+          margin-bottom: 12px;
+          padding: 12px;
+          border-radius: 12px;
+        }
+
+        .notification__left {
+          gap: 8px;
+        }
+
+        .notification__icon {
+          width: 32px;
+          height: 32px;
+        }
+
+        .notification__close {
+          width: 32px;
+          height: 32px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .notification,
+        .notification::before,
+        .notification::after {
+          animation: none !important;
+          transform: none !important;
+        }
+
+        .notification {
+          opacity: 1;
+        }
+
+        .notification__close {
+          transition: none;
+        }
+
+        .bubble {
+          display: none;
+          animation: none !important;
+        }
+      }
     `;
 
     // ── Structure ────────────────────────────────────────────────────────────
@@ -518,111 +609,143 @@
   }
 
   function dismissNotification(zoneIdx) {
-    dismissedZoneIndex = zoneIdx;
+    scrollTracker.dismiss(zoneIdx);
     removeNotification();
   }
 
   // ── Scroll logic ──────────────────────────────────────────────────────────
-  function handleScroll(event) {
-    if (!isEnabledOnSite) return;
-
-    let target = event ? event.target : document;
-    let scrollTop = 0;
-
-    if (target === document || target === window) {
-      target = document.documentElement;
-      scrollTop = window.scrollY;
-    } else if (target && target.nodeType === Node.ELEMENT_NODE) {
-      // Ignore tiny scrolling areas (like small code blocks or dropdowns)
-      if (!target.clientHeight || target.clientHeight < window.innerHeight * 0.5) {
-        return;
-      }
-      scrollTop = target.scrollTop;
-    } else {
-      return;
-    }
-
-    // Context switch: if user starts scrolling a new container, reset our relative lastScrollTop
-    if (currentScrollTarget !== target) {
-      currentScrollTarget = target;
-      lastScrollTop = scrollTop;
-    }
-
-    const delta = scrollTop - lastScrollTop;
-    lastScrollTop = scrollTop;
-
-    // Ignore massive sudden jumps (e.g., clicking "Back to top", or virtual list aggressive recycle)
-    // 2x screen height is a safe heuristic for a programmatic jump vs a smooth scroll
-    if (Math.abs(delta) > window.innerHeight * 2) {
-      return;
-    }
-
-    totalDistanceScrolled += delta;
-
-    // Clamp to 0 so we don't go negative if a user scrolls up slightly past origin
-    if (totalDistanceScrolled < 0) {
-      totalDistanceScrolled = 0;
-    }
-
-    const scrolledScreens = totalDistanceScrolled / window.innerHeight;
-
-    // Determine current zone
-    let targetZoneIndex = -1;
-    for (let i = ZONES.length - 1; i >= 0; i--) {
-      if (scrolledScreens >= threshold * ZONES[i].multiplier) {
-        targetZoneIndex = i;
-        break;
-      }
-    }
-
-    const isPastThreshold = targetZoneIndex >= 0;
-
-    // Update the extension badge with current depth only if past threshold
-    const badgeValue = isPastThreshold ? scrolledScreens : 0;
-    sendBadgeValue(badgeValue);
-
-    // Handle zone visibility and triggering
-    if (isPastThreshold) {
-      if (!notificationVisible) {
-        // Only trigger if we are in a higher zone than the one last dismissed
-        if (targetZoneIndex > dismissedZoneIndex) {
-          currentZoneIndex = targetZoneIndex;
-          createNotification(targetZoneIndex);
-        }
-      } else {
-        // If already visible, check if we've moved to a DEEPER zone
-        // This allows auto-updating the notification if they scroll even deeper without dismissing
-        if (targetZoneIndex > currentZoneIndex) {
-          currentZoneIndex = targetZoneIndex;
-          removeNotification();
-          createNotification(targetZoneIndex);
-        }
-      }
-    } else if (notificationVisible) {
-      // If user scrolls back up below threshold entirely, hide
+  function applyTrackerResult(result) {
+    if (!settingsStateKnown || !sessionStateKnown || sessionPaused) {
       removeNotification();
-      currentZoneIndex = -1;
-      // Also reset dismissed index if they come all the way back up? 
-      // Roadmap doesn't specify, but usually "reset" happens on surface.
-      dismissedZoneIndex = -1;
+      sendBadgeValue(0);
+      return;
+    }
+
+    sendBadgeValue(result.badgeValue);
+
+    if (result.notificationAction === "hide") {
+      removeNotification();
+      return;
+    }
+
+    if (result.notificationAction === "replace") {
+      removeNotification();
+      createNotification(result.currentZoneIndex);
+      return;
+    }
+
+    if (result.notificationAction === "show") {
+      createNotification(result.currentZoneIndex);
     }
   }
 
-  // ── Throttle ──────────────────────────────────────────────────────────────
-  function throttle(fn, delay) {
-    let lastCall = 0;
-    return function (...args) {
-      const now = Date.now();
-      if (now - lastCall >= delay) {
-        lastCall = now;
-        fn.apply(this, args);
+  function resolveScrollContext(event = null, fallbackTarget = null) {
+    const rawTarget = event?.target ?? fallbackTarget ?? document;
+    const scrollingElement = document.scrollingElement || document.documentElement;
+
+    if (
+      rawTarget === document
+      || rawTarget === window
+      || rawTarget === document.documentElement
+      || rawTarget === document.body
+    ) {
+      return {
+        target: scrollingElement,
+        scrollTop: window.scrollY || scrollingElement.scrollTop || 0,
+      };
+    }
+
+    if (rawTarget && rawTarget.nodeType === Node.ELEMENT_NODE) {
+      // Ignore tiny scrolling areas (like small code blocks or dropdowns).
+      if (!rawTarget.clientHeight || rawTarget.clientHeight < window.innerHeight * 0.5) {
+        return null;
       }
-    };
+
+      return {
+        target: rawTarget,
+        scrollTop: rawTarget.scrollTop,
+      };
+    }
+
+    return null;
+  }
+
+  function rebaseAtCurrentPosition(reason) {
+    const context = resolveScrollContext(null, lastScrollTarget)
+      || resolveScrollContext();
+
+    if (!context) {
+      scrollTracker.reset(reason);
+    } else {
+      lastScrollTarget = context.target;
+      scrollTracker.rebase({
+        ...context,
+        viewportHeight: window.innerHeight,
+      }, reason);
+    }
+
+    removeNotification();
+    sendBadgeValue(0);
+  }
+
+  function applySessionPaused(nextPaused, reason) {
+    const wasKnown = sessionStateKnown;
+    const wasPaused = sessionPaused;
+    sessionStateKnown = true;
+    sessionPaused = nextPaused === true;
+    throttledScroll?.cancel();
+
+    if (sessionPaused) {
+      removeNotification();
+      sendBadgeValue(0);
+      return;
+    }
+
+    if (!wasKnown || wasPaused) {
+      // Resume starts from the current position of the last active target. A
+      // later switch to another target establishes its own baseline as usual.
+      rebaseAtCurrentPosition(reason || "session-resume");
+    }
+
+    evaluateActiveState();
+  }
+
+  function handleScroll(event) {
+    if (!settingsStateKnown || !isEnabledOnSite || !sessionStateKnown || sessionPaused) {
+      return;
+    }
+
+    const context = resolveScrollContext(event, lastScrollTarget);
+    if (!context) return;
+
+    lastScrollTarget = context.target;
+
+    applyTrackerResult(scrollTracker.observe({
+      ...context,
+      viewportHeight: window.innerHeight,
+    }));
+  }
+
+  function onScroll(event) {
+    const context = resolveScrollContext(event);
+    if (!context) return;
+
+    // Remember the live target even while paused, so manual resume can rebase
+    // at its current position without counting movement from the pause window.
+    lastScrollTarget = context.target;
+
+    if (!settingsStateKnown || !sessionStateKnown || sessionPaused) {
+      throttledScroll.cancel();
+      return;
+    }
+
+    throttledScroll(event);
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────
-  const throttledScroll = throttle(handleScroll, THROTTLE_MS);
+  throttledScroll = createTrailingThrottle(handleScroll, THROTTLE_MS);
 
   // Use capture: true so we intercept scrolling on ANY element, not just the window.
-  window.addEventListener("scroll", throttledScroll, { passive: true, capture: true });
+  window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+  loadSessionState();
 })();

@@ -8,7 +8,11 @@ function asBoolean(value, fallback = false) {
   return !["0", "false", "no", "off"].includes(String(value).toLowerCase());
 }
 
-function asNumber(value, fallback) {
+export function asNumber(value, fallback) {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return fallback;
+  }
+
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
@@ -47,7 +51,9 @@ export function getCaptureState() {
   const params = new URLSearchParams(window.location.search);
   const threshold = asNumber(params.get("threshold"), 7);
   const defaultText = EN_MESSAGES.defaultNotificationText;
-  const tabUrl = asString(params.get("tab"), "https://quiet.example/articles/scroll-depth");
+  const tabUrl = asBoolean(params.get("tabUrlMissing"), false)
+    ? null
+    : asString(params.get("tab"), "https://quiet.example/articles/scroll-depth");
 
   return {
     stageEyebrow: asString(params.get("eyebrow"), "Surfaced"),
@@ -69,6 +75,21 @@ export function getCaptureState() {
     scrollScreens: params.has("scrollScreens") ? asNumber(params.get("scrollScreens"), threshold) : null,
     fixture: asString(params.get("fixture"), document.body.dataset.fixture || "article"),
     language: "en-US",
+    storageGetFailures: params.has("storageGetFailures")
+      ? Math.max(0, Number(params.get("storageGetFailures")) || 0)
+      : 0,
+    storageSetFailures: params.has("storageSetFailures")
+      ? Math.max(0, Number(params.get("storageSetFailures")) || 0)
+      : 0,
+    sessionPaused: asBoolean(params.get("sessionPaused"), false),
+    sessionGetFailures: params.has("sessionGetFailures")
+      ? Math.max(0, Number(params.get("sessionGetFailures")) || 0)
+      : 0,
+    sessionSetFailures: params.has("sessionSetFailures")
+      ? Math.max(0, Number(params.get("sessionSetFailures")) || 0)
+      : 0,
+    permissionState: asString(params.get("permission"), "full"),
+    permissionRequestOutcome: asString(params.get("permissionRequest"), "grant"),
     storage: {
       scrollNotifierThreshold: threshold,
       scrollNotifierText: asString(params.get("text"), defaultText),

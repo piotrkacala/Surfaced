@@ -332,13 +332,13 @@ C. Enable site override and set custom threshold
 **What must be visible**
 
 - manage site settings button open
-- at least two saved hosts
-- remove action visible but not dominant
+- at least one disabled host and one host with a threshold override
+- enable/disable, override, and removal actions represented without making destructive controls dominant
 
 **Capture setup**
 
-- create at least two realistic example hosts
-- vary thresholds clearly
+- create at least two realistic example hosts with different states
+- vary thresholds clearly and include the global-threshold state for one host
 
 **Composition**
 

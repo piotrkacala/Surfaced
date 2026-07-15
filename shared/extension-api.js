@@ -45,7 +45,16 @@
         get: promisify(chromeApi.storage?.local, "get"),
         set: promisify(chromeApi.storage?.local, "set"),
       },
+      session: {
+        get: promisify(chromeApi.storage?.session, "get"),
+        set: promisify(chromeApi.storage?.session, "set"),
+      },
       onChanged: chromeApi.storage?.onChanged,
+    },
+    permissions: {
+      contains: promisify(chromeApi.permissions, "contains"),
+      getAll: promisify(chromeApi.permissions, "getAll"),
+      request: promisify(chromeApi.permissions, "request"),
     },
     tabs: {
       query: promisify(chromeApi.tabs, "query"),

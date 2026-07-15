@@ -1,3 +1,6 @@
+import "../../shared/settings.js";
+import "../../shared/session-pause.js";
+import "../../shared/scroll-tracker.js";
 import { getCaptureState, setCaptureReady, wait, waitForAnimationFrames } from "../../tools/capture/shared/capture-state.mjs";
 import { installBrowserStub } from "../../tools/capture/shared/browser-stub.mjs";
 

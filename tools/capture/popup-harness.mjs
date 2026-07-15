@@ -54,12 +54,12 @@ async function expandHelpIfNeeded(shadowRoot) {
   }
 }
 
-async function openOverridesIfNeeded(shadowRoot) {
+async function openSiteManagerIfNeeded(shadowRoot) {
   if (!state.overridesOpen) {
     return;
   }
 
-  const button = query(shadowRoot, ".ghost-button[aria-controls='siteOverridesList']");
+  const button = query(shadowRoot, ".ghost-button[aria-controls='siteSettingsManager']");
   if (button?.getAttribute("aria-expanded") === "false") {
     button.click();
     await waitForAnimationFrames(2);
@@ -143,17 +143,9 @@ async function init() {
 
   mountPopup(state.platform === "android"
     ? {
-      gaugeHeight: "clamp(128px, 28vw, 192px)",
-      sliderHeight: "6px",
-      sliderBorderRadius: "3px",
-      sliderThumbSize: "24px",
       isTouch: true,
     }
     : {
-      gaugeHeight: "128px",
-      sliderHeight: "4px",
-      sliderBorderRadius: "2px",
-      sliderThumbSize: "16px",
       isTouch: false,
     });
 
@@ -162,7 +154,7 @@ async function init() {
 
   const shadowRoot = getShadowRoot();
   await expandHelpIfNeeded(shadowRoot);
-  await openOverridesIfNeeded(shadowRoot);
+  await openSiteManagerIfNeeded(shadowRoot);
   await applyMotion(shadowRoot);
 
   document.activeElement?.blur();

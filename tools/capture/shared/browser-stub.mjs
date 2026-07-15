@@ -13,7 +13,7 @@ function formatMessage(template, substitutions) {
       : [substitutions];
 
   return template.replace(/\$([A-Z0-9_]+)\$/gi, (match, token) => {
-    if (token === "HOST" && values[0] !== undefined) {
+    if (["HOST", "VALUE"].includes(token.toUpperCase()) && values[0] !== undefined) {
       return String(values[0]);
     }
 
@@ -26,7 +26,7 @@ function formatMessage(template, substitutions) {
   });
 }
 
-function createStorageArea(initialStore, changeListeners) {
+function createStorageArea(initialStore, changeListeners, failureState) {
   const store = { ...initialStore };
 
   function notify(changes) {
@@ -39,6 +39,11 @@ function createStorageArea(initialStore, changeListeners) {
 
   return {
     async get(keys) {
+      if (failureState.get > 0) {
+        failureState.get -= 1;
+        throw new Error("Injected storage.get failure");
+      }
+
       if (keys === null || keys === undefined) {
         return { ...store };
       }
@@ -67,6 +72,11 @@ function createStorageArea(initialStore, changeListeners) {
     },
 
     async set(values) {
+      if (failureState.set > 0) {
+        failureState.set -= 1;
+        throw new Error("Injected storage.set failure");
+      }
+
       const changes = {};
       Object.entries(values).forEach(([key, value]) => {
         const oldValue = store[key];
@@ -104,7 +114,52 @@ export function installBrowserStub() {
 
   const storageChangeListeners = [];
   const runtimeListeners = [];
-  const storageArea = createStorageArea(state.storage, storageChangeListeners);
+  const runtimeMessages = [];
+  const permissionCalls = [];
+  const failureState = {
+    get: state.storageGetFailures,
+    set: state.storageSetFailures,
+  };
+  const sessionFailureState = {
+    get: state.sessionGetFailures,
+    set: state.sessionSetFailures,
+  };
+  let sessionPaused = state.sessionPaused;
+  let permissionState = state.permissionState;
+  const badgeValues = [];
+  const storageArea = createStorageArea(state.storage, storageChangeListeners, failureState);
+  const settingsStore = window.SurfacedSettings.createSettingsStore(storageArea, {
+    defaultText: EN_MESSAGES.defaultNotificationText,
+  });
+  const handleSettingsMessage = window.SurfacedSettings.createSettingsMessageHandler(settingsStore);
+  const sessionMessageTypes = window.SurfacedSessionPause.MESSAGE_TYPES;
+
+  async function handleSessionMessage(message) {
+    if (message?.type === sessionMessageTypes.get) {
+      if (sessionFailureState.get > 0) {
+        sessionFailureState.get -= 1;
+        return { ok: false, error: "SESSION_STORAGE_READ_FAILED" };
+      }
+      return { ok: true, paused: sessionPaused };
+    }
+
+    if (message?.type === sessionMessageTypes.set) {
+      if (sessionFailureState.set > 0) {
+        sessionFailureState.set -= 1;
+        return { ok: false, error: "SESSION_STORAGE_WRITE_FAILED" };
+      }
+
+      sessionPaused = message.paused === true;
+      const changedMessage = {
+        type: sessionMessageTypes.changed,
+        paused: sessionPaused,
+      };
+      runtimeListeners.forEach((listener) => listener(changedMessage, {}));
+      return { ok: true, paused: sessionPaused };
+    }
+
+    return null;
+  }
   const platformOs = state.platform === "android" ? "android" : "linux";
 
   window.browser = {
@@ -126,18 +181,62 @@ export function installBrowserStub() {
     },
     tabs: {
       async query() {
-        return [{ id: 1, url: state.tabUrl }];
+        return [state.tabUrl === null ? { id: 1 } : { id: 1, url: state.tabUrl }];
       },
       sendMessage() {
         return Promise.resolve();
+      },
+    },
+    permissions: {
+      async contains(details) {
+        permissionCalls.push({ method: "contains", details });
+        if (permissionState === "exception") {
+          throw new Error("Injected permissions.contains failure");
+        }
+        return permissionState === "full";
+      },
+      async getAll() {
+        permissionCalls.push({ method: "getAll" });
+        if (permissionState === "getall-exception") {
+          throw new Error("Injected permissions.getAll failure");
+        }
+        return {
+          permissions: ["storage"],
+          origins: permissionState === "full"
+            ? ["<all_urls>"]
+            : permissionState === "partial"
+              ? ["https://quiet.example/*"]
+              : [],
+        };
+      },
+      async request(details) {
+        permissionCalls.push({ method: "request", details });
+        if (state.permissionRequestOutcome === "exception") {
+          throw new Error("Injected permissions.request failure");
+        }
+        if (state.permissionRequestOutcome === "deny") {
+          return false;
+        }
+        if (state.permissionRequestOutcome === "grant") {
+          permissionState = "full";
+          return true;
+        }
+        if (state.permissionRequestOutcome === "partial") {
+          permissionState = "partial";
+          return true;
+        }
+        // "true-unverified" deliberately leaves contains() false.
+        return true;
       },
     },
     runtime: {
       getURL(path) {
         return new URL(path, `${window.location.origin}/`).toString();
       },
-      sendMessage() {
-        return Promise.resolve();
+      sendMessage(message) {
+        runtimeMessages.push(message);
+        const settingsResponse = handleSettingsMessage(message);
+        return settingsResponse || handleSessionMessage(message) || Promise.resolve();
       },
       onMessage: {
         addListener(listener) {
@@ -149,7 +248,8 @@ export function installBrowserStub() {
       },
     },
     action: {
-      setBadgeText() {
+      setBadgeText(details) {
+        badgeValues.push(details);
         return Promise.resolve();
       },
       setBadgeBackgroundColor() {
@@ -161,6 +261,15 @@ export function installBrowserStub() {
   window.__SURFACED_CAPTURE__ = {
     state,
     runtimeListeners,
+    runtimeMessages,
+    permissionCalls,
+    failureState,
+    sessionFailureState,
+    get sessionPaused() {
+      return sessionPaused;
+    },
+    badgeValues,
+    settingsStore,
   };
 
   return state;

@@ -1,7 +1,7 @@
 # Chrome Web Store Listing Copy
 
 **Status:** Draft for manual publishing in Chrome Web Store
-**Last updated:** 2026-05-28
+**Last updated:** 2026-07-15
 
 This file contains ready-to-paste copy for the Chrome Web Store Developer Dashboard.
 
@@ -17,7 +17,7 @@ References:
 Upload:
 
 ```text
-dist/surfaced-chrome-1.1.4.zip
+dist/surfaced-chrome-1.2.0.zip
 ```
 
 The zip must contain `manifest.json` at the archive root.
@@ -42,7 +42,7 @@ Come up for air.
 
 You opened a long page for a quick check. A few minutes later, you are 20 screens deep.
 
-Surfaced is a private browser extension that helps you notice endless scrolling before it turns into doomscrolling. It tracks cumulative scroll depth and shows a gentle reminder when you have gone farther than you meant to.
+Surfaced is a private browser extension that helps you notice endless scrolling before it turns into doomscrolling. It tracks signed, cumulative scroll depth and shows a gentle reminder when you have gone farther than you meant to.
 
 Where it helps
 
@@ -56,15 +56,19 @@ What Surfaced does
 - Lets you choose the first reminder threshold in screens
 - Shows follow-up reminders at 2× and 3× your threshold
 - Lets you customize the first reminder text
-- Supports per-site disable and per-site threshold overrides
+- Lets you dismiss the current reminder without silencing the next deeper level
+- Includes a complete manager for per-site enablement and threshold overrides
+- Pauses reminders and badge updates on every tab until Chrome restarts
+- Imports and exports all persistent settings with a local JSON file
+- Separates page-access diagnostics from the health of saved local settings
 - Shows your current depth in the toolbar badge after you pass the threshold
-- Works on desktop and Android
+- Works on Chrome desktop
 
 Why it feels different
 
 Surfaced is built around reminders, not blocks. It does not lock pages, force timers, or shame you for browsing. It adds a calm scroll-depth cue so you can notice the moment and decide what to do next.
 
-Because it tracks cumulative scroll distance, Surfaced is more useful on infinite feeds and many single-page apps than a simple page-position check.
+Because downward movement adds depth and upward movement subtracts it, Surfaced's net cumulative scroll depth is more useful on infinite feeds and many single-page apps than a simple page-position check.
 
 Private by design
 
@@ -73,7 +77,7 @@ Private by design
 - No remote services
 - No data sent anywhere
 
-All settings stay in your browser in browser.storage.local.
+Persistent settings stay in browser.storage.local; the temporary pause stays in browser.storage.session. Surfaced does not use sync storage, and local import/export files are never uploaded.
 
 Available in English and Polish.
 
@@ -97,15 +101,19 @@ Co robi Surfaced
 - Pozwala ustawić próg pierwszego przypomnienia w ekranach
 - Pokazuje kolejne przypomnienia przy 2× i 3× ustawionego progu
 - Pozwala zmienić treść pierwszego przypomnienia
-- Obsługuje wyłączenie na konkretnych stronach i osobne progi dla wybranych witryn
+- Pozwala zamknąć bieżące przypomnienie bez wyciszania kolejnego, głębszego poziomu
+- Udostępnia pełny manager włączania stron i osobnych progów dla wybranych witryn
+- Wstrzymuje przypomnienia i odznaki we wszystkich kartach do restartu Chrome
+- Importuje i eksportuje wszystkie trwałe ustawienia w lokalnym pliku JSON
+- Oddziela diagnostykę dostępu do stron od stanu zapisanych ustawień lokalnych
 - Pokazuje aktualną głębokość na ikonie dodatku po przekroczeniu progu
-- Działa na desktopie i Androidzie
+- Działa w Chrome na desktopie
 
 Dlaczego działa inaczej
 
 Surfaced opiera się na przypomnieniach, a nie blokadach. Nie blokuje stron, nie narzuca minutników i nie zawstydza Cię za przeglądanie. Dodaje spokojny sygnał głębokości, żebyś mógł zauważyć ten moment i sam zdecydować, co dalej.
 
-Ponieważ śledzi skumulowany dystans przewijania, lepiej sprawdza się na nieskończonych kanałach i wielu aplikacjach jednostronicowych niż prosty pomiar pozycji strony.
+Ponieważ ruch w dół zwiększa głębokość, a ruch w górę ją zmniejsza, Surfaced śledzi skumulowaną głębokość netto i lepiej sprawdza się na nieskończonych kanałach oraz w wielu aplikacjach jednostronicowych niż prosty pomiar pozycji strony.
 
 Prywatność z założenia
 
@@ -114,7 +122,7 @@ Prywatność z założenia
 - Bez zdalnych usług
 - Bez wysyłania danych gdziekolwiek
 
-Wszystkie ustawienia zostają lokalnie w Twojej przeglądarce w browser.storage.local.
+Trwałe ustawienia zostają lokalnie w browser.storage.local, a tymczasowe wstrzymanie w browser.storage.session. Surfaced nie używa synchronizacji, a lokalne pliki importu i eksportu nie są nigdzie wysyłane.
 
 Dostępne po angielsku i po polsku.
 
@@ -166,7 +174,7 @@ Surfaced provides local scroll-depth reminders that help users notice when they 
 
 #### `storage`
 
-Surfaced uses extension storage to save user settings locally, including the reminder threshold, custom reminder text, global enabled state, per-site disable settings, and per-site threshold overrides.
+Surfaced uses persistent extension storage to save the reminder threshold, custom reminder text, global enabled state, per-site disable settings, and per-site threshold overrides locally. It also uses session storage for the optional pause-until-restart state. Surfaced does not use sync storage.
 
 #### Host permission: `<all_urls>`
 
@@ -197,7 +205,7 @@ No user data is collected.
 Suggested explanation if a text field is shown:
 
 ```text
-Surfaced stores settings locally in browser extension storage and does not transmit user data off-device. It does not use analytics, advertising, accounts, remote APIs, or backend services.
+Surfaced stores persistent settings and the temporary session pause locally in browser extension storage. Local JSON import/export files are not uploaded. Surfaced does not transmit user data off-device or use analytics, advertising, accounts, remote APIs, sync storage, or backend services.
 ```
 
 ### Limited Use Certification
@@ -225,7 +233,10 @@ Suggested initial settings:
 7. Reopen the popup and verify that settings can be saved.
 8. Disable Surfaced for the current site and confirm reminders stop on that site.
 9. Re-enable the site and set a site-specific threshold override.
-10. Restart Chrome and verify that settings remain saved.
+10. Open Manage site settings and verify that saved disabled sites and overrides can both be edited or removed.
+11. Export settings, import the local JSON file, review the preview, and confirm replacement.
+12. Pause reminders until restart, verify reminders and badges clear, then resume.
+13. Restart Chrome and verify that persistent settings remain saved while the session pause is cleared.
 ```
 
 No account, login, remote service, or test credentials are required.

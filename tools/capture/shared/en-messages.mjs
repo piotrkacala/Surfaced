@@ -1,51 +1,20 @@
-export const EN_MESSAGES = {
-  extensionName: "Surfaced",
-  popupExplainer: "A gentle reminder when you scroll too far.",
-  popupGlobalToggleLabel: "Enabled",
-  unitScreensOne: "screen",
-  unitScreensFew: "screens",
-  unitScreensMany: "screens",
-  unitScreensOther: "screens",
-  popupThresholdTitle: "After how many screens should Surfaced remind you?",
-  popupThresholdHelperScreens: "1 screen = the height of the visible part of the page.",
-  popupThresholdCustomHint: "You can also enter a custom value, for example 5.5 or 20.",
-  popupThresholdBehaviorHint: "Later reminders: 2× and 3× this value.",
-  notificationTextReset: "Reset",
-  popupNotificationTextTitle: "First reminder text",
-  popupNotificationTextHint: "This text appears in the first reminder.",
-  popupPreviewLabel: "Preview",
-  enabledOnSite: "Enabled on this site",
-  enabledOnHost: "Enabled on $HOST$",
-  statusAutoSaved: "Saved ✓",
-  statusError: "Error saving",
-  statusEnabled: "Enabled ✓",
-  statusDisabled: "Disabled",
-  statusEnabledOnHost: "Enabled on $HOST$",
-  statusDisabledOnHost: "Disabled on $HOST$",
-  ariaThresholdValue: "First reminder threshold value",
-  ariaDecreaseThreshold: "Decrease the global reminder threshold",
-  ariaIncreaseThreshold: "Increase the global reminder threshold",
-  ariaThresholdHelpToggle: "Show more information about the threshold setting",
-  ariaToggleGlobal: "Enable extension globally",
-  ariaSiteThresholdValue: "Site-specific reminder threshold value",
-  ariaDecreaseSiteThreshold: "Decrease the site-specific reminder threshold",
-  ariaIncreaseSiteThreshold: "Increase the site-specific threshold",
-  defaultNotificationText: "You've drifted pretty far. Come up for air.",
-  notificationSub: "Surfaced · scroll depth alert",
-  ariaNotificationDismiss: "Dismiss notification",
-  notificationMid: "Still going? You're deep in the feed now.",
-  notificationDeep: "You've been down here a while. Time to surface.",
-  popupSiteTitle: "This site: $HOST$",
-  popupSiteTitleFallback: "This site",
-  popupSiteDescription: "Adjust how Surfaced behaves on the page you're viewing.",
-  popupCurrentSiteUnavailable: "Site-specific settings are unavailable here because Surfaced could not read the current page address.",
-  siteOverrideEnabled: "Use a different value on this site",
-  popupSiteOverrideToggleLabel: "Use a different value on this site",
-  popupSiteOverrideInputLabel: "Show the reminder after",
-  manageSites: "Manage site settings",
-  noOverrides: "No site-specific settings saved yet.",
-  statusOverrideEnabled: "Custom threshold enabled for $HOST$",
-  statusOverrideDisabled: "Global threshold restored for $HOST$",
-  statusOverrideRemoved: "Override removed for $HOST$",
-  ariaRemoveSiteOverride: "Remove saved setting for $HOST$",
-};
+const localeUrl = new URL("../../../shared/_locales/en/messages.json", import.meta.url);
+
+async function readCanonicalLocale() {
+  if (localeUrl.protocol === "file:") {
+    const { readFile } = await import("node:fs/promises");
+    return JSON.parse(await readFile(localeUrl, "utf8"));
+  }
+
+  const response = await fetch(localeUrl);
+  if (!response.ok) {
+    throw new Error(`Unable to load canonical English locale: ${response.status}`);
+  }
+  return response.json();
+}
+
+const locale = await readCanonicalLocale();
+
+export const EN_MESSAGES = Object.freeze(Object.fromEntries(
+  Object.entries(locale).map(([key, entry]) => [key, entry.message])
+));

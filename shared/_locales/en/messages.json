@@ -83,11 +83,155 @@
   },
   "statusAutoSaved": {
     "message": "Saved ✓",
-    "description": "Brief auto-save confirmation shown after debounced saves."
+    "description": "Brief confirmation shown after automatic saves."
   },
   "statusError": {
     "message": "Error saving",
     "description": "Status message when saving fails."
+  },
+  "storageLoading": {
+    "message": "Loading your settings…",
+    "description": "Accessible status shown while persistent settings are loading."
+  },
+  "storageReadError": {
+    "message": "Surfaced couldn't load your saved settings. Nothing has been changed. Try again to continue.",
+    "description": "Error shown when reading persistent settings fails."
+  },
+  "storageWriteError": {
+    "message": "Surfaced couldn't save your latest change. Try again before editing more settings.",
+    "description": "Error shown when writing persistent settings fails."
+  },
+  "storageRetry": {
+    "message": "Try again",
+    "description": "Button label for retrying a failed settings read or write."
+  },
+  "permissionHealthTitle": {
+    "message": "Page access",
+    "description": "Heading for host-permission diagnostics in the popup."
+  },
+  "permissionHealthLoading": {
+    "message": "Checking access to pages…",
+    "description": "Status while current host permissions are checked."
+  },
+  "permissionHealthRequesting": {
+    "message": "Waiting for the browser's permission decision…",
+    "description": "Status while a user-initiated host permission request is pending."
+  },
+  "permissionHealthGranted": {
+    "message": "Surfaced can access supported pages. Your saved settings are available.",
+    "description": "Status when the all-URLs host permission is confirmed."
+  },
+  "permissionHealthMissing": {
+    "message": "Your saved settings are available, but Surfaced does not currently have access to all pages. Reminders may not work.",
+    "description": "Warning when persistent storage works but host access is missing."
+  },
+  "permissionHealthPartial": {
+    "message": "Your saved settings are available, but page access is limited to only some sites. Reminders may not work everywhere.",
+    "description": "Warning when only partial host access is reported."
+  },
+  "permissionHealthUnavailable": {
+    "message": "Your saved settings are available, but Surfaced could not verify page access in this browser.",
+    "description": "Warning when the permissions API cannot verify host access."
+  },
+  "permissionRestoreAction": {
+    "message": "Restore page access",
+    "description": "User action that requests the already-declared all-URLs host permission."
+  },
+  "permissionRequestingAction": {
+    "message": "Checking browser decision…",
+    "description": "Disabled action label while requesting page access."
+  },
+  "ariaRestorePageAccess": {
+    "message": "Ask the browser to restore Surfaced access to supported pages",
+    "description": "Accessible label for the page-access request action."
+  },
+  "permissionRestored": {
+    "message": "Page access is restored and verified.",
+    "description": "Success shown only after a fresh permissions check confirms access."
+  },
+  "permissionReloadHint": {
+    "message": "Reload the current tab before testing Surfaced there; its content script may need to start again.",
+    "description": "Hint shown after verified host access restoration."
+  },
+  "permissionRequestDenied": {
+    "message": "Page access was not granted. Your saved settings were not changed.",
+    "description": "Status after the user or browser denies a host permission request."
+  },
+  "permissionRequestPartial": {
+    "message": "The browser granted only limited page access. Surfaced still cannot verify access to all supported pages.",
+    "description": "Status after a permission request leaves only a partial grant."
+  },
+  "permissionRequestException": {
+    "message": "The browser could not complete the page-access request. Your saved settings were not changed.",
+    "description": "Status when permissions.request throws or rejects."
+  },
+  "permissionRequestUnverified": {
+    "message": "The browser completed the request, but Surfaced still cannot verify page access. Access has not been marked as restored.",
+    "description": "Status when request returns true but a fresh contains check remains false."
+  },
+  "permissionPanelFallback": {
+    "message": "Open your browser's Extensions or Add-ons manager, choose Surfaced, then allow access under Permissions or Site access.",
+    "description": "Manual fallback when host access cannot be restored through the WebExtensions request."
+  },
+  "sessionStateLoadingTitle": {
+    "message": "Session pause",
+    "description": "Heading while the temporary session pause state is loading."
+  },
+  "sessionStateLoadingDescription": {
+    "message": "Checking whether reminders are paused…",
+    "description": "Status while the temporary session pause state is loading."
+  },
+  "sessionStateLoadingAction": {
+    "message": "Checking session status…",
+    "description": "Disabled action label while the session pause state is loading."
+  },
+  "sessionPauseTitle": {
+    "message": "Pause reminders",
+    "description": "Heading for the temporary global pause action."
+  },
+  "sessionPauseDescription": {
+    "message": "Stop reminders and badge updates on every tab until the browser restarts.",
+    "description": "Description of the temporary global pause action."
+  },
+  "sessionPauseAction": {
+    "message": "Pause until browser restarts",
+    "description": "Button label that pauses reminders for the browser session."
+  },
+  "sessionPausedTitle": {
+    "message": "Notifications paused",
+    "description": "Heading shown while reminders are paused for the browser session."
+  },
+  "sessionPausedDescription": {
+    "message": "Reminders and badge updates are paused until the browser restarts.",
+    "description": "Description shown while the temporary global pause is active."
+  },
+  "sessionResumeAction": {
+    "message": "Resume now",
+    "description": "Button label that ends the temporary global pause."
+  },
+  "sessionStateErrorTitle": {
+    "message": "Session pause unavailable",
+    "description": "Heading shown when the temporary pause state cannot be read or changed."
+  },
+  "sessionStateErrorDescription": {
+    "message": "Surfaced couldn't check the temporary pause state. Your saved settings are unchanged.",
+    "description": "Error shown when session storage is temporarily unavailable."
+  },
+  "sessionStateRetryAction": {
+    "message": "Try again",
+    "description": "Button label for retrying the session pause state."
+  },
+  "ariaSessionPause": {
+    "message": "Pause reminders on all tabs until the browser restarts",
+    "description": "Accessible label for the temporary global pause action."
+  },
+  "ariaSessionResume": {
+    "message": "Resume reminders now on all tabs",
+    "description": "Accessible label for ending the temporary global pause."
+  },
+  "ariaSessionRetry": {
+    "message": "Try loading the session pause state again",
+    "description": "Accessible label for retrying a session pause error."
   },
   "statusEnabled": {
     "message": "Enabled ✓",
@@ -207,6 +351,81 @@
     "message": "Manage site settings",
     "description": "Label for the button that expands the saved site settings list."
   },
+  "siteManagerTitle": { "message": "Saved site settings", "description": "Heading for the complete saved site settings manager." },
+  "siteManagerClose": { "message": "Close site settings manager", "description": "Accessible label for closing the saved site settings manager." },
+  "siteManagerEmpty": { "message": "No site-specific settings saved yet.", "description": "Empty state for the saved site settings manager." },
+  "siteManagerEnabled": { "message": "Enabled", "description": "Enabled state shown for a hostname in the site settings manager." },
+  "siteManagerDisabled": { "message": "Disabled", "description": "Disabled state shown for a hostname in the site settings manager." },
+  "siteManagerGlobalThreshold": {
+    "message": "Global threshold: $VALUE$",
+    "description": "Effective global threshold shown for a hostname without an override.",
+    "placeholders": { "value": { "content": "$1", "example": "7 screens" } }
+  },
+  "siteManagerOverrideThreshold": {
+    "message": "Site override: $VALUE$",
+    "description": "Site threshold override shown for a hostname.",
+    "placeholders": { "value": { "content": "$1", "example": "12 screens" } }
+  },
+  "siteManagerEnable": { "message": "Enable", "description": "Action that enables Surfaced on a saved hostname." },
+  "siteManagerDisable": { "message": "Disable", "description": "Action that disables Surfaced on a saved hostname." },
+  "siteManagerSetOverride": { "message": "Set override", "description": "Action that opens the threshold override editor for a hostname." },
+  "siteManagerEditOverride": { "message": "Edit override", "description": "Action that edits an existing threshold override for a hostname." },
+  "siteManagerRemoveOverride": { "message": "Remove override", "description": "Action that begins removal of a threshold override." },
+  "siteManagerRemoveSite": { "message": "Remove site settings", "description": "Action that begins removal of all saved settings for a hostname." },
+  "siteManagerOverrideInput": {
+    "message": "Threshold override for $HOST$",
+    "description": "Label for the threshold override input in the site settings manager.",
+    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
+  },
+  "siteManagerSaveOverride": { "message": "Save override", "description": "Action that saves a threshold override in the site settings manager." },
+  "siteManagerCancel": { "message": "Cancel", "description": "Action that cancels an edit or destructive confirmation." },
+  "siteManagerConfirmOverride": {
+    "message": "Remove the threshold override for $HOST$?",
+    "description": "Confirmation copy before removing a threshold override.",
+    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
+  },
+  "siteManagerConfirmRemove": {
+    "message": "Remove all saved settings for $HOST$?",
+    "description": "Confirmation copy before removing complete site configuration.",
+    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
+  },
+  "siteManagerConfirmAction": { "message": "Confirm removal", "description": "Destructive confirmation action in the site settings manager." },
+  "statusSiteSettingsRemoved": {
+    "message": "Site settings removed for $HOST$",
+    "description": "Status shown after removing all saved settings for a hostname.",
+    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
+  },
+  "settingsBackupTitle": { "message": "Import and export", "description": "Heading for local settings backup actions." },
+  "settingsBackupDescription": { "message": "Save or restore all persistent settings with a local JSON file. Session pause is not included.", "description": "Description of local settings import and export." },
+  "settingsExportAction": { "message": "Export settings", "description": "Button that downloads a local settings JSON file." },
+  "settingsImportAction": { "message": "Import settings", "description": "Button that opens the local settings file picker." },
+  "ariaExportSettings": { "message": "Export all persistent Surfaced settings to a local JSON file", "description": "Accessible label for settings export." },
+  "ariaImportSettings": { "message": "Choose a local Surfaced settings file to import", "description": "Accessible label for opening the settings file picker." },
+  "ariaImportSettingsFile": { "message": "Local Surfaced settings JSON file", "description": "Accessible label for the settings file input." },
+  "settingsImportPreviewTitle": { "message": "Review imported settings", "description": "Heading for the import preview shown before confirmation." },
+  "settingsImportPreviewThreshold": { "message": "Reminder threshold", "description": "Import preview label for the global threshold." },
+  "settingsImportPreviewText": { "message": "First reminder text", "description": "Import preview label for custom reminder text." },
+  "settingsImportPreviewEnabled": { "message": "Globally enabled", "description": "Import preview label for the global enabled setting." },
+  "settingsImportPreviewDisabledDomains": { "message": "Disabled sites", "description": "Import preview label for the disabled domains count." },
+  "settingsImportPreviewOverrides": { "message": "Site overrides", "description": "Import preview label for the site override count." },
+  "settingsImportStateEnabled": { "message": "Yes", "description": "Enabled value in the import preview." },
+  "settingsImportStateDisabled": { "message": "No", "description": "Disabled value in the import preview." },
+  "settingsImportReplaceAction": { "message": "Replace settings", "description": "Explicit confirmation that replaces every persistent setting with the import preview." },
+  "settingsImportCancelAction": { "message": "Cancel", "description": "Action that cancels a settings import preview." },
+  "ariaReplaceSettings": { "message": "Replace all persistent settings with this imported set", "description": "Accessible label for import confirmation." },
+  "ariaCancelSettingsImport": { "message": "Cancel settings import without changing current settings", "description": "Accessible label for cancelling import preview." },
+  "settingsExportSuccess": { "message": "Settings exported ✓", "description": "Status after creating the local export file." },
+  "settingsExportError": { "message": "Surfaced couldn't export your settings.", "description": "Error shown when the local export cannot be created." },
+  "settingsImportSuccess": { "message": "Settings replaced ✓", "description": "Status after a successful settings import." },
+  "settingsImportErrorTooLarge": { "message": "This file is too large. Choose a Surfaced settings file smaller than 256 KB.", "description": "Error for an import file over the size limit." },
+  "settingsImportErrorJson": { "message": "This file isn't valid JSON. Your settings were not changed.", "description": "Error for malformed imported JSON." },
+  "settingsImportErrorVersion": { "message": "This backup uses an unsupported format version. Update Surfaced or choose a version 1 backup.", "description": "Error for an unknown settings export format version." },
+  "settingsImportErrorStructure": { "message": "This isn't a complete Surfaced settings backup. Your settings were not changed.", "description": "Error for an invalid settings envelope or missing or extra settings fields." },
+  "settingsImportErrorValues": { "message": "One or more imported settings have an invalid value or type. Your settings were not changed.", "description": "Error for invalid imported setting values." },
+  "settingsImportErrorHostname": { "message": "The backup contains an unsafe or invalid site hostname. Your settings were not changed.", "description": "Error for an invalid imported hostname." },
+  "settingsImportErrorDuplicateHost": { "message": "The backup contains the same site more than once. Your settings were not changed.", "description": "Error for duplicate imported hostnames after normalization." },
+  "settingsImportErrorRead": { "message": "Surfaced couldn't read this local file. Your settings were not changed.", "description": "Error for a local file read failure." },
+  "settingsImportErrorWrite": { "message": "Surfaced couldn't replace your settings. Nothing was applied; try again.", "description": "Error for a failed background-owned import write." },
   "noOverrides": {
     "message": "No site-specific settings saved yet.",
     "description": "Message shown when the saved site settings list is empty."

@@ -5,7 +5,7 @@
 
 ## Context
 
-Surfaced started as a desktop-only Firefox extension. We decided to add Firefox for Android (Fenix) support. The two platforms share core logic (scroll tracking, notifications, background service worker) but differ significantly in settings UI: the desktop popup is a fixed-size floating window with hover interactions; Android opens extensions as a sidebar/fullscreen view and requires touch-friendly, responsive design.
+Surfaced started as a desktop-only Firefox extension. We decided to add Firefox for Android (Fenix) support. The two platforms share core logic (scroll tracking, notifications, and background behavior) but differ significantly in settings UI: the desktop popup is a fixed-size floating window with hover interactions; Android opens extensions as a sidebar/fullscreen view and requires touch-friendly, responsive design.
 
 Three structural options were considered:
 
@@ -20,9 +20,10 @@ Three structural options were considered:
 Option 3. Directory layout:
 
 ```
-shared/     content.js, background.js, _locales/, icons/
-desktop/    manifest.json, popup/
-android/    manifest.json, popup/
+shared/     content.js, background.js, shared modules, _locales/, icons/
+desktop/    Firefox desktop manifest and popup/
+android/    unified Firefox manifest and Android popup/
+chrome/     Chrome desktop manifest
 ```
 
 `build.sh` merges `shared/` + `desktop/` (or `android/`) into a flat package and zips it for AMO submission. The zip structure matches what Firefox expects — no subdirectory prefixes.
@@ -32,5 +33,5 @@ android/    manifest.json, popup/
 - Shared logic changes automatically apply to both platforms.
 - Adding a third platform (e.g. Chrome) is straightforward: new directory, new manifest, `build.sh` learns one new case.
 - Platform-specific popup rewrites are fully isolated; no risk of desktop regression during Android UI work.
-- `docs/` and `dist/` are gitignored — ADRs stay local, build artifacts don't pollute the repo.
-- Loading the extension for quick iteration still works by pointing `about:debugging` at a platform's `manifest.json` directly (paths in manifest are relative to the manifest file, and the build script replicates that flat structure in dist/).
+- `docs/` is tracked and maintained with the code. `dist/` is ignored so generated build artifacts do not pollute repository history.
+- Platform source directories are overlays, not standalone unpacked extensions. For testing, build the relevant target and load its unpacked ZIP contents; pointing `about:debugging` directly at a platform manifest omits required files from `shared/`.

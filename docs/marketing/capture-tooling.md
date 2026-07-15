@@ -7,12 +7,12 @@ This repo now contains deterministic fixture pages and capture harnesses for Sur
 
 ## What is in the repo
 
-- [fixtures/marketing/long-article.html](/home/k/Projekty/Surfaced/fixtures/marketing/long-article.html)
-- [fixtures/marketing/feed.html](/home/k/Projekty/Surfaced/fixtures/marketing/feed.html)
-- [fixtures/marketing/fixture-runtime.mjs](/home/k/Projekty/Surfaced/fixtures/marketing/fixture-runtime.mjs)
-- [tools/capture/popup-harness.html](/home/k/Projekty/Surfaced/tools/capture/popup-harness.html)
-- [tools/capture/popup-harness.mjs](/home/k/Projekty/Surfaced/tools/capture/popup-harness.mjs)
-- [tools/capture/capture-assets.mjs](/home/k/Projekty/Surfaced/tools/capture/capture-assets.mjs)
+- [fixtures/marketing/long-article.html](../../fixtures/marketing/long-article.html)
+- [fixtures/marketing/feed.html](../../fixtures/marketing/feed.html)
+- [fixtures/marketing/fixture-runtime.mjs](../../fixtures/marketing/fixture-runtime.mjs)
+- [tools/capture/popup-harness.html](../../tools/capture/popup-harness.html)
+- [tools/capture/popup-harness.mjs](../../tools/capture/popup-harness.mjs)
+- [tools/capture/capture-assets.mjs](../../tools/capture/capture-assets.mjs)
 
 ## Why this setup exists
 
@@ -41,6 +41,8 @@ The popup harness renders the real popup UI inside a controlled `1280x800` compo
 - threshold helper expanded state
 - overrides list open state
 - custom threshold and custom reminder text
+
+The harness reads English strings directly from `shared/_locales/en/messages.json`; it does not maintain a second capture-only locale copy.
 
 ## Animation automation
 
@@ -119,4 +121,4 @@ screenshots/
 screenshots/animations/
 ```
 
-See [final-assets.md](/home/k/Projekty/Surfaced/docs/marketing/final-assets.md) for the current accepted set.
+See [final-assets.md](final-assets.md) for the current accepted set.

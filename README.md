@@ -2,7 +2,7 @@
 
 **Come up for air.**
 
-Surfaced is a browser extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It tracks cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle notification when you've gone deeper than you meant to.
+Surfaced is a browser extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It tracks signed, cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle notification when you've gone deeper than you meant to.
 
 Works on Firefox for desktop, Firefox for Android, and Chrome desktop.
 
@@ -33,9 +33,12 @@ It is meant to feel calm, not punitive: a quiet tap on the shoulder when you hav
 - Reminds you after a scroll-depth threshold you choose, measured in screens.
 - Shows deeper follow-up reminders at `2×` and `3×` your chosen threshold.
 - Lets you customize the first reminder text and preview it in the popup.
-- Supports per-site disable and per-site threshold overrides.
+- Includes a complete site manager for per-site enablement and threshold overrides.
+- Lets you pause reminders and badge updates on every tab until the browser restarts.
+- Imports and exports all persistent settings as a local JSON file.
+- Diagnoses page-access problems separately from local settings storage.
 - Shows your current depth in the toolbar badge once you are past your threshold.
-- Tracks cumulative scroll distance, which works better on long feeds and many single-page apps than a simple `scrollY` check.
+- Tracks net cumulative scroll depth: downward movement adds depth and upward movement subtracts it. This works better on long feeds and many single-page apps than a simple `scrollY` check.
 
 ---
 
@@ -68,7 +71,7 @@ The current accepted listing assets live in [`screenshots/`](screenshots/) and a
 ## How it works
 
 **1. Install the extension**  
-Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/) on Firefox desktop or Android. On Chrome desktop, install it from the Chrome Web Store placeholder link above or build the separate Chrome package from source until the listing is published.
+Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/) on Firefox desktop or Android. On Chrome desktop, install it from the [Chrome Web Store](https://chrome.google.com/webstore/detail/bpbidikjpaffmpcbincadomhbfnoaaem) or build the separate Chrome package from source.
 
 **2. Choose your threshold**  
 Open the Surfaced popup and set the first reminder threshold in screens. The default is **7**. The UI is optimized around a recommended band of **7–14** screens, but custom positive values such as `5.5` or `20` are supported too.
@@ -88,7 +91,13 @@ There are three depth zones:
 **5. Dismiss or keep scrolling**  
 Dismiss the current reminder with `✕`. If you scroll deeper, the next zone can still trigger. If you come back up below the threshold, the reminder clears and the cycle resets.
 
-**6. Check the badge when you're deep**  
+**6. Pause for the browser session when needed**
+Use **Pause until browser restarts** in the popup to remove reminders and badges from every tab. **Resume now** starts a fresh cycle from each page's current position.
+
+**7. Back up or move your settings locally**
+Use **Export settings** to save all five persistent settings as a local JSON file. **Import settings** validates and previews a local backup before replacing the current settings. Session pause is intentionally not included, and Surfaced does not upload or synchronize the file.
+
+**8. Check the badge when you're deep**
 Once you are past your threshold, the toolbar badge shows your current depth as an integer number of screens.
 
 ---
@@ -98,11 +107,14 @@ Once you are past your threshold, the toolbar badge shows your current depth as 
 | Setting | What it does |
 |---|---|
 | **Enabled** | Master on/off switch for Surfaced. |
+| **Pause until browser restarts** | Temporarily stops reminders and badge updates on all tabs without changing saved settings. |
 | **Reminder threshold** | Sets when the first reminder appears. Defaults to `7`. Supports any finite positive value. |
 | **First reminder text** | Customizes the shallow-zone reminder. Mid and deep reminder text stays fixed. |
 | **Enabled on this site** | Turns Surfaced off only for the current site. |
 | **Use a different value on this site** | Applies a site-specific threshold override for the current host. |
-| **Manage site settings** | Opens the saved per-site settings list so you can review or remove overrides. |
+| **Manage site settings** | Opens every saved site configuration so you can enable or disable a host, set or remove its threshold override, or remove the complete host configuration. |
+| **Import and export** | Saves or restores all persistent settings through a validated local JSON file. Import replaces the complete persistent settings set only after confirmation. |
+| **Page access** | Checks whether Surfaced can run on supported pages and offers a browser permission action when access is missing. This is independent from the local settings storage status. |
 
 ---
 
@@ -114,7 +126,10 @@ Surfaced is intentionally simple and local-first:
 - no remote APIs
 - no account
 - no synced backend
-- settings stored only in `browser.storage.local`
+- no `storage.sync`
+- persistent settings stored only in `browser.storage.local`
+- temporary global pause stored only in `browser.storage.session` and cleared by a browser restart or extension reload/update
+- imported and exported JSON files handled locally on the device
 
 Nothing leaves your browser.
 
@@ -132,7 +147,7 @@ No. Surfaced is reminder-first, not blocker-first. It adds awareness without loc
 No meaningful impact is expected. The scroll listener is passive and throttled.
 
 **Why did it not show up on a page I expected?**  
-Some sites use unusual virtual lists, custom scroll containers, or aggressive UI updates. Surfaced handles many of these better than a naive page-position check because it tracks cumulative scroll distance, but some edge cases may still slip through.
+Some sites use unusual virtual lists, custom scroll containers, or aggressive UI updates. Surfaced handles many of these better than a naive page-position check because it tracks signed, net cumulative scroll depth, but some edge cases may still slip through. Also check the popup's **Page access** status: missing host access does not mean your saved settings were reset.
 
 **What happens on single-page apps or URL changes without a full reload?**  
 Surfaced detects many in-app navigations and resets scroll tracking when you move to a new view, so the threshold applies fresh on the next page state.

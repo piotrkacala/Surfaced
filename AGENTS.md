@@ -43,18 +43,19 @@ Read these first before making significant changes:
 ```bash
 bash -n build.sh
 ./build.sh
+node --test --test-isolation=none tests/*.test.js
 ```
 
 ### Testing
 
 ```bash
-# No automated test runner exists in this repo.
-# Smoke-test manually in Firefox via about:debugging using:
-./build.sh
-./build.sh desktop
-./build.sh android
-./build.sh chrome
+node --test --test-isolation=none tests/*.test.js
+node tests/browser-smoke.mjs
+SURFACED_BROWSER=firefox node tests/browser-smoke.mjs
+node tests/chromium-extension-smoke.mjs
 ```
+
+Browser smoke tests use Playwright from the configured global module path. A physical Firefox for Android smoke test remains a manual release gate.
 
 ### Production
 
@@ -69,7 +70,8 @@ bash -n build.sh
 - `android/` — Android-specific manifest and popup implementation; source of truth for unified release metadata
 - `chrome/` — Chrome desktop manifest; reuses the desktop popup at build time
 - `docs/` — ADRs and local implementation notes that explain non-obvious decisions
-- `dist/` — generated zip artifacts
+- `tests/` — `node:test`, browser harness, unpacked Chromium smoke, and build-package contract tests
+- `dist/` — ignored generated ZIP artifacts; old releases are preserved and distinguished from the current release output
 - `screenshots/` — store and listing screenshots
 
 ## Architecture Notes
@@ -98,16 +100,17 @@ bash -n build.sh
 ## Quality Gates
 
 Before considering a change done:
+- Run `node --test --test-isolation=none tests/*.test.js` for shared runtime, capture, manifest, or build changes.
 - Run `bash -n build.sh` if you touched the build script.
 - Run `./build.sh` for any change that can affect the unified package.
 - Run `./build.sh desktop` and/or `./build.sh android` when a platform-specific manifest or popup changed.
 - Run `./build.sh chrome` when Chrome manifest, API compatibility, shared runtime, or desktop popup behavior changed.
-- Manually smoke-test the relevant flow in Firefox, because this repo currently has no automated lint, typecheck, or test suite.
+- Run the relevant automated browser smoke and manually smoke-test browser/permission flows that the harness cannot exercise.
 
 ## Environment Blockers
 
 Before debugging runtime issues:
-- Verify whether you loaded a built zip from `dist/` or a platform manifest directly in `about:debugging`; popup routing differs between those paths.
+- Load an unpacked build assembled from `dist/`; platform source manifests are overlays and do not form complete extensions by themselves. Popup routing differs between unified and platform builds.
 - Content script changes usually require reloading the tab, not just reopening the popup.
 - Background script changes require reloading the extension.
 - Popup changes usually appear only after reopening the popup; Android-specific layout issues need verification on Firefox for Android, not desktop Firefox responsive mode alone.

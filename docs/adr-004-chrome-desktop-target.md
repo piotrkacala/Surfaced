@@ -69,21 +69,25 @@ The adapter covers only the APIs used by Surfaced:
 - `runtime`
 - `action`
 - `storage.local`
+- `storage.session`
 - `storage.onChanged`
 - `tabs`
+- `permissions`
 - `i18n`
 
 This keeps the source code close to Firefox's Promise-based API while avoiding a dependency on an external polyfill or a bundling step.
 
 ## Versioning
 
-For now, `android/manifest.json` remains the release version source of truth for the unified Firefox package. When bumping versions, keep these manifests in sync:
+`android/manifest.json` remains the version source of truth for the unified Firefox package. Every build validates that these manifests contain the same release version:
 
 - `android/manifest.json`
 - `desktop/manifest.json`
 - `chrome/manifest.json`
 
 If Chrome release cadence diverges later, revisit this decision with a separate ADR.
+
+Chrome support in this ADR is desktop-only. Firefox for Android is delivered through the unified Firefox package; the Chrome package must not claim Android support.
 
 ## Consequences
 

@@ -3,7 +3,7 @@
 **Status:** Approved implementation target for the first AMO screenshot batch  
 **Last updated:** 2026-04-28
 
-This file is the human-readable companion to [tools/capture/scene-definitions.mjs](/home/k/Projekty/Surfaced/tools/capture/scene-definitions.mjs).
+This file is the human-readable companion to [tools/capture/scene-definitions.mjs](../../tools/capture/scene-definitions.mjs).
 
 The first AMO batch should use these five primary scenes:
 
@@ -85,4 +85,4 @@ node tools/capture/capture-assets.mjs shots \
 
 If captions, filenames, or scene parameters diverge, the canonical source is:
 
-- [tools/capture/scene-definitions.mjs](/home/k/Projekty/Surfaced/tools/capture/scene-definitions.mjs)
+- [tools/capture/scene-definitions.mjs](../../tools/capture/scene-definitions.mjs)
