@@ -4,9 +4,29 @@ import "../permission-health.js";
 
 const DEFAULT_PLATFORM_CONFIG = {
   isTouch: false,
+  importPageMode: "new-tab",
 };
 
 const THRESHOLD_STEP = 0.5;
+
+export async function openSettingsImportPage({
+  mode,
+  browserApi = globalThis.browser,
+  locationApi = globalThis.location,
+} = {}) {
+  const url = browserApi.runtime.getURL("settings-import/index.html");
+
+  if (mode === "new-tab") {
+    return browserApi.tabs.create({ url, active: true });
+  }
+
+  if (mode === "same-tab") {
+    locationApi.assign(url);
+    return undefined;
+  }
+
+  throw new Error(`Unsupported settings import page mode: ${mode}`);
+}
 
 export function mountPopup(platformConfig = {}) {
   const config = {
@@ -23,14 +43,12 @@ export function mountPopup(platformConfig = {}) {
   const {
     KEYS,
     MESSAGE_TYPES,
-    SETTINGS_IMPORT_MAX_BYTES,
     applySiteSettingsIntent,
     createDefaults,
     createSettingsExport,
     getManagedSiteEntries,
     normalizeHostname,
     normalizeSettings,
-    parseSettingsImport,
     parseThresholdInput,
   } = globalThis.SurfacedSettings;
   const { MESSAGE_TYPES: SESSION_MESSAGE_TYPES } = globalThis.SurfacedSessionPause;
@@ -1105,8 +1123,7 @@ export function mountPopup(platformConfig = {}) {
       gap: 10px;
     }
 
-    .backup-actions,
-    .import-preview__actions {
+    .backup-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -1130,32 +1147,9 @@ export function mountPopup(platformConfig = {}) {
       background: rgba(0, 212, 255, 0.14);
     }
 
-    .backup-action--primary {
-      border-color: rgba(0, 212, 255, 0.5);
-      background: var(--accent);
-      color: #02111f;
-    }
-
-    .backup-action--primary:${interactionPseudoClass}:not(:disabled) {
-      background: #5ee7ff;
-      border-color: #5ee7ff;
-    }
-
     .backup-action:disabled {
       opacity: 0.55;
       cursor: default;
-    }
-
-    .settings-file-input {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      padding: 0;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-      white-space: nowrap;
-      border: 0;
     }
 
     .import-error {
@@ -1167,45 +1161,6 @@ export function mountPopup(platformConfig = {}) {
       color: #ffd7d7;
       font-size: ${config.isTouch ? "12px" : "10px"};
       line-height: 1.45;
-    }
-
-    .import-preview {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 11px;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 212, 255, 0.18);
-      background: rgba(2, 13, 26, 0.58);
-    }
-
-    .import-preview__title {
-      margin: 0;
-      color: #eefaff;
-      font-size: ${config.isTouch ? "14px" : "12px"};
-      line-height: 1.35;
-    }
-
-    .import-preview__summary {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 6px 12px;
-      margin: 0;
-      color: var(--text-muted);
-      font-size: ${config.isTouch ? "12px" : "10px"};
-      line-height: 1.4;
-    }
-
-    .import-preview__summary dt,
-    .import-preview__summary dd {
-      margin: 0;
-    }
-
-    .import-preview__summary dd {
-      max-width: ${config.isTouch ? "220px" : "180px"};
-      color: var(--text);
-      text-align: right;
-      overflow-wrap: anywhere;
     }
 
     .storage-state {
@@ -1733,61 +1688,15 @@ export function mountPopup(platformConfig = {}) {
     "aria-label": msg("ariaImportSettings"),
   });
   importButton.textContent = msg("settingsImportAction");
-  const importFileInput = el("input", "settings-file-input", {
-    type: "file",
-    id: "settingsImportFile",
-    accept: ".json,application/json",
-    tabindex: "-1",
-    "aria-label": msg("ariaImportSettingsFile"),
-  });
-  backupActions.append(exportButton, importButton, importFileInput);
+  backupActions.append(exportButton, importButton);
 
   const importError = el("p", "import-error", {
     role: "alert",
     "aria-live": "assertive",
+    tabindex: "-1",
   });
   importError.hidden = true;
-
-  const importPreview = el("div", "import-preview", {
-    role: "region",
-    "aria-labelledby": "settingsImportPreviewTitle",
-  });
-  importPreview.hidden = true;
-  const importPreviewTitle = el("h3", "import-preview__title", {
-    id: "settingsImportPreviewTitle",
-  });
-  importPreviewTitle.textContent = msg("settingsImportPreviewTitle");
-  const importSummary = el("dl", "import-preview__summary");
-  const importSummaryValues = {};
-  [
-    ["threshold", "settingsImportPreviewThreshold"],
-    ["text", "settingsImportPreviewText"],
-    ["enabled", "settingsImportPreviewEnabled"],
-    ["disabledDomains", "settingsImportPreviewDisabledDomains"],
-    ["siteOverrides", "settingsImportPreviewOverrides"],
-  ].forEach(([name, messageKey]) => {
-    const term = el("dt");
-    term.textContent = msg(messageKey);
-    const description = el("dd");
-    importSummaryValues[name] = description;
-    importSummary.append(term, description);
-  });
-  const importPreviewActions = el("div", "import-preview__actions");
-  const replaceSettingsButton = el("button", "backup-action backup-action--primary", {
-    type: "button",
-    id: "settingsImportReplace",
-    "aria-label": msg("ariaReplaceSettings"),
-  });
-  replaceSettingsButton.textContent = msg("settingsImportReplaceAction");
-  const cancelImportButton = el("button", "backup-action", {
-    type: "button",
-    id: "settingsImportCancel",
-    "aria-label": msg("ariaCancelSettingsImport"),
-  });
-  cancelImportButton.textContent = msg("settingsImportCancelAction");
-  importPreviewActions.append(replaceSettingsButton, cancelImportButton);
-  importPreview.append(importPreviewTitle, importSummary, importPreviewActions);
-  backupSection.append(backupHeader, backupActions, importError, importPreview);
+  backupSection.append(backupHeader, backupActions, importError);
 
   persistentSettings.append(thresholdSection, siteSection, textSection, backupSection);
   content.append(permissionSection, sessionSection, persistentSettings);
@@ -1813,8 +1722,6 @@ export function mountPopup(platformConfig = {}) {
   let sessionUiPhase = "loading";
   let isSessionPaused = false;
   let sessionRequestRevision = 0;
-  let importReadRevision = 0;
-  let pendingImportedSettings = null;
   let permissionRequestRevision = 0;
 
   function setGlobalThresholdValue(value, { syncInput = true } = {}) {
@@ -2488,73 +2395,15 @@ export function mountPopup(platformConfig = {}) {
     focusRenderedManagerControl(focusRequest, entries);
   }
 
-  function importErrorMessage(error) {
-    const code = error?.code || error?.message || "IMPORT_UNKNOWN";
-
-    if (code === "IMPORT_FILE_TOO_LARGE") {
-      return msg("settingsImportErrorTooLarge");
-    }
-    if (code === "IMPORT_JSON_INVALID") {
-      return msg("settingsImportErrorJson");
-    }
-    if (code === "IMPORT_VERSION_UNSUPPORTED") {
-      return msg("settingsImportErrorVersion");
-    }
-    if (["IMPORT_HOSTNAME_INVALID", "IMPORT_HOSTNAME_DUPLICATE"].includes(code)) {
-      return msg(code === "IMPORT_HOSTNAME_DUPLICATE"
-        ? "settingsImportErrorDuplicateHost"
-        : "settingsImportErrorHostname");
-    }
-    if ([
-      "IMPORT_THRESHOLD_INVALID",
-      "IMPORT_TEXT_INVALID",
-      "IMPORT_ENABLED_INVALID",
-      "IMPORT_DISABLED_DOMAINS_INVALID",
-      "IMPORT_OVERRIDES_INVALID",
-      "IMPORT_OVERRIDE_INVALID",
-    ].includes(code)) {
-      return msg("settingsImportErrorValues");
-    }
-    if (["STORAGE_WRITE_FAILED", "SETTINGS_REPLACE_PENDING"].includes(code)) {
-      return msg("settingsImportErrorWrite");
-    }
-    if (code === "IMPORT_FILE_READ_FAILED") {
-      return msg("settingsImportErrorRead");
-    }
-
-    return msg("settingsImportErrorStructure");
-  }
-
   function clearImportError() {
     importError.hidden = true;
     importError.textContent = "";
   }
 
-  function showImportError(error) {
-    importError.textContent = importErrorMessage(error);
+  function showImportPageOpenError() {
+    importError.textContent = msg("settingsImportPageOpenError");
     importError.hidden = false;
-  }
-
-  function closeImportPreview({ restoreFocus = true } = {}) {
-    importReadRevision += 1;
-    pendingImportedSettings = null;
-    importPreview.hidden = true;
-    importFileInput.value = "";
-    clearImportError();
-    if (restoreFocus) {
-      importButton.focus();
-    }
-  }
-
-  function renderImportPreview(settings) {
-    importSummaryValues.threshold.textContent = `${formatThresholdNumber(settings[KEYS.threshold])} ${getUnitScreensMsg(settings[KEYS.threshold])}`;
-    importSummaryValues.text.textContent = settings[KEYS.text];
-    importSummaryValues.enabled.textContent = msg(
-      settings[KEYS.enabled] ? "settingsImportStateEnabled" : "settingsImportStateDisabled"
-    );
-    importSummaryValues.disabledDomains.textContent = String(settings[KEYS.disabledDomains].length);
-    importSummaryValues.siteOverrides.textContent = String(Object.keys(settings[KEYS.siteOverrides]).length);
-    importPreview.hidden = false;
+    importError.focus();
   }
 
   exportButton.addEventListener("click", () => {
@@ -2578,92 +2427,14 @@ export function mountPopup(platformConfig = {}) {
     }
   });
 
-  importButton.addEventListener("click", () => {
-    importFileInput.value = "";
-    importFileInput.click();
-  });
-
-  importFileInput.addEventListener("change", async () => {
-    const file = importFileInput.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    const revision = ++importReadRevision;
-    pendingImportedSettings = null;
-    importPreview.hidden = true;
+  importButton.addEventListener("click", async () => {
     clearImportError();
-
-    if (file.size > SETTINGS_IMPORT_MAX_BYTES) {
-      showImportError({ code: "IMPORT_FILE_TOO_LARGE" });
-      importFileInput.value = "";
-      return;
-    }
-
-    let text;
     try {
-      text = await file.text();
-    } catch (error) {
-      if (revision === importReadRevision) {
-        showImportError({ code: "IMPORT_FILE_READ_FAILED" });
-        importFileInput.value = "";
-      }
-      return;
-    }
-
-    if (revision !== importReadRevision) {
-      return;
-    }
-
-    try {
-      const parsed = parseSettingsImport(text, { byteLength: file.size });
-      pendingImportedSettings = parsed.settings;
-      renderImportPreview(parsed.settings);
-      replaceSettingsButton.focus();
-    } catch (error) {
-      showImportError(error);
-      importFileInput.value = "";
-    }
-  });
-
-  cancelImportButton.addEventListener("click", () => closeImportPreview());
-
-  let importWritePending = false;
-  replaceSettingsButton.addEventListener("click", async () => {
-    if (!pendingImportedSettings || importWritePending) {
-      return;
-    }
-
-    importWritePending = true;
-    replaceSettingsButton.setAttribute("aria-busy", "true");
-    clearImportError();
-
-    try {
-      const response = await sendSettingsMessage({
-        type: MESSAGE_TYPES.replace,
-        settings: pendingImportedSettings,
+      await openSettingsImportPage({
+        mode: config.importPageMode,
       });
-
-      if (!response.ok) {
-        const error = new Error(response.error || "STORAGE_WRITE_FAILED");
-        error.code = response.error || "STORAGE_WRITE_FAILED";
-        showImportError(error);
-        replaceSettingsButton.focus();
-        return;
-      }
-
-      editingOverrideHost = "";
-      pendingConfirmation = null;
-      applySettingsToUi(response.settings);
-      closeImportPreview({ restoreFocus: false });
-      showStatus(msg("settingsImportSuccess"));
-      importButton.focus();
     } catch (error) {
-      showImportError({ code: "STORAGE_WRITE_FAILED" });
-      replaceSettingsButton.focus();
-    } finally {
-      importWritePending = false;
-      replaceSettingsButton.removeAttribute("aria-busy");
+      showImportPageOpenError();
     }
   });
 

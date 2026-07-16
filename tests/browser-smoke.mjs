@@ -851,7 +851,7 @@ async function setImportFile(page, contents, name = "surfaced-settings.json") {
 
 async function waitForImportPreview(page) {
   await page.waitForFunction(() => (
-    document.getElementById("root").shadowRoot.querySelector(".import-preview").hidden === false
+    document.getElementById("importPreview").hidden === false
   ));
 }
 
@@ -872,14 +872,8 @@ async function testPopupSettingsImportExport(browser, origin) {
       waitUntil: "networkidle",
     });
     await waitForReady(page);
-
-    await page.evaluate(() => {
-      const root = document.getElementById("root").shadowRoot;
-      root.querySelector("[aria-controls='siteSettingsManager']").click();
-    });
-    const initial = await popupSettingsSnapshot(page);
-    assert.equal(initial.managerOpen, true);
-    assert.equal(initial.sessionState, "paused");
+    assert.equal(await page.evaluate(() => document.getElementById("root").shadowRoot
+      .querySelector("input[type='file']")), null, `${platform}: popup contains no file picker`);
 
     const downloadPromise = page.waitForEvent("download");
     await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsExport").click());
@@ -901,78 +895,103 @@ async function testPopupSettingsImportExport(browser, origin) {
     assert.equal(Object.prototype.hasOwnProperty.call(downloaded, "scrollNotifierSessionPaused"), false);
     assert.equal(Object.prototype.hasOwnProperty.call(downloaded.settings, "scrollNotifierSessionPaused"), false);
 
-    await setImportFile(page, JSON.stringify(importEnvelope()));
-    await waitForImportPreview(page);
-    const preview = await page.evaluate(() => {
-      const root = document.getElementById("root").shadowRoot;
-      return {
-        hidden: root.querySelector(".import-preview").hidden,
-        values: Array.from(root.querySelectorAll(".import-preview__summary dd")).map((item) => item.textContent),
-        focus: root.activeElement?.id,
-      };
-    });
-    assert.equal(preview.hidden, false, `${platform}: valid file opens preview`);
-    assert.deepEqual(preview.values, ["20.5 screens", "Imported local reminder", "No", "2", "2"]);
-    assert.equal(preview.focus, "settingsImportReplace");
-
-    await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsImportCancel").click());
-    assert.deepEqual(await popupSettingsSnapshot(page), initial, `${platform}: preview cancellation changes no state`);
-    assert.equal((await popupFocus(page)).id, "settingsImport", `${platform}: cancel returns focus to import action`);
-
-    await setImportFile(page, JSON.stringify(importEnvelope()));
-    await waitForImportPreview(page);
-    await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsImportReplace").click());
-    await page.waitForFunction(() => (
-      document.getElementById("root").shadowRoot.querySelector("#globalThresholdValue").value === "20.5"
-    ));
-    const imported = await popupSettingsSnapshot(page);
-    assert.deepEqual(imported, {
-      threshold: "20.5",
-      text: "Imported local reminder",
-      enabled: false,
-      siteEnabled: false,
-      siteOverrideEnabled: true,
-      siteThreshold: "5.5",
-      managerOpen: true,
-      managerRows: [
-        { hostname: "current.example", state: "Disabled", threshold: "Site override: 5.5 screens" },
-        { hostname: "new-disabled.example", state: "Disabled", threshold: "Global threshold: 20.5 screens" },
-        { hostname: "new-override.example", state: "Enabled", threshold: "Site override: 100 screens" },
-      ],
-      sessionState: "paused",
-      stored: importEnvelope().settings,
-    }, `${platform}: confirmed import refreshes current-site controls and open manager`);
-    assert.equal((await popupFocus(page)).id, "settingsImport");
+    if (platform === "desktop") {
+      await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsImport").click());
+      assert.deepEqual(await page.evaluate(() => window.__SURFACED_CAPTURE__.tabCalls), [{
+        method: "create",
+        details: {
+          url: `${origin}/settings-import/index.html`,
+          active: true,
+        },
+      }], "desktop popup opens the persistent import page in a new active tab");
+    }
     await page.close();
-
-    const errorPage = await browser.newPage({ viewport: { width: 1280, height: 980 } });
-    await errorPage.goto(`${origin}/tools/capture/popup-harness.html?${params}&storageSetFailures=1`, {
-      waitUntil: "networkidle",
-    });
-    await waitForReady(errorPage);
-    await errorPage.evaluate(() => document.getElementById("root").shadowRoot
-      .querySelector("[aria-controls='siteSettingsManager']").click());
-    const beforeFailure = await popupSettingsSnapshot(errorPage);
-    await setImportFile(errorPage, JSON.stringify(importEnvelope()));
-    await waitForImportPreview(errorPage);
-    await errorPage.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsImportReplace").click());
-    await errorPage.waitForFunction(() => !document.getElementById("root").shadowRoot.querySelector(".import-error").hidden);
-    assert.deepEqual(await popupSettingsSnapshot(errorPage), beforeFailure, `${platform}: write failure changes no controls or manager state`);
-    assert.equal((await popupFocus(errorPage)).id, "settingsImportReplace", `${platform}: write error preserves confirmation focus`);
-    assert.equal(await errorPage.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".import-preview").hidden), false);
-    await errorPage.close();
-
-    const oversizedPage = await browser.newPage({ viewport: { width: 1280, height: 980 } });
-    await oversizedPage.goto(`${origin}/tools/capture/popup-harness.html?${params}`, { waitUntil: "networkidle" });
-    await waitForReady(oversizedPage);
-    await oversizedPage.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsImport").focus());
-    const oversizedBefore = await popupSettingsSnapshot(oversizedPage);
-    await setImportFile(oversizedPage, "x".repeat(256 * 1024 + 1), "too-large.json");
-    assert.deepEqual(await popupSettingsSnapshot(oversizedPage), oversizedBefore, `${platform}: oversized file changes no settings`);
-    assert.equal(await oversizedPage.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".import-preview").hidden), true);
-    assert.equal((await popupFocus(oversizedPage)).id, "settingsImport", `${platform}: file size error preserves focus`);
-    await oversizedPage.close();
   }
+
+  const popupErrorPage = await browser.newPage({ viewport: { width: 900, height: 780 } });
+  await popupErrorPage.goto(`${origin}/tools/capture/popup-harness.html?platform=desktop&tabCreateFailures=1`, {
+    waitUntil: "networkidle",
+  });
+  await waitForReady(popupErrorPage);
+  await popupErrorPage.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsImport").click());
+  await popupErrorPage.waitForFunction(() => !document.getElementById("root").shadowRoot.querySelector(".import-error").hidden);
+  assert.match(await popupErrorPage.evaluate(() => document.getElementById("root").shadowRoot
+    .querySelector(".import-error").textContent), /couldn't open the settings import page/i);
+  await popupErrorPage.close();
+
+  const importParams = new URLSearchParams({
+    platform: "desktop",
+    threshold: "7",
+    text: "Current reminder",
+    enabled: "1",
+    disabledDomains: "old-disabled.example",
+    siteOverrides: "old-override.example:9",
+    sessionPaused: "1",
+  });
+  const importPage = await browser.newPage({ viewport: { width: 900, height: 780 } });
+  await importPage.goto(`${origin}/tools/capture/settings-import-harness.html?${importParams}`, {
+    waitUntil: "networkidle",
+  });
+  await waitForReady(importPage);
+  const initialStore = await importPage.evaluate(() => window.__SURFACED_CAPTURE__.storageArea.get(null));
+
+  await setImportFile(importPage, JSON.stringify(importEnvelope()));
+  await waitForImportPreview(importPage);
+  assert.deepEqual(await importPage.locator(".preview__summary dd").allTextContents(), [
+    "20.5 screens",
+    "Imported local reminder",
+    "No",
+    "2",
+    "2",
+  ]);
+  assert.equal(await importPage.evaluate(() => document.activeElement?.id), "previewTitle");
+  await importPage.locator("#cancelImport").click();
+  assert.deepEqual(await importPage.evaluate(() => window.__SURFACED_CAPTURE__.storageArea.get(null)), initialStore);
+  assert.equal(await importPage.evaluate(() => window.__SURFACED_CAPTURE__.sessionPaused), true);
+
+  await setImportFile(importPage, JSON.stringify(importEnvelope()));
+  await waitForImportPreview(importPage);
+  await importPage.evaluate(() => {
+    const original = browser.runtime.sendMessage;
+    browser.runtime.sendMessage = (message) => new Promise((resolve) => {
+      window.__releaseImportWrite = () => original(message).then(resolve);
+    });
+  });
+  await importPage.locator("#replaceSettings").click();
+  assert.equal(await importPage.locator("#replaceSettings").isDisabled(), true);
+  assert.equal(await importPage.locator("#replaceSettings").getAttribute("aria-busy"), "true");
+  await importPage.evaluate(() => window.__releaseImportWrite());
+  await importPage.waitForFunction(() => !document.getElementById("importSuccess").hidden);
+  assert.deepEqual(await importPage.evaluate(() => window.__SURFACED_CAPTURE__.storageArea.get(null)), importEnvelope().settings);
+  assert.equal(await importPage.evaluate(() => window.__SURFACED_CAPTURE__.sessionPaused), true, "session pause survives import");
+  assert.equal(await importPage.evaluate(() => document.activeElement?.id), "successTitle");
+  await importPage.locator("#closeTab").click();
+  assert.deepEqual(await importPage.evaluate(() => window.__SURFACED_CAPTURE__.tabCalls), [
+    { method: "getCurrent" },
+    { method: "remove", tabId: 1 },
+  ], "close action uses tabs.getCurrent and tabs.remove");
+  await importPage.locator("#importAnother").click();
+  assert.equal(await importPage.evaluate(() => document.activeElement?.id), "chooseFileLabel");
+
+  await setImportFile(importPage, "{ invalid JSON");
+  await importPage.waitForFunction(() => !document.getElementById("importError").hidden);
+  assert.match(await importPage.locator("#importError").textContent(), /isn't valid JSON/i);
+  assert.equal(await importPage.evaluate(() => document.activeElement?.id), "importError");
+  await importPage.close();
+
+  const writeErrorPage = await browser.newPage({ viewport: { width: 390, height: 780 } });
+  await writeErrorPage.goto(`${origin}/tools/capture/settings-import-harness.html?${importParams}&storageSetFailures=1`, {
+    waitUntil: "networkidle",
+  });
+  await waitForReady(writeErrorPage);
+  await setImportFile(writeErrorPage, JSON.stringify(importEnvelope()));
+  await waitForImportPreview(writeErrorPage);
+  await writeErrorPage.locator("#replaceSettings").click();
+  await writeErrorPage.waitForFunction(() => !document.getElementById("importError").hidden);
+  assert.equal(await writeErrorPage.locator("#importPreview").isVisible(), true, "write error preserves preview");
+  assert.equal(await writeErrorPage.evaluate(() => document.activeElement?.id), "replaceSettings");
+  assert.deepEqual(await writeErrorPage.evaluate(() => window.__SURFACED_CAPTURE__.storageArea.get(null)), initialStore);
+  await writeErrorPage.close();
 }
 
 const playwright = await loadPlaywright();

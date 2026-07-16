@@ -28,7 +28,14 @@ function createChromeApi() {
       action: {},
       i18n: {},
       storage: { local: {}, session: {}, onChanged: {} },
-      tabs: {},
+      tabs: {
+        create: callbackMethod("create", { id: 7 }),
+        getCurrent(callback) {
+          calls.push({ method: "getCurrent" });
+          callback({ id: 6 });
+        },
+        remove: callbackMethod("remove", undefined),
+      },
       permissions: {
         contains: callbackMethod("contains", true),
         getAll(callback) {
@@ -73,4 +80,19 @@ test("Chromium adapter rejects a permission promise when runtime.lastError is se
     context.browser.permissions.request({ origins: ["<all_urls>"] }),
     /Permission request failed/
   );
+});
+
+test("Chromium adapter exposes promise-based tabs create/getCurrent/remove", async () => {
+  const { api: chrome, calls } = createChromeApi();
+  const context = vm.createContext({ chrome, console });
+  vm.runInContext(source, context);
+
+  assert.equal((await context.browser.tabs.create({ url: "chrome-extension://test/import", active: true })).id, 7);
+  assert.equal((await context.browser.tabs.getCurrent()).id, 6);
+  await context.browser.tabs.remove(6);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [
+    { method: "create", details: { url: "chrome-extension://test/import", active: true } },
+    { method: "getCurrent" },
+    { method: "remove", details: 6 },
+  ]);
 });

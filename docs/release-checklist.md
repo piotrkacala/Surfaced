@@ -74,9 +74,11 @@ same signed update channel used for release.
 - Verify routed desktop popup rendering and complete Tab/Shift+Tab navigation,
   Space/Enter activation, visible focus, confirmations, retry states, permission
   restore focus, and import/export controls.
-- Test global settings, current-site settings, site-manager actions, and complete
-  import while closing the popup immediately and after approximately 50 ms and
-  100 ms. Reopen it and confirm that every accepted operation persisted fully.
+- From the real action popup, click import and confirm that a new persistent
+  extension tab opens before invoking the native system file picker. Validate a
+  Unicode export, malformed input, cancellation, preview focus, write retry, and
+  completion after closing the import tab immediately after confirmation. Reopen
+  the popup and confirm that all five accepted settings persisted atomically.
 - On normal HTTP(S) pages verify window and element scrolling, all three reminder
   levels, `×`, badge, Home/back-to-top, End, an anchor or programmatic jump,
   virtual-list behavior, and SPA navigation.
@@ -96,6 +98,8 @@ Load the exact unpacked Chrome artifact in a fresh profile.
 
 - Repeat the core popup, persistence, scrolling, reminder, badge, site-manager,
   import/export, and session-pause checks.
+- Confirm that import opens the shared persistent import page in a new tab, uses
+  the native file picker, and leaves the popup free to close normally.
 - In the real Site access controls test no access or On click, a single-site
   grant, and all-site access. Reload affected pages after every change.
 - Confirm honest `missing`, `partial`, denied, and restored states; saved settings
@@ -128,8 +132,10 @@ Android/Fenix version on a physical device.
 - Test the complete popup with touch and, when available, TalkBack and a hardware
   keyboard: labels, focus order, switches, manager, confirmations, retry states,
   session pause, import/export, and permission health.
-- Exercise the system file picker with a Unicode export/import and confirm that
-  malformed input cannot partially replace settings.
+- Confirm that import navigates the current extension tab instead of opening a
+  second tab. Exercise the Android system file picker with a Unicode export/import,
+  close-tab action, cancellation, and malformed input; no failure may partially
+  replace settings.
 - Test permission revoke, partial access when available, and restore through the
   real Fenix permission UI.
 - Verify window and element scrolling, reminder levels, `×`, Home/back-to-top or

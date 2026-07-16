@@ -116,6 +116,7 @@ export function installBrowserStub() {
   const runtimeListeners = [];
   const runtimeMessages = [];
   const permissionCalls = [];
+  const tabCalls = [];
   const failureState = {
     get: state.storageGetFailures,
     set: state.storageSetFailures,
@@ -180,8 +181,27 @@ export function installBrowserStub() {
       },
     },
     tabs: {
+      async create(details) {
+        tabCalls.push({ method: "create", details });
+        if (state.tabCreateFailures > 0) {
+          state.tabCreateFailures -= 1;
+          throw new Error("Injected tabs.create failure");
+        }
+        return { id: 2, ...details };
+      },
+      async getCurrent() {
+        tabCalls.push({ method: "getCurrent" });
+        return { id: 1 };
+      },
       async query() {
         return [state.tabUrl === null ? { id: 1 } : { id: 1, url: state.tabUrl }];
+      },
+      async remove(tabId) {
+        tabCalls.push({ method: "remove", tabId });
+        if (state.tabCloseFailures > 0) {
+          state.tabCloseFailures -= 1;
+          throw new Error("Injected tabs.remove failure");
+        }
       },
       sendMessage() {
         return Promise.resolve();
@@ -263,12 +283,14 @@ export function installBrowserStub() {
     runtimeListeners,
     runtimeMessages,
     permissionCalls,
+    tabCalls,
     failureState,
     sessionFailureState,
     get sessionPaused() {
       return sessionPaused;
     },
     badgeValues,
+    storageArea,
     settingsStore,
   };
 

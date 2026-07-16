@@ -95,7 +95,7 @@ Dismiss the current reminder with `✕`. If you scroll deeper, the next zone can
 Use **Pause until browser restarts** in the popup to remove reminders and badges from every tab. **Resume now** starts a fresh cycle from each page's current position.
 
 **7. Back up or move your settings locally**
-Use **Export settings** to save all five persistent settings as a local JSON file. **Import settings** validates and previews a local backup before replacing the current settings. Session pause is intentionally not included, and Surfaced does not upload or synchronize the file.
+Use **Export settings** to save all five persistent settings as a local JSON file. **Import settings** opens a dedicated local extension page that validates and previews a backup before replacing the current settings. Desktop browsers open that page in a new tab; Firefox for Android continues in the current extension tab. Session pause is intentionally not included, and Surfaced does not upload or synchronize the file.
 
 **8. Check the badge when you're deep**
 Once you are past your threshold, the toolbar badge shows your current depth as an integer number of screens.
@@ -113,7 +113,7 @@ Once you are past your threshold, the toolbar badge shows your current depth as 
 | **Enabled on this site** | Turns Surfaced off only for the current site. |
 | **Use a different value on this site** | Applies a site-specific threshold override for the current host. |
 | **Manage site settings** | Opens every saved site configuration so you can enable or disable a host, set or remove its threshold override, or remove the complete host configuration. |
-| **Import and export** | Saves or restores all persistent settings through a validated local JSON file. Import replaces the complete persistent settings set only after confirmation. |
+| **Import and export** | Saves or restores all persistent settings through a validated local JSON file. Export stays in the popup; import opens a durable local extension page and replaces the complete persistent settings set only after confirmation. |
 | **Page access** | Checks whether Surfaced can run on supported pages and offers a browser permission action when access is missing. This is independent from the local settings storage status. |
 
 ---

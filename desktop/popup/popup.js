@@ -3,6 +3,7 @@
     const { mountPopup } = await import(browser.runtime.getURL("popup/popup-core.mjs"));
     mountPopup({
       isTouch: false,
+      importPageMode: "new-tab",
     });
   }
 

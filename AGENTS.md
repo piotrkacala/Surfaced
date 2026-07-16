@@ -66,7 +66,7 @@ Browser smoke tests use Playwright from the configured global module path. A phy
 
 ## Repository Structure
 
-- `shared/` — cross-platform runtime code: content script, background script, i18n, icons, popup dispatcher
+- `shared/` — cross-platform runtime code: content script, background script, i18n, icons, popup dispatcher, persistent settings import page
 - `desktop/` — desktop-specific manifest and popup implementation
 - `android/` — Android-specific manifest and popup implementation; source of truth for unified release metadata
 - `chrome/` — Chrome desktop manifest; reuses the desktop popup at build time
@@ -84,6 +84,7 @@ Browser smoke tests use Playwright from the configured global module path. A phy
 - Chrome desktop reuses `desktop/popup/*`; `build.sh chrome` overlays the desktop popup into the Chrome package.
 - The dispatcher selects `android/popup.html` or `desktop/popup.html` with `browser.runtime.getPlatformInfo()` and `location.replace()`. If popup routing changes, verify unified packaging as well.
 - Popup CSS files are only shell/fallback styling. The actual popup UI is mounted and styled inside Shadow DOM from `popup.js`.
+- Settings export remains in the popup. Settings import is owned by `shared/settings-import/`: desktop and Chrome open it in a new tab, while Android navigates the current extension tab.
 - Notification host positioning and internals are owned directly by `shared/content.js` inside the injected host and closed shadow root.
 - Current persisted settings keys are `scrollNotifierThreshold`, `scrollNotifierText`, `scrollNotifierEnabled`, `scrollNotifierDisabledDomains`, and `scrollNotifierSiteOverrides`.
 - Locales live in `shared/_locales/{en,pl}/messages.json`. Keep English and Polish in sync when changing copy or adding UI strings.

@@ -222,17 +222,20 @@ async function exercisePopupClosePersistence(context, worker, extensionOrigin) {
       settings: importedSettings,
     };
     const popup = await openPopup(context, extensionOrigin);
-    await popup.locator("#settingsImportFile").setInputFiles({
+    const importPagePromise = context.waitForEvent("page");
+    await popup.evaluate(() => document.getElementById("root").shadowRoot
+      .querySelector("#settingsImport").click());
+    const importPage = await importPagePromise;
+    await importPage.waitForLoadState("domcontentloaded");
+    await importPage.locator("#settingsImportFile").setInputFiles({
       name: "surfaced-settings.json",
       mimeType: "application/json",
       buffer: Buffer.from(JSON.stringify(envelope)),
     });
-    await popup.waitForFunction(() => (
-      document.getElementById("root").shadowRoot.querySelector(".import-preview").hidden === false
-    ));
-    await popup.evaluate(() => document.getElementById("root").shadowRoot
-      .querySelector("#settingsImportReplace").click());
-    await closePopupAfter(popup, delayMs);
+    await importPage.waitForFunction(() => document.getElementById("importPreview").hidden === false);
+    await importPage.locator("#replaceSettings").click({ noWaitAfter: true });
+    await closePopupAfter(importPage, delayMs);
+    await popup.close();
     const stored = await waitForPersistentSettings(
       worker,
       (settings) => settings.scrollNotifierText === importedSettings.scrollNotifierText,

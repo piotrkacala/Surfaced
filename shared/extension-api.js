@@ -57,7 +57,10 @@
       request: promisify(chromeApi.permissions, "request"),
     },
     tabs: {
+      create: promisify(chromeApi.tabs, "create"),
+      getCurrent: promisify(chromeApi.tabs, "getCurrent"),
       query: promisify(chromeApi.tabs, "query"),
+      remove: promisify(chromeApi.tabs, "remove"),
       sendMessage: promisify(chromeApi.tabs, "sendMessage"),
     },
   };

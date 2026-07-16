@@ -81,6 +81,12 @@ export function getCaptureState() {
     storageSetFailures: params.has("storageSetFailures")
       ? Math.max(0, Number(params.get("storageSetFailures")) || 0)
       : 0,
+    tabCreateFailures: params.has("tabCreateFailures")
+      ? Math.max(0, Number(params.get("tabCreateFailures")) || 0)
+      : 0,
+    tabCloseFailures: params.has("tabCloseFailures")
+      ? Math.max(0, Number(params.get("tabCloseFailures")) || 0)
+      : 0,
     sessionPaused: asBoolean(params.get("sessionPaused"), false),
     sessionGetFailures: params.has("sessionGetFailures")
       ? Math.max(0, Number(params.get("sessionGetFailures")) || 0)

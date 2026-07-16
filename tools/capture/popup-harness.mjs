@@ -144,9 +144,11 @@ async function init() {
   mountPopup(state.platform === "android"
     ? {
       isTouch: true,
+      importPageMode: "same-tab",
     }
     : {
       isTouch: false,
+      importPageMode: "new-tab",
     });
 
   await waitForAnimationFrames(3);

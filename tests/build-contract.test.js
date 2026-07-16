@@ -9,7 +9,7 @@ const { spawnSync } = require("node:child_process");
 const { test } = require("node:test");
 
 const repoRoot = path.resolve(__dirname, "..");
-const VERSION = "1.2.0";
+const VERSION = "1.2.1";
 const ARTIFACTS = Object.freeze({
   unified: `surfaced-${VERSION}.zip`,
   desktop: `surfaced-desktop-${VERSION}.zip`,
@@ -21,6 +21,9 @@ const REQUIRED_SHARED_MODULES = Object.freeze([
   "session-pause.js",
   "scroll-tracker.js",
   "permission-health.js",
+  "settings-import/index.html",
+  "settings-import/settings-import.js",
+  "settings-import/settings-import.css",
 ]);
 
 function run(command, args, cwd, { expectFailure = false, env } = {}) {
@@ -184,7 +187,7 @@ test("build contract, fail-fast gates, artifact preservation, and reproducible Z
     const desktopManifest = JSON.parse(fs.readFileSync(desktopManifestPath, "utf8"));
     const unifiedPath = path.join(dist, ARTIFACTS.unified);
     const unifiedHash = sha256(unifiedPath);
-    fs.writeFileSync(desktopManifestPath, `${JSON.stringify({ ...desktopManifest, version: "1.2.1" }, null, 2)}\n`);
+    fs.writeFileSync(desktopManifestPath, `${JSON.stringify({ ...desktopManifest, version: "1.2.2" }, null, 2)}\n`);
     const mismatch = run("bash", ["build.sh"], isolated, { expectFailure: true });
     assert.match(`${mismatch.stdout}\n${mismatch.stderr}`, /manifest version mismatch/);
     assert.equal(sha256(unifiedPath), unifiedHash, "version gate failure must not replace an existing artifact");
@@ -222,7 +225,7 @@ test("build contract, fail-fast gates, artifact preservation, and reproducible Z
 
 test("a synchronized manifest bump changes the artifact version without editing build.sh", () => {
   const isolated = createIsolatedRepo();
-  const futureVersion = "1.2.1";
+  const futureVersion = "1.2.2";
 
   try {
     const buildScriptHash = sha256(path.join(isolated, "build.sh"));
