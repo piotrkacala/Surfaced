@@ -39,7 +39,7 @@ Additionally:
 
 - run `node --check` for every JavaScript and MJS file;
 - parse every JSON file with a real JSON parser;
-- verify that English and Polish locale keys and placeholders match;
+- verify that English, Polish, and French locale keys and placeholders match;
 - run `unzip -tq` for all four current-version ZIP files;
 - inspect manifests, content/background entry points, and popup overlays in all
   artifacts;
@@ -74,14 +74,29 @@ same signed update channel used for release.
 - Verify routed desktop popup rendering and complete Tab/Shift+Tab navigation,
   Space/Enter activation, visible focus, confirmations, retry states, permission
   restore focus, and import/export controls.
+- Enter `5.5` and `5.25` one character at a time in the global, current-site,
+  and site-manager threshold fields. Confirm incomplete drafts stay untouched,
+  exact values persist, and `0.5` stepper changes do not round them.
 - From the real action popup, click import and confirm that a new persistent
   extension tab opens before invoking the native system file picker. Validate a
   Unicode export, malformed input, cancellation, preview focus, write retry, and
   completion after closing the import tab immediately after confirmation. Reopen
   the popup and confirm that all five accepted settings persisted atomically.
+- After a simulated failed popup write, replace settings from the import page,
+  then retry in the original context and confirm the imported snapshot remains
+  authoritative. Verify an oversized export reports its specific error without
+  downloading a file.
 - On normal HTTP(S) pages verify window and element scrolling, all three reminder
   levels, `×`, badge, Home/back-to-top, End, an anchor or programmatic jump,
   virtual-list behavior, and SPA navigation.
+- With a reminder visible, raise the threshold and confirm the reminder is
+  replaced or hidden for the newly calculated zone. On local fixtures, confirm
+  broad page CSS cannot hide the notification host and a trailing-dot hostname
+  uses the same disabled-site and threshold-override settings as its canonical
+  hostname.
+- Confirm every reminder contains only the decorative Surfaced icon, message,
+  and dismiss button; verify the calm announcement, visible keyboard focus,
+  reduced motion, and no overflow at 320, 360, and 386 CSS pixels.
 - In the real Add-ons permission panel revoke all-site access, reload the page,
   and confirm that page tracking stops while the five saved settings remain
   available. Missing or partial access must not appear as a storage reset.
@@ -108,6 +123,8 @@ Load the exact unpacked Chrome artifact in a fresh profile.
   request must be rechecked before the popup reports restored access.
 - Restart Chrome and verify that persistent settings remain while session pause
   is cleared.
+- Repeat the popup, reminder, import/export, errors, and accessible-name checks
+  with the browser UI language set to French.
 
 ## 6. Signed upgrade
 
@@ -142,6 +159,8 @@ Android/Fenix version on a physical device.
   equivalent, large jumps, SPA/virtual-list behavior, and reduced motion.
 - Test multiple tabs, app/browser restart, and extension lifecycle: persistent
   local settings remain, while the session pause returns to active behavior.
+- Repeat the popup, reminder, import/export, errors, and TalkBack labels with
+  the browser UI language set to French.
 
 ## 8. Release completion
 

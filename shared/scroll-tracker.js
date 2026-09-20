@@ -143,19 +143,28 @@
       notificationVisible = false;
     }
 
-    function applyZoneTransition() {
+    function applyZoneTransition({ thresholdChanged = false } = {}) {
       const scrolledScreens = totalDistance / currentViewportHeight;
       const targetZoneIndex = zoneForScreens(scrolledScreens, currentThreshold, multipliers);
       let notificationAction = "none";
 
       if (targetZoneIndex >= 0) {
+        if (thresholdChanged && dismissedZoneIndex > targetZoneIndex) {
+          dismissedZoneIndex = targetZoneIndex;
+        }
+
         if (!notificationVisible && targetZoneIndex > dismissedZoneIndex) {
           currentZoneIndex = targetZoneIndex;
           notificationVisible = true;
           notificationAction = "show";
-        } else if (notificationVisible && targetZoneIndex > currentZoneIndex) {
+        } else if (notificationVisible && targetZoneIndex !== currentZoneIndex) {
           currentZoneIndex = targetZoneIndex;
-          notificationAction = "replace";
+          if (targetZoneIndex > dismissedZoneIndex) {
+            notificationAction = "replace";
+          } else {
+            notificationVisible = false;
+            notificationAction = "hide";
+          }
         }
       } else {
         if (notificationVisible) {
@@ -268,7 +277,7 @@
 
     function setThreshold(nextThreshold) {
       currentThreshold = positiveNumber(nextThreshold, currentThreshold);
-      const notificationAction = applyZoneTransition();
+      const notificationAction = applyZoneTransition({ thresholdChanged: true });
       return state({ reason: "threshold-changed", notificationAction });
     }
 

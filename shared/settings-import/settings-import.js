@@ -187,7 +187,6 @@
     importAnotherButton.setAttribute("aria-label", msg("ariaImportAnotherSettingsFile"));
 
     const pluralRules = new Intl.PluralRules(uiLanguage);
-    const numberFormatter = new Intl.NumberFormat(uiLanguage, { maximumFractionDigits: 2 });
     let pendingSettings = null;
     let readRevision = 0;
     let writePending = false;
@@ -231,7 +230,7 @@
     chooseOtherFileLabel.addEventListener("keydown", activateFileLabelWithKeyboard);
 
     function renderPreview(settings) {
-      byId("previewThreshold").textContent = `${numberFormatter.format(settings[settingsApi.KEYS.threshold])} ${unitFor(settings[settingsApi.KEYS.threshold])}`;
+      byId("previewThreshold").textContent = `${settingsApi.formatThresholdForDisplay(settings[settingsApi.KEYS.threshold], uiLanguage)} ${unitFor(settings[settingsApi.KEYS.threshold])}`;
       byId("previewText").textContent = settings[settingsApi.KEYS.text];
       byId("previewEnabled").textContent = msg(
         settings[settingsApi.KEYS.enabled] ? "settingsImportStateEnabled" : "settingsImportStateDisabled"

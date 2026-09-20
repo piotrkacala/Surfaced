@@ -12,6 +12,7 @@ const {
   createSettingsMessageHandler,
   createSettingsStore,
   parseSettingsImport,
+  serializeSettingsExport,
   validateSettingsImport,
 } = require("../shared/settings.js");
 const {
@@ -224,6 +225,22 @@ test("oversized files are rejected before JSON parsing", () => {
   expectImportError(
     "x".repeat(SETTINGS_IMPORT_MAX_BYTES + 1),
     "IMPORT_FILE_TOO_LARGE"
+  );
+});
+
+test("export serialization never creates a file that the importer rejects for size", () => {
+  const serialized = serializeSettingsExport(COMPLETE_SETTINGS, {
+    exportedAt: new Date("2026-07-15T12:00:00.000Z"),
+    defaultText: DEFAULT_TEXT,
+  });
+  assert.deepEqual(parseSettingsImport(serialized.text), serialized.envelope);
+
+  assert.throws(
+    () => serializeSettingsExport({
+      ...COMPLETE_SETTINGS,
+      [KEYS.text]: "🌊".repeat(SETTINGS_IMPORT_MAX_BYTES),
+    }, { defaultText: DEFAULT_TEXT }),
+    (error) => error?.code === "EXPORT_FILE_TOO_LARGE"
   );
 });
 

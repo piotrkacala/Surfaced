@@ -1,4 +1,4 @@
-import { EN_MESSAGES } from "./en-messages.mjs";
+import { getMessages } from "./en-messages.mjs";
 
 function asBoolean(value, fallback = false) {
   if (value === null) {
@@ -50,7 +50,8 @@ function parseOverrides(value) {
 export function getCaptureState() {
   const params = new URLSearchParams(window.location.search);
   const threshold = asNumber(params.get("threshold"), 7);
-  const defaultText = EN_MESSAGES.defaultNotificationText;
+  const language = asString(params.get("locale"), "en-US");
+  const defaultText = getMessages(language).defaultNotificationText;
   const tabUrl = asBoolean(params.get("tabUrlMissing"), false)
     ? null
     : asString(params.get("tab"), "https://quiet.example/articles/scroll-depth");
@@ -74,7 +75,7 @@ export function getCaptureState() {
     zone: asString(params.get("zone"), ""),
     scrollScreens: params.has("scrollScreens") ? asNumber(params.get("scrollScreens"), threshold) : null,
     fixture: asString(params.get("fixture"), document.body.dataset.fixture || "article"),
-    language: "en-US",
+    language,
     storageGetFailures: params.has("storageGetFailures")
       ? Math.max(0, Number(params.get("storageGetFailures")) || 0)
       : 0,

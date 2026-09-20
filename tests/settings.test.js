@@ -10,6 +10,7 @@ const {
   applySiteSettingsIntent,
   createSettingsMessageHandler,
   createSettingsStore,
+  formatThresholdForDisplay,
   getManagedSiteEntries,
   normalizeSettings,
   serializeSettings,
@@ -147,6 +148,15 @@ test("valid thresholds are finite positive numbers and are never clamped to the 
 
     assert.equal(normalized[KEYS.threshold], threshold);
   });
+});
+
+test("threshold display preserves the exact accepted number and only localizes its decimal separator", () => {
+  for (const value of [0.004, 5.254, 7.999, 20.125, Number.MAX_VALUE]) {
+    assert.equal(formatThresholdForDisplay(value, "en-US"), String(value));
+    assert.equal(formatThresholdForDisplay(value, "fr-FR"), String(value).replace(".", ","));
+  }
+
+  assert.equal(formatThresholdForDisplay(20, "pl-PL"), "20");
 });
 
 test("domains and overrides are canonicalized, deduplicated, sorted, and made safe", () => {
@@ -297,6 +307,154 @@ test("storage.set failure exposes write error and retry persists the same desire
   assert.equal(retried.settings[KEYS.text], "Latest unsaved text");
   assert.equal(storage.data[KEYS.text], "Latest unsaved text");
   assert.equal(store.status, "ready");
+});
+
+test("authoritative write retry cannot restore state superseded by a newer import", async () => {
+  const storage = createFakeStorage(defaults(), { setFailures: 1 });
+  const { handle } = makeHandler(storage);
+  await handle({ type: MESSAGE_TYPES.get });
+
+  const failed = await handle({
+    type: MESSAGE_TYPES.update,
+    patch: { [KEYS.text]: "Stale unsaved text" },
+  });
+  assert.equal(failed.ok, false);
+
+  const imported = {
+    ...defaults(),
+    [KEYS.threshold]: 17.25,
+    [KEYS.text]: "Newer imported text",
+    [KEYS.disabledDomains]: ["imported.example"],
+  };
+  assert.equal((await handle({ type: MESSAGE_TYPES.replace, settings: imported })).ok, true);
+
+  const retried = await handle({ type: MESSAGE_TYPES.retry, phase: "write" });
+  assert.equal(retried.ok, true);
+  assert.deepEqual(retried.settings, imported);
+  assert.deepEqual(storage.data, imported);
+});
+
+test("write retry is rejected while an import is pending and cannot persist a rolled-back snapshot", async () => {
+  const storage = createFakeStorage(defaults(), { setFailures: 1 });
+  const { handle, store } = makeHandler(storage);
+  await handle({ type: MESSAGE_TYPES.get });
+  const failed = await handle({
+    type: MESSAGE_TYPES.update,
+    patch: { [KEYS.text]: "Unsaved popup text" },
+  });
+  assert.equal(failed.ok, false);
+  const previousState = store.getState();
+
+  let rejectImport;
+  const importGate = new Promise((resolve, reject) => { rejectImport = reject; });
+  const originalSet = storage.set.bind(storage);
+  let importStarted;
+  const started = new Promise((resolve) => { importStarted = resolve; });
+  storage.set = async () => {
+    importStarted();
+    await importGate;
+  };
+  const imported = { ...defaults(), [KEYS.threshold]: 17.25, [KEYS.text]: "Imported text" };
+  const replacement = handle({ type: MESSAGE_TYPES.replace, settings: imported });
+  await started;
+  const retry = handle({ type: MESSAGE_TYPES.retry, phase: "write" });
+  storage.set = originalSet;
+  rejectImport(new Error("Import write failed"));
+
+  const [replacementResponse, retryResponse] = await Promise.all([replacement, retry]);
+  await store.whenIdle();
+  assert.equal(replacementResponse.ok, false);
+  assert.equal(retryResponse.ok, false);
+  assert.equal(retryResponse.error, "SETTINGS_REPLACE_PENDING");
+  assert.deepEqual(store.getState(), previousState);
+  assert.deepEqual(storage.data, defaults());
+  assert.equal(storage.setCalls.length, 1, "retry must not enqueue the provisional import snapshot");
+  assert.equal(store.status, "write-error");
+
+  const recovered = await handle({ type: MESSAGE_TYPES.retry, phase: "write" });
+  assert.equal(recovered.ok, true);
+  assert.deepEqual(recovered.settings, previousState);
+  assert.deepEqual(storage.data, previousState);
+  assert.equal(store.status, "ready");
+  await handle({ type: MESSAGE_TYPES.update, patch: { [KEYS.enabled]: false } });
+  assert.deepEqual(storage.data, { ...previousState, [KEYS.enabled]: false });
+  assert.deepEqual(store.getState(), storage.data);
+});
+
+for (const readFails of [false, true]) {
+  test(`a pending forced read ${readFails ? "failure" : "result"} cannot overwrite a newer update`, async () => {
+    const storage = createFakeStorage(defaults());
+    const { handle, store } = makeHandler(storage);
+    await handle({ type: MESSAGE_TYPES.get });
+
+    let releaseRead;
+    const readGate = new Promise((resolve) => { releaseRead = resolve; });
+    let readStarted;
+    const started = new Promise((resolve) => { readStarted = resolve; });
+    storage.get = async () => {
+      const snapshot = clone(storage.data);
+      readStarted();
+      await readGate;
+      if (readFails) throw new Error("Late read failure");
+      return snapshot;
+    };
+    const forcedRead = handle({ type: MESSAGE_TYPES.get, retry: true });
+    await started;
+
+    const writeResponse = await handle({
+      type: MESSAGE_TYPES.update,
+      patch: { [KEYS.threshold]: 19.125 },
+    });
+    assert.equal(writeResponse.ok, true);
+    releaseRead();
+    const readResponse = await forcedRead;
+    const expected = { ...defaults(), [KEYS.threshold]: 19.125 };
+    assert.equal(readResponse.ok, true);
+    assert.deepEqual(readResponse.settings, expected);
+    assert.deepEqual(store.getState(), expected);
+    assert.deepEqual(storage.data, expected);
+    assert.equal(store.status, "ready");
+
+    await handle({ type: MESSAGE_TYPES.update, patch: { [KEYS.enabled]: false } });
+    assert.deepEqual(storage.data, { ...expected, [KEYS.enabled]: false });
+    assert.deepEqual(store.getState(), storage.data);
+  });
+}
+
+test("a forced read waits for an active write and cannot replace the cache with older data", async () => {
+  let releaseSet;
+  const setGate = new Promise((resolve) => { releaseSet = resolve; });
+  const data = defaults();
+  let getCalls = 0;
+  const storage = {
+    async get(keys) {
+      getCalls += 1;
+      return Object.fromEntries(keys.map((key) => [key, clone(data[key])]));
+    },
+    async set(values) {
+      await setGate;
+      Object.assign(data, clone(values));
+    },
+  };
+  const { handle, store } = makeHandler(storage);
+  await handle({ type: MESSAGE_TYPES.get });
+
+  const write = handle({
+    type: MESSAGE_TYPES.update,
+    patch: { [KEYS.threshold]: 19.125 },
+  });
+  const forcedRead = handle({ type: MESSAGE_TYPES.get, retry: true });
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(getCalls, 1, "the forced storage read must wait for the active write");
+
+  releaseSet();
+  assert.equal((await write).ok, true);
+  const readResponse = await forcedRead;
+  assert.equal(readResponse.ok, true);
+  assert.equal(readResponse.settings[KEYS.threshold], 19.125);
+  assert.equal(store.getState()[KEYS.threshold], 19.125);
+  assert.equal(data[KEYS.threshold], 19.125);
 });
 
 test("an update interrupted by a read failure can be resent without losing its intent", async () => {

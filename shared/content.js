@@ -1,6 +1,12 @@
 (() => {
   // ── Configuration defaults ────────────────────────────────────────────────
-  const { KEYS, STORAGE_KEYS, createDefaults, normalizeSettings } = SurfacedSettings;
+  const {
+    KEYS,
+    STORAGE_KEYS,
+    createDefaults,
+    normalizeHostname,
+    normalizeSettings,
+  } = SurfacedSettings;
   const DEFAULT_TEXT = browser.i18n.getMessage("defaultNotificationText");
   const DEFAULT_SETTINGS = createDefaults(DEFAULT_TEXT);
   const DEFAULT_THRESHOLD_SCREENS = DEFAULT_SETTINGS[KEYS.threshold];
@@ -232,10 +238,10 @@
   let isEnabledOnSite = true;
 
   function evaluateActiveState() {
-    const myHostname = window.location.hostname;
-    isEnabledOnSite = isGlobalEnabled && !disabledDomains.includes(myHostname);
+    const myHostname = normalizeHostname(window.location.hostname);
+    isEnabledOnSite = isGlobalEnabled && (!myHostname || !disabledDomains.includes(myHostname));
 
-    const siteThreshold = getSiteThresholdOverride(myHostname);
+    const siteThreshold = myHostname ? getSiteThresholdOverride(myHostname) : null;
     threshold = isEnabledOnSite && siteThreshold !== null ? siteThreshold : globalThreshold;
 
     if (settingsStateKnown && isEnabledOnSite && sessionStateKnown && !sessionPaused) {
@@ -256,15 +262,30 @@
     shadowHost = document.createElement("div");
     shadowHost.id = NOTIFICATION_ID;
 
-    Object.assign(shadowHost.style, {
-      position: "fixed",
-      bottom: "0",
-      left: "0",
-      width: "100%",
-      zIndex: "2147483647",
-      pointerEvents: "none",
-      paddingBottom: "env(safe-area-inset-bottom, 0px)",
-    });
+    shadowHost.style.cssText = `
+      all: initial;
+      box-sizing: border-box;
+      display: block;
+      position: fixed;
+      top: auto;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      height: auto;
+      margin: 0;
+      padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      filter: none;
+      z-index: 2147483647;
+      pointer-events: none;
+      isolation: isolate;
+      direction: ltr;
+    `;
 
     const shadow = shadowHost.attachShadow({ mode: "closed" });
 
@@ -375,10 +396,11 @@
 
       /* Depth icon */
       .notification__icon {
+        box-sizing: border-box;
         flex-shrink: 0;
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
+        width: 30px;
+        height: 30px;
+        border-radius: 7px;
         background: ${color}14;
         border: 1px solid ${color}33;
         display: flex;
@@ -387,15 +409,12 @@
       }
 
       .notification__icon svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
       }
 
       /* Text block */
       .notification__text {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
         min-width: 0;
       }
 
@@ -411,15 +430,9 @@
         text-overflow: ellipsis;
       }
 
-      .notification__sub {
-        font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
-        font-size: 10px;
-        color: rgba(200, 234, 247, 0.7);
-        letter-spacing: 0.4px;
-      }
-
       /* Right: close button */
       .notification__close {
+        box-sizing: border-box;
         flex-shrink: 0;
         position: relative;
         z-index: 1;
@@ -443,6 +456,14 @@
         border-color: ${color}66;
         color: ${color};
         box-shadow: 0 0 10px ${color}33;
+      }
+
+      .notification__close:focus-visible {
+        outline: 2px solid ${color};
+        outline-offset: 2px;
+        background: ${color}1f;
+        border-color: ${color}99;
+        color: ${color};
       }
 
       /* Bubble particles */
@@ -476,13 +497,15 @@
         }
 
         .notification__icon {
-          width: 32px;
-          height: 32px;
+          width: 30px;
+          height: 30px;
         }
+      }
 
+      @media (max-width: 386px), (pointer: coarse) {
         .notification__close {
-          width: 32px;
-          height: 32px;
+          width: 44px;
+          height: 44px;
         }
       }
 
@@ -512,8 +535,6 @@
     // ── Structure ────────────────────────────────────────────────────────────
     const notification = document.createElement("div");
     notification.className = "notification";
-    notification.setAttribute("role", "alert");
-    notification.setAttribute("aria-live", "polite");
 
     // Bubbles
     for (let i = 0; i < 5; i++) {
@@ -541,11 +562,14 @@
     // Icon: three chevrons (matching the extension icon concept)
     const iconWrap = document.createElement("div");
     iconWrap.className = "notification__icon";
+    iconWrap.setAttribute("aria-hidden", "true");
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("width", "16");
     svg.setAttribute("height", "16");
     svg.setAttribute("viewBox", "0 0 16 16");
     svg.setAttribute("fill", "none");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
 
     const polylines = [
       { points: "3,3 8,7 13,3", opacity: "1" },
@@ -568,17 +592,15 @@
 
     const textBlock = document.createElement("div");
     textBlock.className = "notification__text";
+    textBlock.setAttribute("role", "status");
+    textBlock.setAttribute("aria-live", "polite");
+    textBlock.setAttribute("aria-atomic", "true");
 
     const title = document.createElement("span");
     title.className = "notification__title";
     title.textContent = text;
 
-    const sub = document.createElement("span");
-    sub.className = "notification__sub";
-    sub.textContent = browser.i18n.getMessage("notificationSub");
-
     textBlock.appendChild(title);
-    textBlock.appendChild(sub);
     left.appendChild(iconWrap);
     left.appendChild(textBlock);
 

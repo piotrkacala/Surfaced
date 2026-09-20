@@ -1,7 +1,7 @@
 # Chrome Web Store Listing Copy
 
 **Status:** Draft for manual publishing in Chrome Web Store
-**Last updated:** 2026-07-15
+**Last updated:** 2026-09-20
 
 This file contains ready-to-paste copy for the Chrome Web Store Developer Dashboard.
 
@@ -17,7 +17,7 @@ References:
 Upload:
 
 ```text
-dist/surfaced-chrome-1.2.0.zip
+dist/surfaced-chrome-1.3.0.zip
 ```
 
 The zip must contain `manifest.json` at the archive root.
@@ -79,7 +79,7 @@ Private by design
 
 Persistent settings stay in browser.storage.local; the temporary pause stays in browser.storage.session. Surfaced does not use sync storage, and local import/export files are never uploaded.
 
-Available in English and Polish.
+Available in English, Polish, and French.
 
 ### Detailed Description: Polish
 
@@ -124,7 +124,52 @@ Prywatność z założenia
 
 Trwałe ustawienia zostają lokalnie w browser.storage.local, a tymczasowe wstrzymanie w browser.storage.session. Surfaced nie używa synchronizacji, a lokalne pliki importu i eksportu nie są nigdzie wysyłane.
 
-Dostępne po angielsku i po polsku.
+Dostępne po angielsku, po polsku i po francusku.
+
+### Detailed Description: French
+
+Remontez prendre l’air.
+
+Vous ouvrez une longue page juste pour y jeter un coup d’œil. Quelques minutes plus tard, vous vous trouvez 20 écrans plus bas.
+
+Surfaced est une extension de navigateur respectueuse de votre vie privée qui vous aide à prendre conscience du défilement sans fin avant qu’il ne devienne automatique. Elle suit la profondeur de défilement cumulée nette et affiche un rappel discret lorsque vous avez fait défiler la page plus loin que prévu.
+
+Où Surfaced vous aide
+
+- Fils de réseaux sociaux et flux à défilement infini
+- Sites d’actualités aux recommandations sans fin
+- Forums, longues discussions et sections de commentaires
+- Applications monopages sans point d’arrêt naturel
+
+Ce que fait Surfaced
+
+- Vous permet de choisir le seuil du premier rappel en écrans
+- Affiche d’autres rappels lorsque la profondeur atteint 2× puis 3× votre seuil
+- Vous permet de personnaliser le texte du premier rappel
+- Vous permet de fermer le rappel actuel sans empêcher l’affichage du rappel suivant à un niveau plus profond
+- Comprend un gestionnaire complet pour activer ou désactiver Surfaced et définir des seuils propres à chaque site
+- Met les rappels et les mises à jour du badge en pause dans tous les onglets jusqu’au redémarrage de Chrome
+- Importe et exporte tous les paramètres persistants à l’aide d’un fichier JSON local
+- Sépare le diagnostic de l’accès aux pages de l’état des paramètres locaux enregistrés
+- Affiche votre profondeur de défilement actuelle sur le badge de la barre d’outils une fois le seuil dépassé
+- Fonctionne dans Chrome sur ordinateur
+
+Une approche différente
+
+Surfaced repose sur des rappels, pas sur des blocages. L’extension ne bloque pas les pages, n’impose pas de minuteur et ne vous culpabilise pas pour votre navigation. Elle ajoute un repère discret lié à la profondeur de défilement pour vous signaler ce moment et vous laisser décider de la suite.
+
+Comme le mouvement vers le bas augmente la profondeur et que le mouvement vers le haut la réduit, la profondeur cumulée nette de Surfaced est plus utile sur les flux infinis et de nombreuses applications monopages qu’une simple mesure de position dans la page.
+
+Respect de la vie privée dès la conception
+
+- Aucune analyse d’usage
+- Aucun compte
+- Aucun service distant
+- Aucune donnée envoyée
+
+Les paramètres persistants restent dans browser.storage.local ; la mise en pause temporaire est conservée dans browser.storage.session. Surfaced n’utilise pas le stockage synchronisé et les fichiers locaux d’importation et d’exportation ne sont jamais transférés vers un service distant.
+
+Disponible en anglais, polonais et français.
 
 ## Graphic Assets
 

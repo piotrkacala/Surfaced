@@ -58,6 +58,22 @@
       : fallback;
   }
 
+  function formatThresholdForDisplay(value, locale) {
+    const exact = String(value);
+    if (!exact.includes(".")) {
+      return exact;
+    }
+
+    try {
+      const decimal = new Intl.NumberFormat(locale, { useGrouping: false })
+        .formatToParts(1.1)
+        .find((part) => part.type === "decimal")?.value;
+      return decimal && decimal !== "." ? exact.replace(".", decimal) : exact;
+    } catch (error) {
+      return exact;
+    }
+  }
+
   function normalizeText(value, defaultText) {
     if (typeof value !== "string") {
       return defaultText;
@@ -308,6 +324,16 @@
     };
   }
 
+  function serializeSettingsExport(value, options) {
+    const envelope = createSettingsExport(value, options);
+    const text = `${JSON.stringify(envelope, null, 2)}\n`;
+    if (utf8ByteLength(text) > SETTINGS_IMPORT_MAX_BYTES) {
+      throw createSettingsError("EXPORT_FILE_TOO_LARGE");
+    }
+
+    return { envelope, text };
+  }
+
   function validateSettingsImport(value) {
     if (!isPlainObject(value)) {
       throw createSettingsError("IMPORT_ENVELOPE_INVALID");
@@ -444,6 +470,7 @@
     let activeWritePromise = Promise.resolve();
     const writeQueue = [];
     let replacementPending = false;
+    let stateRevision = 0;
 
     function getState() {
       return state === null ? null : serializeSettings(state, normalizationOptions);
@@ -458,18 +485,34 @@
         return Promise.resolve(getState());
       }
 
-      status = "loading";
       loadPromise = Promise.resolve()
-        .then(() => storageArea.get(STORAGE_KEYS))
-        .then((stored) => {
-          state = normalizeSettings(stored, normalizationOptions);
-          status = "ready";
+        .then(async () => {
+          if (force) {
+            await whenIdle();
+          }
+
+          const readRevision = stateRevision;
+          status = "loading";
+          try {
+            const stored = await storageArea.get(STORAGE_KEYS);
+            if (readRevision === stateRevision) {
+              state = normalizeSettings(stored, normalizationOptions);
+              stateRevision += 1;
+              status = "ready";
+            }
+          } catch (error) {
+            if (readRevision !== stateRevision) {
+              await whenIdle();
+              return getState();
+            }
+
+            state = null;
+            status = "read-error";
+            throw createSettingsError("STORAGE_READ_FAILED", error);
+          }
+
+          await whenIdle();
           return getState();
-        })
-        .catch((error) => {
-          state = null;
-          status = "read-error";
-          throw createSettingsError("STORAGE_READ_FAILED", error);
         })
         .finally(() => {
           loadPromise = null;
@@ -528,6 +571,7 @@
 
       const safePatch = isPlainObject(patch) ? patch : {};
       state = normalizeSettings({ ...state, ...safePatch }, normalizationOptions);
+      stateRevision += 1;
       return enqueueWrite(serializeSettings(state, normalizationOptions));
     }
 
@@ -544,6 +588,7 @@
       } catch (error) {
         return Promise.reject(error);
       }
+      stateRevision += 1;
       return enqueueWrite(serializeSettings(state, normalizationOptions));
     }
 
@@ -565,6 +610,7 @@
       const previousState = getState();
       replacementPending = true;
       state = nextState;
+      stateRevision += 1;
 
       return enqueueWrite(serializeSettings(nextState, normalizationOptions), {
         onSuccess() {
@@ -572,12 +618,16 @@
         },
         onFailure() {
           state = previousState;
+          stateRevision += 1;
           replacementPending = false;
         },
       });
     }
 
     function retryWrite() {
+      if (replacementPending) {
+        return Promise.reject(createSettingsError("SETTINGS_REPLACE_PENDING"));
+      }
       if (state === null) {
         return Promise.reject(createSettingsError("SETTINGS_NOT_LOADED"));
       }
@@ -694,6 +744,7 @@
     createSettingsMessageHandler,
     createSettingsStore,
     getManagedSiteEntries,
+    formatThresholdForDisplay,
     normalizeDisabledDomains,
     normalizeHostname,
     normalizeSettings,
@@ -702,6 +753,7 @@
     parseSettingsImport,
     parseThresholdInput,
     serializeSettings,
+    serializeSettingsExport,
     validateSettingsImport,
     validateSettingsSnapshot,
   });

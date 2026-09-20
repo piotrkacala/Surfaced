@@ -116,8 +116,12 @@ async function reminderMetrics(page) {
     const root = window.__surfacedTestShadowRoots.get(host);
     const notification = root.querySelector(".notification");
     const close = root.querySelector(".notification__close");
+    const icon = root.querySelector(".notification__icon");
+    const message = root.querySelector(".notification__text");
     const notificationRect = notification.getBoundingClientRect();
     const closeRect = close.getBoundingClientRect();
+    const iconRect = icon.getBoundingClientRect();
+    const hostStyle = getComputedStyle(host);
 
     return {
       viewportWidth: document.documentElement.clientWidth,
@@ -127,20 +131,50 @@ async function reminderMetrics(page) {
       notificationRight: notificationRect.right,
       closeLeft: closeRect.left,
       closeRight: closeRect.right,
+      closeWidth: closeRect.width,
+      closeHeight: closeRect.height,
       closeAriaLabel: close.getAttribute("aria-label"),
+      hostDisplay: hostStyle.display,
+      hostVisibility: hostStyle.visibility,
+      hostOpacity: hostStyle.opacity,
+      hostPosition: hostStyle.position,
+      iconWidth: iconRect.width,
+      iconAriaHidden: icon.getAttribute("aria-hidden"),
+      svgAriaHidden: icon.querySelector("svg").getAttribute("aria-hidden"),
+      messageRole: message.getAttribute("role"),
+      messageLive: message.getAttribute("aria-live"),
+      notificationRole: notification.getAttribute("role"),
+      subtitleCount: root.querySelectorAll(".notification__sub").length,
+      interactiveCount: root.querySelectorAll("button, a, [role='button']").length,
     };
   });
 }
 
 async function testReminderResponsiveness(browser, origin) {
-  for (const width of [320, 360, 386]) {
-    const page = await browser.newPage({ viewport: { width, height: 640 } });
+  for (const { width, hasTouch } of [
+    { width: 320, hasTouch: false },
+    { width: 360, hasTouch: false },
+    { width: 386, hasTouch: false },
+    { width: 900, hasTouch: true },
+  ]) {
+    const page = await browser.newPage({ viewport: { width, height: 640 }, hasTouch });
     await installClosedShadowProbe(page);
     await page.goto(`${origin}/fixtures/marketing/long-article.html?threshold=1&zone=shallow`, {
       waitUntil: "networkidle",
     });
     await waitForReady(page);
     await page.waitForFunction(() => document.getElementById("surfaced-notification-host"));
+    assert.equal(await page.evaluate(() => matchMedia("(pointer: coarse)").matches), hasTouch);
+    await page.addStyleTag({ content: `
+      body > div {
+        display: none;
+        visibility: hidden;
+        width: 1px;
+        opacity: 0.01;
+        transform: scale(0);
+        filter: blur(10px);
+      }
+    ` });
 
     const metrics = await reminderMetrics(page);
     assert.ok(metrics, `reminder should be visible at ${width}px`);
@@ -148,7 +182,20 @@ async function testReminderResponsiveness(browser, origin) {
     assert.ok(metrics.notificationLeft >= 0, `reminder left edge must be visible at ${width}px`);
     assert.ok(metrics.notificationRight <= metrics.viewportWidth, `reminder right edge must be visible at ${width}px`);
     assert.ok(metrics.closeLeft >= 0 && metrics.closeRight <= metrics.viewportWidth, `close button must be visible at ${width}px`);
-    assert.equal(metrics.closeAriaLabel, "Dismiss notification");
+    assert.equal(metrics.closeAriaLabel, "Dismiss this reminder");
+    assert.ok(metrics.closeWidth >= 44 && metrics.closeHeight >= 44, `close target must be at least 44px at ${width}px`);
+    assert.equal(metrics.hostDisplay, "block");
+    assert.equal(metrics.hostVisibility, "visible");
+    assert.equal(metrics.hostOpacity, "1");
+    assert.equal(metrics.hostPosition, "fixed");
+    assert.equal(metrics.iconWidth, 30);
+    assert.equal(metrics.iconAriaHidden, "true");
+    assert.equal(metrics.svgAriaHidden, "true");
+    assert.equal(metrics.messageRole, "status");
+    assert.equal(metrics.messageLive, "polite");
+    assert.equal(metrics.notificationRole, null);
+    assert.equal(metrics.subtitleCount, 0);
+    assert.equal(metrics.interactiveCount, 1);
     const closeFocus = await page.evaluate(() => {
       const host = document.getElementById("surfaced-notification-host");
       const close = window.__surfacedTestShadowRoots.get(host).querySelector(".notification__close");
@@ -163,7 +210,7 @@ async function testReminderResponsiveness(browser, origin) {
     assert.equal(closeFocus.active, true, `close button must accept keyboard focus at ${width}px`);
     assert.notEqual(closeFocus.outlineStyle, "none", `close button must have visible focus at ${width}px`);
     assert.notEqual(closeFocus.outlineWidth, "0px", `close button focus must have non-zero width at ${width}px`);
-    await page.keyboard.press("Enter");
+    await page.keyboard.press(width === 360 ? "Space" : "Enter");
     await page.waitForFunction(() => !document.getElementById("surfaced-notification-host"));
     await page.close();
   }
@@ -244,6 +291,28 @@ async function testReminderCycleAndSessionPause(browser, origin) {
   await settingsFailurePage.evaluate(() => window.scrollBy(0, window.innerHeight * 1.1));
   await settingsFailurePage.waitForFunction(() => document.getElementById("surfaced-notification-host"));
   await settingsFailurePage.close();
+}
+
+async function testCanonicalRuntimeHostname(browser, origin) {
+  const trailingDotOrigin = origin.replace("127.0.0.1", "127.0.0.1.");
+
+  for (const query of [
+    "threshold=1&zone=shallow&disabledDomains=127.0.0.1",
+    "threshold=1&zone=shallow&siteOverrides=127.0.0.1%3A100",
+  ]) {
+    const page = await browser.newPage({ viewport: { width: 360, height: 640 } });
+    await page.goto(`${trailingDotOrigin}/fixtures/marketing/long-article.html?${query}`, {
+      waitUntil: "networkidle",
+    });
+    await waitForReady(page);
+    await page.waitForTimeout(180);
+    assert.equal(
+      await page.locator("#surfaced-notification-host").count(),
+      0,
+      "a trailing-dot page hostname must use canonical disabled-site and override settings"
+    );
+    await page.close();
+  }
 }
 
 async function testReducedMotion(browser, origin) {
@@ -718,12 +787,12 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
     await managerPage.keyboard.press("Enter");
     assert.equal((await popupFocus(managerPage)).action, "override-input");
     await managerPage.keyboard.press("Control+A");
-    await managerPage.keyboard.type("13");
+    await managerPage.keyboard.type("5.25");
     await managerPage.keyboard.press("Enter");
     assert.equal(await managerPage.evaluate(() => (
       document.getElementById("root").shadowRoot
         .querySelector("[data-hostname='disabled-only.example'] .site-manager__threshold").textContent
-    )), "Site override: 13 screens");
+    )), "Site override: 5.25 screens");
 
     await tabUntil(managerPage, (focus) => (
       focus?.hostname === "disabled-only.example" && focus.action === "remove-override"
@@ -791,12 +860,117 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
       document.getElementById("root").shadowRoot.querySelector(".storage-state").dataset.phase === "error"
     ));
     assert.match((await popupFocus(writeFailurePage)).className, /storage-state__retry/, `${platform}: async write failure focuses visible retry`);
+    const newerImportedSettings = {
+      scrollNotifierThreshold: 23.125,
+      scrollNotifierText: "Newer imported reminder",
+      scrollNotifierEnabled: false,
+      scrollNotifierDisabledDomains: ["imported.example"],
+      scrollNotifierSiteOverrides: { "imported.example": 0.004 },
+    };
+    assert.equal(await writeFailurePage.evaluate(async (settings) => {
+      const response = await browser.runtime.sendMessage({
+        type: "SURFACED_SETTINGS_REPLACE",
+        settings,
+      });
+      return response.ok;
+    }, newerImportedSettings), true, `${platform}: external import succeeds before popup retry`);
     await writeFailurePage.keyboard.press("Enter");
     await writeFailurePage.waitForFunction(() => (
       document.getElementById("root").shadowRoot.querySelector(".storage-state").hidden
     ));
     assert.equal((await popupFocus(writeFailurePage)).id, "enabled", `${platform}: successful retry moves focus out of the hidden error panel`);
+    assert.deepEqual(
+      await writeFailurePage.evaluate(() => window.__SURFACED_CAPTURE__.settingsStore.getState()),
+      newerImportedSettings,
+      `${platform}: retry preserves the newer imported snapshot`
+    );
     await writeFailurePage.close();
+  }
+}
+
+async function testThresholdEditing(browser, origin) {
+  for (const platform of ["desktop", "android"]) {
+    const params = new URLSearchParams({
+      platform,
+      tab: "https://current.example/article",
+      threshold: "7",
+      siteOverrides: "tiny.example:0.004;precise.example:7.999",
+    });
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await page.goto(`${origin}/tools/capture/popup-harness.html?${params}`, {
+      waitUntil: "networkidle",
+    });
+    await waitForReady(page);
+
+    const globalInput = page.locator("#root").locator("#globalThresholdValue");
+    await globalInput.focus();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.type("5.5", { delay: 20 });
+    await page.waitForFunction(() => (
+      window.__SURFACED_CAPTURE__.settingsStore.getState().scrollNotifierThreshold === 5.5
+    ));
+    assert.equal(await globalInput.inputValue(), "5.5", `${platform}: typing preserves the threshold draft`);
+
+    await page.keyboard.press("Control+A");
+    await page.keyboard.type("5.25", { delay: 20 });
+    await page.waitForFunction(() => (
+      window.__SURFACED_CAPTURE__.settingsStore.getState().scrollNotifierThreshold === 5.25
+    ));
+    assert.equal(await globalInput.evaluate((input) => input.checkValidity()), true, `${platform}: custom positive values are valid`);
+    assert.equal(await globalInput.getAttribute("step"), "any");
+
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    assert.equal(await globalInput.inputValue(), "");
+    assert.equal(await page.evaluate(() => (
+      window.__SURFACED_CAPTURE__.settingsStore.getState().scrollNotifierThreshold
+    )), 5.25, `${platform}: an incomplete draft is not persisted`);
+    await globalInput.blur();
+    assert.equal(await globalInput.inputValue(), "5.25", `${platform}: blur restores the last accepted value`);
+
+    const root = page.locator("#root");
+    await root.locator("#siteOverrideEnabled").check();
+    const siteInput = root.locator("#siteThresholdValue");
+    await siteInput.focus();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.type("0.004", { delay: 20 });
+    await page.waitForFunction(() => (
+      window.__SURFACED_CAPTURE__.settingsStore.getState()
+        .scrollNotifierSiteOverrides["current.example"] === 0.004
+    ));
+    assert.equal(await siteInput.inputValue(), "0.004");
+    assert.equal(await siteInput.getAttribute("step"), "any");
+
+    await root.locator("[aria-controls='siteSettingsManager']").click();
+    const summaries = await root.locator(".site-manager__threshold").allTextContents();
+    assert.ok(summaries.includes("Site override: 0.004 screens"));
+    assert.ok(summaries.includes("Site override: 7.999 screens"));
+
+    for (const input of [globalInput, siteInput]) {
+      const control = input.locator("../..");
+      for (const [initial, incremented] of [
+        [5.254, 5.754],
+        [7.999, 8.499],
+        [1e-7, 0.5000001],
+        [1e21, 1e21],
+        [Number.MAX_VALUE, Number.MAX_VALUE],
+      ]) {
+        await input.fill(String(initial));
+        await control.locator('[data-direction="increment"]').click();
+        assert.equal(await input.inputValue(), String(incremented), `${platform}: decimal increment from ${initial}`);
+        await page.evaluate(() => window.__SURFACED_CAPTURE__.settingsStore.whenIdle());
+        const storedValue = await input.evaluate(async (element) => {
+          const state = await browser.storage.local.get(null);
+          return element.id === "globalThresholdValue"
+            ? state.scrollNotifierThreshold
+            : state.scrollNotifierSiteOverrides["current.example"];
+        });
+        assert.equal(storedValue, incremented, `${platform}: stepper persists the exact result`);
+        await control.locator('[data-direction="decrement"]').click();
+        assert.equal(await input.inputValue(), String(initial), `${platform}: decimal decrement back to ${initial}`);
+      }
+    }
+    await page.close();
   }
 }
 
@@ -875,6 +1049,14 @@ async function testPopupSettingsImportExport(browser, origin) {
     assert.equal(await page.evaluate(() => document.getElementById("root").shadowRoot
       .querySelector("input[type='file']")), null, `${platform}: popup contains no file picker`);
 
+    assert.equal(await page.evaluate(async () => {
+      const response = await browser.runtime.sendMessage({
+        type: "SURFACED_SETTINGS_UPDATE",
+        patch: { scrollNotifierThreshold: 9.125 },
+      });
+      return response.ok;
+    }), true, `${platform}: external settings update succeeds before export`);
+
     const downloadPromise = page.waitForEvent("download");
     await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector("#settingsExport").click());
     const download = await downloadPromise;
@@ -885,6 +1067,7 @@ async function testPopupSettingsImportExport(browser, origin) {
     const downloaded = JSON.parse(Buffer.concat(downloadChunks).toString("utf8"));
     assert.equal(downloaded.format, "surfaced-settings");
     assert.equal(downloaded.formatVersion, 1);
+    assert.equal(downloaded.settings.scrollNotifierThreshold, 9.125, `${platform}: export reads the fresh authoritative state`);
     assert.deepEqual(Object.keys(downloaded.settings), [
       "scrollNotifierThreshold",
       "scrollNotifierText",
@@ -907,6 +1090,28 @@ async function testPopupSettingsImportExport(browser, origin) {
     }
     await page.close();
   }
+
+  const oversizedExportPage = await browser.newPage({ viewport: { width: 900, height: 780 } });
+  await oversizedExportPage.goto(`${origin}/tools/capture/popup-harness.html?platform=desktop`, {
+    waitUntil: "networkidle",
+  });
+  await waitForReady(oversizedExportPage);
+  assert.equal(await oversizedExportPage.evaluate(async (oversizedText) => {
+    const current = window.__SURFACED_CAPTURE__.settingsStore.getState();
+    const response = await browser.runtime.sendMessage({
+      type: "SURFACED_SETTINGS_REPLACE",
+      settings: { ...current, scrollNotifierText: oversizedText },
+    });
+    return response.ok;
+  }, "🌊".repeat(70_000)), true);
+  let oversizedDownloadCount = 0;
+  oversizedExportPage.on("download", () => { oversizedDownloadCount += 1; });
+  await oversizedExportPage.evaluate(() => document.getElementById("root").shadowRoot
+    .querySelector("#settingsExport").click());
+  await oversizedExportPage.waitForFunction(() => document.getElementById("root").shadowRoot
+    .querySelector(".status").textContent.includes("too large"));
+  assert.equal(oversizedDownloadCount, 0, "over-limit settings must not create a download");
+  await oversizedExportPage.close();
 
   const popupErrorPage = await browser.newPage({ viewport: { width: 900, height: 780 } });
   await popupErrorPage.goto(`${origin}/tools/capture/popup-harness.html?platform=desktop&tabCreateFailures=1`, {
@@ -994,6 +1199,91 @@ async function testPopupSettingsImportExport(browser, origin) {
   await writeErrorPage.close();
 }
 
+async function testFrenchLocalization(browser, origin) {
+  const reminderMessages = {
+    shallow: "Vous voilà déjà bien loin. Remontez prendre l’air.",
+    mid: "Vous continuez ? Vous êtes maintenant bien loin dans le fil.",
+    deep: "Vous êtes ici depuis un moment. Il est temps de remonter.",
+  };
+  for (const [zone, expectedMessage] of Object.entries(reminderMessages)) {
+    const reminderPage = await browser.newPage({ viewport: { width: 360, height: 640 } });
+    await installClosedShadowProbe(reminderPage);
+    await reminderPage.goto(`${origin}/fixtures/marketing/long-article.html?threshold=1&zone=${zone}&locale=fr-FR`, {
+      waitUntil: "networkidle",
+    });
+    await waitForReady(reminderPage);
+    await reminderPage.waitForFunction(() => document.getElementById("surfaced-notification-host"));
+    const reminderCopy = await reminderPage.evaluate(() => {
+      const host = document.getElementById("surfaced-notification-host");
+      const root = window.__surfacedTestShadowRoots.get(host);
+      return {
+        message: root.querySelector(".notification__title").textContent,
+        dismiss: root.querySelector(".notification__close").getAttribute("aria-label"),
+      };
+    });
+    assert.deepEqual(reminderCopy, {
+      message: expectedMessage,
+      dismiss: "Fermer ce rappel",
+    });
+    await reminderPage.close();
+  }
+
+  for (const platform of ["desktop", "android"]) {
+    const popupPage = await browser.newPage({ viewport: { width: platform === "android" ? 360 : 1280, height: 900 } });
+    await popupPage.goto(`${origin}/tools/capture/popup-harness.html?platform=${platform}&locale=fr-FR&tab=https%3A%2F%2Fexample.com%2F`, {
+      waitUntil: "networkidle",
+    });
+    await waitForReady(popupPage);
+    const popupCopy = await popupPage.evaluate(() => {
+      const root = document.getElementById("root").shadowRoot;
+      const shell = root.querySelector(".shell");
+      return {
+        lang: document.documentElement.lang,
+        thresholdTitle: root.querySelector("#globalThresholdValue").getAttribute("aria-label"),
+        site: root.querySelector("#siteEnabled").closest("section").querySelector(".section__title").textContent,
+        pause: root.querySelector(".session-action").textContent,
+        exportAction: root.querySelector("#settingsExport").textContent,
+        previewSubtitle: root.querySelector(".preview-card__sub"),
+        scrollWidth: shell.scrollWidth,
+        clientWidth: shell.clientWidth,
+      };
+    });
+    assert.deepEqual(popupCopy, {
+      lang: "fr-FR",
+      thresholdTitle: "Valeur du seuil du premier rappel",
+      site: "Ce site : example.com",
+      pause: "Mettre en pause jusqu’au redémarrage du navigateur",
+      exportAction: "Exporter les paramètres",
+      previewSubtitle: null,
+      scrollWidth: popupCopy.clientWidth,
+      clientWidth: popupCopy.clientWidth,
+    });
+    await popupPage.close();
+  }
+
+  const importPage = await browser.newPage({ viewport: { width: 900, height: 780 } });
+  await importPage.goto(`${origin}/tools/capture/settings-import-harness.html?locale=fr-FR`, {
+    waitUntil: "networkidle",
+  });
+  await waitForReady(importPage);
+  for (const [threshold, expected] of [
+    [1, "1 écran"],
+    [2, "2 écrans"],
+    [0.004, "0,004 écran"],
+    [5.254, "5,254 écrans"],
+  ]) {
+    await setImportFile(importPage, JSON.stringify(importEnvelope({ scrollNotifierThreshold: threshold })));
+    await waitForImportPreview(importPage);
+    assert.equal(await importPage.locator("#previewThreshold").textContent(), expected);
+    assert.equal(await importPage.locator("#replaceSettings").textContent(), "Remplacer les paramètres");
+    await importPage.locator("#cancelImport").click();
+  }
+  await setImportFile(importPage, "{ invalid JSON");
+  await importPage.waitForFunction(() => !document.getElementById("importError").hidden);
+  assert.match(await importPage.locator("#importError").textContent(), /JSON valide/);
+  await importPage.close();
+}
+
 const playwright = await loadPlaywright();
 const server = await startServer();
 const browserName = process.env.SURFACED_BROWSER === "firefox" ? "firefox" : "chromium";
@@ -1011,11 +1301,14 @@ try {
   } else {
     await testReminderResponsiveness(browser, server.origin);
     await testReminderCycleAndSessionPause(browser, server.origin);
+    await testCanonicalRuntimeHostname(browser, server.origin);
     await testReducedMotion(browser, server.origin);
     await testPopupSessionUi(browser, server.origin);
     await testPermissionHealthUi(browser, server.origin);
     await testPopupKeyboardAndSiteManager(browser, server.origin);
+    await testThresholdEditing(browser, server.origin);
     await testPopupSettingsImportExport(browser, server.origin);
+    await testFrenchLocalization(browser, server.origin);
   }
   console.log(`${browserName === "firefox" ? "Firefox" : "Chromium"} harness smoke: pass`);
 } finally {

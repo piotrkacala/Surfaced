@@ -1,5 +1,5 @@
 import { getCaptureState } from "./capture-state.mjs";
-import { EN_MESSAGES } from "./en-messages.mjs";
+import { getMessages } from "./en-messages.mjs";
 
 function formatMessage(template, substitutions) {
   if (!template) {
@@ -113,6 +113,7 @@ export function installBrowserStub() {
   }
 
   const storageChangeListeners = [];
+  const messages = getMessages(state.language);
   const runtimeListeners = [];
   const runtimeMessages = [];
   const permissionCalls = [];
@@ -130,7 +131,7 @@ export function installBrowserStub() {
   const badgeValues = [];
   const storageArea = createStorageArea(state.storage, storageChangeListeners, failureState);
   const settingsStore = window.SurfacedSettings.createSettingsStore(storageArea, {
-    defaultText: EN_MESSAGES.defaultNotificationText,
+    defaultText: messages.defaultNotificationText,
   });
   const handleSettingsMessage = window.SurfacedSettings.createSettingsMessageHandler(settingsStore);
   const sessionMessageTypes = window.SurfacedSessionPause.MESSAGE_TYPES;
@@ -166,7 +167,7 @@ export function installBrowserStub() {
   window.browser = {
     i18n: {
       getMessage(key, substitutions) {
-        return formatMessage(EN_MESSAGES[key], substitutions);
+        return formatMessage(messages[key], substitutions);
       },
       getUILanguage() {
         return state.language;

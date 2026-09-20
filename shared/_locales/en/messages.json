@@ -297,13 +297,9 @@
     "message": "You've drifted pretty far. Come up for air.",
     "description": "Default notification text shown when the user scrolls past the threshold."
   },
-  "notificationSub": {
-    "message": "Surfaced · scroll depth alert",
-    "description": "Subtitle shown below the notification title."
-  },
   "ariaNotificationDismiss": {
-    "message": "Dismiss notification",
-    "description": "Aria label for the notification close button."
+    "message": "Dismiss this reminder",
+    "description": "Accessible label for the reminder close button."
   },
   "notificationMid": {
     "message": "Still going? You're deep in the feed now.",
@@ -424,6 +420,7 @@
   "ariaCancelSettingsImport": { "message": "Cancel settings import without changing current settings", "description": "Accessible label for cancelling import preview." },
   "settingsExportSuccess": { "message": "Settings exported ✓", "description": "Status after creating the local export file." },
   "settingsExportError": { "message": "Surfaced couldn't export your settings.", "description": "Error shown when the local export cannot be created." },
+  "settingsExportErrorTooLarge": { "message": "These settings are too large to export. Remove some site settings or shorten the reminder text, then try again.", "description": "Error shown when an export would exceed the import size limit." },
   "settingsImportSuccess": { "message": "Settings replaced ✓", "description": "Status after a successful settings import." },
   "settingsImportSuccessEyebrow": { "message": "Import complete", "description": "Short label above the successful import message." },
   "settingsImportSuccessDescription": { "message": "Your new settings are active now.", "description": "Confirmation that imported settings have taken effect." },

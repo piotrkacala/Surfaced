@@ -45,11 +45,12 @@ export function mountPopup(platformConfig = {}) {
     MESSAGE_TYPES,
     applySiteSettingsIntent,
     createDefaults,
-    createSettingsExport,
+    formatThresholdForDisplay,
     getManagedSiteEntries,
     normalizeHostname,
     normalizeSettings,
     parseThresholdInput,
+    serializeSettingsExport,
   } = globalThis.SurfacedSettings;
   const { MESSAGE_TYPES: SESSION_MESSAGE_TYPES } = globalThis.SurfacedSessionPause;
   const {
@@ -67,10 +68,6 @@ export function mountPopup(platformConfig = {}) {
   }
 
   const pluralRules = new Intl.PluralRules(uiLanguage);
-  const numberFormatter = new Intl.NumberFormat(uiLanguage, {
-    maximumFractionDigits: 2,
-  });
-
   function getUnitScreensMsg(value) {
     const form = pluralRules.select(value);
     const suffix = form.charAt(0).toUpperCase() + form.slice(1);
@@ -79,7 +76,7 @@ export function mountPopup(platformConfig = {}) {
   }
 
   function formatThresholdNumber(value) {
-    return numberFormatter.format(value);
+    return formatThresholdForDisplay(value, uiLanguage);
   }
 
   const schemaDefaults = createDefaults(msg("defaultNotificationText"));
@@ -110,10 +107,6 @@ export function mountPopup(platformConfig = {}) {
 
   function sanitizeThreshold(value, fallback = DEFAULTS.threshold) {
     return parsePositiveThreshold(value) ?? fallback;
-  }
-
-  function normalizeThreshold(value) {
-    return Number(value.toFixed(2));
   }
 
   const root = document.getElementById("root");
@@ -842,14 +835,15 @@ export function mountPopup(platformConfig = {}) {
       z-index: 1;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       min-width: 0;
     }
 
     .preview-card__icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
+      box-sizing: border-box;
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -865,9 +859,6 @@ export function mountPopup(platformConfig = {}) {
 
     .preview-card__copy {
       min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
     }
 
     .preview-card__title {
@@ -882,14 +873,8 @@ export function mountPopup(platformConfig = {}) {
       text-overflow: ellipsis;
     }
 
-    .preview-card__sub {
-      color: rgba(200, 234, 247, 0.7);
-      font-family: var(--font-mono);
-      font-size: ${config.isTouch ? "10px" : "9px"};
-      letter-spacing: 0.35px;
-    }
-
     .preview-card__close {
+      box-sizing: border-box;
       position: relative;
       z-index: 1;
       width: 30px;
@@ -1396,7 +1381,7 @@ export function mountPopup(platformConfig = {}) {
     const input = el("input", "threshold-input", {
       type: "number",
       id: inputId,
-      step: String(THRESHOLD_STEP),
+      step: "any",
       inputmode: "decimal",
       "aria-label": inputAriaLabel,
     });
@@ -1577,14 +1562,12 @@ export function mountPopup(platformConfig = {}) {
   previewLabel.textContent = msg("popupPreviewLabel");
   const previewCard = el("div", "preview-card");
   const previewLeft = el("div", "preview-card__left");
-  const previewIcon = el("div", "preview-card__icon");
+  const previewIcon = el("div", "preview-card__icon", { "aria-hidden": "true" });
   previewIcon.appendChild(createLogoSvg("#00d4ff"));
   const previewCopy = el("div", "preview-card__copy");
   const previewTitle = el("span", "preview-card__title");
   previewTitle.textContent = DEFAULTS.text;
-  const previewSub = el("span", "preview-card__sub");
-  previewSub.textContent = msg("notificationSub");
-  previewCopy.append(previewTitle, previewSub);
+  previewCopy.append(previewTitle);
   previewLeft.append(previewIcon, previewCopy);
   const previewClose = el("span", "preview-card__close", { "aria-hidden": "true" });
   previewClose.textContent = "✕";
@@ -2052,7 +2035,9 @@ export function mountPopup(platformConfig = {}) {
       return Promise.reject(error);
     }
 
-    syncActiveSiteControls();
+    syncActiveSiteControls({
+      preserveFocusedThreshold: shadow.activeElement === siteThresholdControl.input,
+    });
     renderSiteManager(focusRequest);
 
     const revision = ++uiWriteRevision;
@@ -2127,19 +2112,33 @@ export function mountPopup(platformConfig = {}) {
   }
 
   function adjustThresholdValue(currentValue, delta) {
-    const next = normalizeThreshold(currentValue + delta);
-    return next > 0 ? next : currentValue;
+    // Add the displayed decimal values exactly, including scientific notation.
+    // Convert back to Number only once so a half-screen step adds no binary noise.
+    const parts = [currentValue, delta].map((value) => {
+      const [mantissa, exponent = "0"] = String(value).split("e");
+      const fractionLength = (mantissa.split(".")[1] || "").length;
+      return {
+        coefficient: BigInt(mantissa.replace(".", "")),
+        exponent: Number(exponent) - fractionLength,
+      };
+    });
+    const exponent = Math.min(...parts.map((part) => part.exponent));
+    const sum = parts.reduce((total, part) => (
+      total + part.coefficient * 10n ** BigInt(part.exponent - exponent)
+    ), 0n);
+    const next = Number(`${sum}e${exponent}`);
+    return Number.isFinite(next) && next > 0 ? next : currentValue;
   }
 
   function syncOverrideVisibility() {
     siteOverridePanel.hidden = !activeHostname || !overrideSwitch.input.checked;
   }
 
-  function syncActiveSiteControls() {
+  function syncActiveSiteControls({ preserveFocusedThreshold = false } = {}) {
     if (!activeHostname) {
       siteSwitch.input.checked = false;
       overrideSwitch.input.checked = false;
-      setSiteThresholdValue(currentThreshold);
+      setSiteThresholdValue(currentThreshold, { syncInput: !preserveFocusedThreshold });
       syncOverrideVisibility();
       return;
     }
@@ -2148,7 +2147,9 @@ export function mountPopup(platformConfig = {}) {
     const siteThreshold = settingsState[KEYS.siteOverrides][activeHostname];
     const hasOverride = typeof siteThreshold === "number";
     overrideSwitch.input.checked = hasOverride;
-    setSiteThresholdValue(hasOverride ? siteThreshold : currentThreshold);
+    setSiteThresholdValue(hasOverride ? siteThreshold : currentThreshold, {
+      syncInput: !preserveFocusedThreshold,
+    });
     syncOverrideVisibility();
   }
 
@@ -2258,7 +2259,7 @@ export function mountPopup(platformConfig = {}) {
         const editorInput = el("input", "site-manager__editor-input", {
           id: `managerOverride-${index}`,
           type: "number",
-          step: String(THRESHOLD_STEP),
+          step: "any",
           inputmode: "decimal",
           value: String(threshold),
           "data-manager-action": "override-input",
@@ -2406,10 +2407,24 @@ export function mountPopup(platformConfig = {}) {
     importError.focus();
   }
 
-  exportButton.addEventListener("click", () => {
+  exportButton.addEventListener("click", async () => {
+    if (exportButton.disabled) {
+      return;
+    }
+
+    exportButton.disabled = true;
+    exportButton.setAttribute("aria-busy", "true");
     try {
-      const envelope = createSettingsExport(settingsState, { defaultText: DEFAULTS.text });
-      const blob = new Blob([`${JSON.stringify(envelope, null, 2)}\n`], {
+      const response = await sendSettingsMessage({ type: MESSAGE_TYPES.get });
+      if (!response.ok) {
+        throw new Error(response.error || "SETTINGS_EXPORT_SOURCE_UNAVAILABLE");
+      }
+
+      rememberResponseSettings(response);
+      const { envelope, text } = serializeSettingsExport(response.settings, {
+        defaultText: DEFAULTS.text,
+      });
+      const blob = new Blob([text], {
         type: "application/json",
       });
       const url = URL.createObjectURL(blob);
@@ -2423,7 +2438,14 @@ export function mountPopup(platformConfig = {}) {
       setTimeout(() => URL.revokeObjectURL(url), 0);
       showStatus(msg("settingsExportSuccess"));
     } catch (error) {
-      showStatus(msg("settingsExportError"));
+      showStatus(msg(
+        error?.code === "EXPORT_FILE_TOO_LARGE"
+          ? "settingsExportErrorTooLarge"
+          : "settingsExportError"
+      ));
+    } finally {
+      exportButton.disabled = false;
+      exportButton.removeAttribute("aria-busy");
     }
   });
 
@@ -2520,7 +2542,10 @@ export function mountPopup(platformConfig = {}) {
   });
 
   globalThresholdControl.input.addEventListener("input", () => {
-    const value = parseLiveThreshold(globalThresholdControl.input.value) ?? DEFAULTS.threshold;
+    const value = parseLiveThreshold(globalThresholdControl.input.value);
+    if (value === null) {
+      return;
+    }
     saveThreshold(value, { syncInput: false });
   });
 
@@ -2603,7 +2628,10 @@ export function mountPopup(platformConfig = {}) {
       return;
     }
 
-    const value = parseLiveThreshold(siteThresholdControl.input.value) ?? DEFAULTS.threshold;
+    const value = parseLiveThreshold(siteThresholdControl.input.value);
+    if (value === null) {
+      return;
+    }
     saveSiteOverride(value, msg("statusAutoSaved"), { syncInput: false });
   });
 
@@ -2703,7 +2731,6 @@ export function mountPopup(platformConfig = {}) {
 
   storageRetryButton.addEventListener("click", async () => {
     const retryPhase = storageErrorPhase || "read";
-    const retrySettings = settingsState;
     const restoreRetryFocus = shadow.activeElement === storageRetryButton;
     uiWriteRevision += 1;
     setStorageUiState("loading");
@@ -2711,7 +2738,7 @@ export function mountPopup(platformConfig = {}) {
     try {
       const response = retryPhase === "read"
         ? await sendSettingsMessage({ type: MESSAGE_TYPES.get, retry: true })
-        : await sendSettingsMessage({ type: MESSAGE_TYPES.update, patch: retrySettings });
+        : await sendSettingsMessage({ type: MESSAGE_TYPES.retry, phase: "write" });
 
       if (!response.ok) {
         rememberResponseSettings(response);

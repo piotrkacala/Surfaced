@@ -24,6 +24,8 @@ Read these first before making significant changes:
 - `docs/adr-002-unified-package.md` — why the unified package exists and which manifest is authoritative
 - `docs/adr-003-threshold-value-policy.md` — why thresholds are sanitized but not constrained to the recommended UI range
 - `docs/adr-004-chrome-desktop-target.md` — why Chrome desktop is a separate package and how API compatibility is handled
+- `docs/adr-005-scroll-delta-policy.md` — how large scroll jumps, resets, and virtual-list rebases are classified
+- `docs/adr-006-awareness-only-reminders.md` — why in-page reminders dismiss but do not expose settings actions
 - `docs/release-checklist.md` — automated and manual gates for a release candidate
 - `build.sh` — packaging contract for desktop, Android, Chrome, and unified builds
 
@@ -87,7 +89,7 @@ Browser smoke tests use Playwright from the configured global module path. A phy
 - Settings export remains in the popup. Settings import is owned by `shared/settings-import/`: desktop and Chrome open it in a new tab, while Android navigates the current extension tab.
 - Notification host positioning and internals are owned directly by `shared/content.js` inside the injected host and closed shadow root.
 - Current persisted settings keys are `scrollNotifierThreshold`, `scrollNotifierText`, `scrollNotifierEnabled`, `scrollNotifierDisabledDomains`, and `scrollNotifierSiteOverrides`.
-- Locales live in `shared/_locales/{en,pl}/messages.json`. Keep English and Polish in sync when changing copy or adding UI strings.
+- Locales live in `shared/_locales/{en,pl,fr}/messages.json`. Keep English, Polish, and French in sync when changing copy or adding UI strings.
 
 ## Workflow Rules
 

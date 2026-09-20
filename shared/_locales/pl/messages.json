@@ -224,11 +224,8 @@
     "defaultNotificationText": {
         "message": "Zaszedłeś dość daleko. Wynurz się na chwilę."
     },
-    "notificationSub": {
-        "message": "Surfaced · alert głębokości przewijania"
-    },
     "ariaNotificationDismiss": {
-        "message": "Zamknij powiadomienie"
+        "message": "Zamknij to przypomnienie"
     },
     "notificationMid": {
         "message": "Wciąż przewijasz? Jesteś już głęboko w treści."
@@ -332,6 +329,7 @@
     "ariaCancelSettingsImport": { "message": "Anuluj import bez zmieniania bieżących ustawień" },
     "settingsExportSuccess": { "message": "Wyeksportowano ustawienia ✓" },
     "settingsExportError": { "message": "Surfaced nie może wyeksportować ustawień." },
+    "settingsExportErrorTooLarge": { "message": "Te ustawienia są zbyt duże do wyeksportowania. Usuń część ustawień witryn lub skróć tekst przypomnienia i spróbuj ponownie." },
     "settingsImportSuccess": { "message": "Zastąpiono ustawienia ✓" },
     "settingsImportSuccessEyebrow": { "message": "Import zakończony" },
     "settingsImportSuccessDescription": { "message": "Nowe ustawienia są już aktywne." },

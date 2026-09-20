@@ -191,6 +191,62 @@ describe("reminder cycle, reset, and badge state", () => {
     assert.equal(deeper.notificationAction, "show");
   });
 
+  test("a threshold change replaces a visible reminder in either direction", () => {
+    const tracker = createTestTracker();
+    observe(tracker, 0);
+    observe(tracker, 100);
+    observe(tracker, 200);
+    const deep = observe(tracker, 300);
+    assert.equal(deep.currentZoneIndex, 2);
+
+    const shallower = tracker.setThreshold(2);
+    assert.equal(shallower.zoneIndex, 0);
+    assert.equal(shallower.currentZoneIndex, 0);
+    assert.equal(shallower.notificationAction, "replace");
+    assert.equal(shallower.notificationVisible, true);
+
+    const deeper = tracker.setThreshold(1);
+    assert.equal(deeper.zoneIndex, 2);
+    assert.equal(deeper.currentZoneIndex, 2);
+    assert.equal(deeper.notificationAction, "replace");
+  });
+
+  test("a threshold change hides a visible reminder when its target level was dismissed", () => {
+    const tracker = createTestTracker();
+    observe(tracker, 0);
+    observe(tracker, 100);
+    tracker.dismiss();
+    observe(tracker, 200);
+    assert.equal(tracker.snapshot().currentZoneIndex, 1);
+
+    const hidden = tracker.setThreshold(2);
+    assert.equal(hidden.zoneIndex, 0);
+    assert.equal(hidden.currentZoneIndex, 0);
+    assert.equal(hidden.dismissedZoneIndex, 0);
+    assert.equal(hidden.notificationAction, "hide");
+    assert.equal(hidden.notificationVisible, false);
+  });
+
+  test("moving to a shallower threshold clamps dismissal and rearms deeper levels", () => {
+    const tracker = createTestTracker();
+    observe(tracker, 0);
+    observe(tracker, 100);
+    observe(tracker, 200);
+    observe(tracker, 300);
+    tracker.dismiss();
+    assert.equal(tracker.snapshot().dismissedZoneIndex, 2);
+
+    const changed = tracker.setThreshold(3);
+    assert.equal(changed.zoneIndex, 0);
+    assert.equal(changed.dismissedZoneIndex, 0);
+    assert.equal(changed.notificationAction, "none");
+
+    assert.equal(observe(tracker, 400).notificationAction, "none");
+    const rearmed = observe(tracker, 600);
+    assert.equal(rearmed.zoneIndex, 1);
+    assert.equal(rearmed.notificationAction, "show");
+  });
+
   test("returning below threshold rearms a dismissed shallow reminder", () => {
     const tracker = createTestTracker({ threshold: 2 });
     observe(tracker, 0);

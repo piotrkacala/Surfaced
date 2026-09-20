@@ -33,6 +33,7 @@ It is meant to feel calm, not punitive: a quiet tap on the shoulder when you hav
 - Reminds you after a scroll-depth threshold you choose, measured in screens.
 - Shows deeper follow-up reminders at `2×` and `3×` your chosen threshold.
 - Lets you customize the first reminder text and preview it in the popup.
+- Keeps in-page reminders focused on awareness: message, source icon, and dismiss only.
 - Includes a complete site manager for per-site enablement and threshold overrides.
 - Lets you pause reminders and badge updates on every tab until the browser restarts.
 - Imports and exports all persistent settings as a local JSON file.
@@ -90,6 +91,8 @@ There are three depth zones:
 
 **5. Dismiss or keep scrolling**  
 Dismiss the current reminder with `✕`. If you scroll deeper, the next zone can still trigger. If you come back up below the threshold, the reminder clears and the cycle resets.
+
+Pause and site controls intentionally stay in the popup so changing behavior remains a deliberate choice rather than an automatic response to each reminder.
 
 **6. Pause for the browser session when needed**
 Use **Pause until browser restarts** in the popup to remove reminders and badges from every tab. **Resume now** starts a fresh cycle from each page's current position.
@@ -153,7 +156,7 @@ Some sites use unusual virtual lists, custom scroll containers, or aggressive UI
 Surfaced detects many in-app navigations and resets scroll tracking when you move to a new view, so the threshold applies fresh on the next page state.
 
 **Is it available in other languages?**  
-Yes. English and Polish are supported, and Surfaced follows your browser language.
+Yes. English, Polish, and French are supported, and Surfaced follows your browser language.
 
 ---
 

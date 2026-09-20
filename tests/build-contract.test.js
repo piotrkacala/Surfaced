@@ -9,7 +9,7 @@ const { spawnSync } = require("node:child_process");
 const { test } = require("node:test");
 
 const repoRoot = path.resolve(__dirname, "..");
-const VERSION = "1.2.1";
+const VERSION = "1.3.0";
 const ARTIFACTS = Object.freeze({
   unified: `surfaced-${VERSION}.zip`,
   desktop: `surfaced-desktop-${VERSION}.zip`,
@@ -129,10 +129,20 @@ test("build contract, fail-fast gates, artifact preservation, and reproducible Z
       for (const moduleName of REQUIRED_SHARED_MODULES) {
         assert.ok(entries.includes(moduleName), `${target} is missing ${moduleName}`);
       }
+      for (const locale of ["en", "pl", "fr"]) {
+        assert.ok(
+          entries.includes(`_locales/${locale}/messages.json`),
+          `${target} is missing the ${locale} locale`
+        );
+      }
 
       const manifest = zipJson(archive, "manifest.json");
+      const frenchMessages = zipJson(archive, "_locales/fr/messages.json");
       assert.equal(manifest.version, VERSION);
       assert.equal(manifest.action.default_popup, "popup/popup.html");
+      assert.equal(frenchMessages.extensionName.message, "Surfaced");
+      assert.match(frenchMessages.extensionDescription.message, /rappels/);
+      assert.equal(frenchMessages.actionTitle.message, "Paramètres de Surfaced");
       assert.deepEqual(manifest.content_scripts[0].js, [
         "extension-api.js",
         "settings.js",

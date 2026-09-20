@@ -25,6 +25,70 @@ test("capture messages are derived directly from the canonical English locale", 
   );
 });
 
+test("all shipped locales have canonical key and placeholder parity", () => {
+  const locales = ["en", "pl", "fr"].map((locale) => JSON.parse(fs.readFileSync(
+    path.join(repoRoot, `shared/_locales/${locale}/messages.json`),
+    "utf8"
+  )));
+  const [canonical, ...translations] = locales;
+  const canonicalKeys = Object.keys(canonical).sort();
+
+  translations.forEach((locale) => {
+    assert.deepEqual(Object.keys(locale).sort(), canonicalKeys);
+    canonicalKeys.forEach((key) => {
+      assert.deepEqual(
+        Object.fromEntries(Object.entries(locale[key].placeholders || {}).map(([name, value]) => [name, value.content])),
+        Object.fromEntries(Object.entries(canonical[key].placeholders || {}).map(([name, value]) => [name, value.content])),
+        `${key}: placeholder parity`
+      );
+    });
+  });
+
+  locales.forEach((locale) => {
+    canonicalKeys.forEach((key) => {
+      assert.equal(typeof locale[key].message, "string", `${key}: message must be a string`);
+      assert.notEqual(locale[key].message.trim(), "", `${key}: message must not be empty`);
+    });
+  });
+});
+
+test("every literal runtime and manifest localization reference exists in every locale", () => {
+  const localeData = ["en", "pl", "fr"].map((locale) => JSON.parse(fs.readFileSync(
+    path.join(repoRoot, `shared/_locales/${locale}/messages.json`),
+    "utf8"
+  )));
+  const sourceFiles = [
+    "shared/content.js",
+    "shared/popup/popup-core.mjs",
+    "shared/settings-import/settings-import.js",
+    "android/manifest.json",
+    "desktop/manifest.json",
+    "chrome/manifest.json",
+  ];
+  const references = new Set();
+
+  sourceFiles.forEach((relativePath) => {
+    const source = fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
+    for (const match of source.matchAll(/(?:getMessage|msg)\(\s*["']([A-Za-z0-9]+)["'](?!\s*\+)/g)) {
+      references.add(match[1]);
+    }
+    for (const match of source.matchAll(/__MSG_([A-Za-z0-9]+)__/g)) {
+      references.add(match[1]);
+    }
+  });
+
+  for (const reference of references) {
+    localeData.forEach((locale) => assert.ok(locale[reference], `missing locale key: ${reference}`));
+  }
+});
+
+test("capture tooling resolves French and Polish browser locales with English fallback", async () => {
+  const { EN_MESSAGES, getMessages } = await importModule("tools/capture/shared/en-messages.mjs");
+  assert.equal(getMessages("fr-FR").settingsExportAction, "Exporter les paramètres");
+  assert.equal(getMessages("pl-PL").settingsExportAction, "Eksportuj ustawienia");
+  assert.equal(getMessages("de-DE"), EN_MESSAGES);
+});
+
 test("capture asNumber uses fallback for absent and empty values while preserving zero", async () => {
   const { asNumber } = await importModule("tools/capture/shared/capture-state.mjs");
 
