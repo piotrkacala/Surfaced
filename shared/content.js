@@ -13,6 +13,7 @@
   const { MESSAGE_TYPES: SESSION_MESSAGE_TYPES } = SurfacedSessionPause;
   const { createTrailingThrottle } = SurfacedScrollTracker;
   const THROTTLE_MS = 100;
+  const SETTINGS_SETTLE_MS = 500;
   const NOTIFICATION_ID = "surfaced-notification-host";
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -26,11 +27,14 @@
   // The revision prevents a late startup read from replacing a newer change.
   let settingsStateKnown = false;
   let settingsStateRevision = 0;
+  let settingsSettleTimer = null;
   // Unknown session state is fail-closed until the background answers. A
   // transient read failure then falls back to an unpaused, usable content script.
   let sessionPaused = true;
   let sessionStateKnown = false;
   let sessionStateRevision = 0;
+  // Background resume count of the last known session state, or null if unknown.
+  let sessionResumeCount = null;
   let lastScrollTarget = document.documentElement;
   let throttledScroll = null;
 
@@ -140,26 +144,18 @@
       }
 
       console.error("Failed to load Surfaced settings", error);
-      resetScrollTracking();
+      // A failed refresh keeps the last known snapshot; only an unknown
+      // startup state must fail closed.
+      if (!settingsStateKnown) {
+        resetScrollTracking();
+      }
     });
   }
 
   loadStoredSettings();
 
   browser.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local") {
-      return;
-    }
-
-    const nextSettings = {};
-
-    STORAGE_KEYS.forEach((key) => {
-      if (changes[key]) {
-        nextSettings[key] = changes[key].newValue;
-      }
-    });
-
-    if (Object.keys(nextSettings).length === 0) {
+    if (areaName !== "local" || !STORAGE_KEYS.some((key) => changes[key])) {
       return;
     }
 
@@ -171,15 +167,21 @@
       return;
     }
 
-    applyStoredSettings(nextSettings);
-    evaluateActiveState();
+    // The popup persists every keystroke. Reload only after changes settle so
+    // a partially typed threshold such as "1" on the way to "12" cannot flash
+    // reminders and badges in every open tab.
+    clearTimeout(settingsSettleTimer);
+    settingsSettleTimer = setTimeout(() => {
+      settingsSettleTimer = null;
+      loadStoredSettings();
+    }, SETTINGS_SETTLE_MS);
   });
 
   // ── Listen for updates from popup ─────────────────────────────────────────
   browser.runtime.onMessage.addListener((message) => {
     if (message.type === SESSION_MESSAGE_TYPES.changed) {
       sessionStateRevision += 1;
-      applySessionPaused(message.paused, "session-broadcast");
+      applySessionPaused(message.paused, "session-broadcast", message.resumeCount);
       return;
     }
 
@@ -210,10 +212,10 @@
     }
   });
 
-  function loadSessionState() {
+  function loadSessionState(reason = "session-startup") {
     const requestRevision = sessionStateRevision;
 
-    browser.runtime.sendMessage({ type: SESSION_MESSAGE_TYPES.get })
+    return browser.runtime.sendMessage({ type: SESSION_MESSAGE_TYPES.get })
       .then((response) => {
         if (requestRevision !== sessionStateRevision) {
           return;
@@ -223,7 +225,7 @@
           throw new Error(response?.error || "SESSION_STATE_UNAVAILABLE");
         }
 
-        applySessionPaused(response.paused, "session-startup");
+        applySessionPaused(response.paused, reason, response.resumeCount);
       })
       .catch((error) => {
         if (requestRevision !== sessionStateRevision) {
@@ -231,7 +233,11 @@
         }
 
         console.warn("Failed to load Surfaced session pause state", error);
-        applySessionPaused(false, "session-read-failed");
+        // A failed refresh keeps the last known state; only an unknown startup
+        // state falls back to an unpaused, usable content script.
+        if (!sessionStateKnown) {
+          applySessionPaused(false, "session-read-failed");
+        }
       });
   }
 
@@ -710,11 +716,23 @@
     sendBadgeValue(0);
   }
 
-  function applySessionPaused(nextPaused, reason) {
+  function applySessionPaused(nextPaused, reason, resumeCount = null) {
     const wasKnown = sessionStateKnown;
     const wasPaused = sessionPaused;
+    const nextResumeCount = Number.isSafeInteger(resumeCount) && resumeCount >= 0
+      ? resumeCount
+      : null;
+    // Each real resume increments the count. A change this page did not see as
+    // a paused-to-active transition means a complete pause and resume happened
+    // while messages could not reach it, e.g. in the back/forward cache.
+    const missedResume = nextResumeCount !== null
+      && sessionResumeCount !== null
+      && nextResumeCount !== sessionResumeCount;
     sessionStateKnown = true;
     sessionPaused = nextPaused === true;
+    if (nextResumeCount !== null) {
+      sessionResumeCount = nextResumeCount;
+    }
     throttledScroll?.cancel();
 
     if (sessionPaused) {
@@ -723,7 +741,7 @@
       return;
     }
 
-    if (!wasKnown || wasPaused) {
+    if (!wasKnown || wasPaused || missedResume) {
       // Resume starts from the current position of the last active target. A
       // later switch to another target establishes its own baseline as usual.
       rebaseAtCurrentPosition(reason || "session-resume");
@@ -769,5 +787,24 @@
 
   // Use capture: true so we intercept scrolling on ANY element, not just the window.
   window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+
+  // Tab messages sent while a page sits in the back/forward cache are dropped,
+  // and browsers clear tab-specific badges on navigation. A restored page must
+  // resynchronize settings and session pause, then republish its badge.
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) {
+      return;
+    }
+
+    lastSentBadgeValue = null;
+    clearTimeout(settingsSettleTimer);
+    settingsSettleTimer = null;
+    settingsStateRevision += 1;
+    sessionStateRevision += 1;
+    // Settle the session first, so a skipped pause cycle is rebased before the
+    // settings reload republishes the badge.
+    loadSessionState("session-restore").then(() => loadStoredSettings());
+  });
+
   loadSessionState();
 })();

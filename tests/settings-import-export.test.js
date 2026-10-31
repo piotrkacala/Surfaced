@@ -281,6 +281,7 @@ test("failed import write rolls the background store back and leaves session pau
   assert.deepEqual(await sessionController.handleMessage({ type: SESSION_MESSAGE_TYPES.get }), {
     ok: true,
     paused: true,
+    resumeCount: 0,
   });
 
   const failed = await handle({ type: MESSAGE_TYPES.replace, settings: createSettingsExport(COMPLETE_SETTINGS, {

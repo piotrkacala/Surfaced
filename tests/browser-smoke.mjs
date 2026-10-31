@@ -237,7 +237,7 @@ async function testReminderCycleAndSessionPause(browser, origin) {
     type: "SET_SESSION_PAUSED",
     paused: true,
   }));
-  assert.deepEqual(pauseResponse, { ok: true, paused: true });
+  assert.deepEqual(pauseResponse, { ok: true, paused: true, resumeCount: 0 });
   await page.waitForFunction(() => !document.getElementById("surfaced-notification-host"));
   const lastBadgeMessage = await page.evaluate(() => (
     window.__SURFACED_CAPTURE__.runtimeMessages
@@ -259,7 +259,7 @@ async function testReminderCycleAndSessionPause(browser, origin) {
     type: "SET_SESSION_PAUSED",
     paused: false,
   }));
-  assert.deepEqual(resumeResponse, { ok: true, paused: false });
+  assert.deepEqual(resumeResponse, { ok: true, paused: false, resumeCount: 1 });
   await pausedPage.waitForTimeout(180);
   assert.equal(await pausedPage.locator("#surfaced-notification-host").count(), 0, "resume must not show overdue reminder");
   await pausedPage.evaluate(() => window.scrollBy(0, window.innerHeight * 1.1));
@@ -291,6 +291,39 @@ async function testReminderCycleAndSessionPause(browser, origin) {
   await settingsFailurePage.evaluate(() => window.scrollBy(0, window.innerHeight * 1.1));
   await settingsFailurePage.waitForFunction(() => document.getElementById("surfaced-notification-host"));
   await settingsFailurePage.close();
+}
+
+async function testRestoredPageSessionRefreshFailure(browser, origin) {
+  const page = await browser.newPage({ viewport: { width: 360, height: 640 } });
+  await installClosedShadowProbe(page);
+  await page.goto(`${origin}/fixtures/marketing/long-article.html?threshold=1&zone=shallow`, {
+    waitUntil: "networkidle",
+  });
+  await waitForReady(page);
+  await page.waitForFunction(() => document.getElementById("surfaced-notification-host"));
+  await page.evaluate(() => browser.runtime.sendMessage({ type: "SET_SESSION_PAUSED", paused: true }));
+  await page.waitForFunction(() => !document.getElementById("surfaced-notification-host"));
+
+  // A back/forward cache restore refreshes the session state; that read fails.
+  await page.evaluate(() => {
+    window.__SURFACED_CAPTURE__.sessionFailureState.get = 1;
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+  });
+  await page.waitForFunction(() => window.__SURFACED_CAPTURE__.sessionFailureState.get === 0);
+  await page.waitForTimeout(180);
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 1.5));
+  await page.waitForTimeout(300);
+  assert.equal(
+    await page.locator("#surfaced-notification-host").count(),
+    0,
+    "a failed session refresh after restore must keep the known pause"
+  );
+  assert.deepEqual(await page.evaluate(() => (
+    window.__SURFACED_CAPTURE__.runtimeMessages
+      .filter((message) => message.type === "SCROLL_DEPTH")
+      .at(-1)
+  )), { type: "SCROLL_DEPTH", value: 0 }, "the restored page republishes a cleared badge");
+  await page.close();
 }
 
 async function testCanonicalRuntimeHostname(browser, origin) {
@@ -1301,6 +1334,7 @@ try {
   } else {
     await testReminderResponsiveness(browser, server.origin);
     await testReminderCycleAndSessionPause(browser, server.origin);
+    await testRestoredPageSessionRefreshFailure(browser, server.origin);
     await testCanonicalRuntimeHostname(browser, server.origin);
     await testReducedMotion(browser, server.origin);
     await testPopupSessionUi(browser, server.origin);

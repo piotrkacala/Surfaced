@@ -17,7 +17,7 @@ References:
 Upload:
 
 ```text
-dist/surfaced-chrome-1.3.0.zip
+dist/surfaced-chrome-1.3.1.zip
 ```
 
 The zip must contain `manifest.json` at the archive root.

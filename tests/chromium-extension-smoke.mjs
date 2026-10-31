@@ -74,6 +74,9 @@ async function launchContext(chromium, profileDirectory, extensionDirectory) {
     headless: true,
     executablePath: "/usr/bin/chromium",
     viewport: { width: 900, height: 700 },
+    // Playwright disables the back/forward cache by default. Keep the browser
+    // default so restored pages are exercised like they are for real users.
+    ignoreDefaultArgs: ["--disable-back-forward-cache"],
     args: [
       `--disable-extensions-except=${extensionDirectory}`,
       `--load-extension=${extensionDirectory}`,
@@ -245,6 +248,126 @@ async function exercisePopupClosePersistence(context, worker, extensionOrigin) {
   }
 }
 
+async function exerciseThresholdTypingSettles(context, worker, extensionOrigin, origin) {
+  await setPersistentSettings(worker, { scrollNotifierThreshold: 7 });
+  const page = await openLongPage(context, `${origin}/threshold-typing`);
+  await page.evaluate(() => {
+    window.__surfacedReminderInsertions = 0;
+    new MutationObserver((records) => {
+      window.__surfacedReminderInsertions += records
+        .flatMap((record) => Array.from(record.addedNodes))
+        .filter((node) => node.id === "surfaced-notification-host").length;
+    }).observe(document.body, { childList: true });
+  });
+  for (const screens of [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4]) {
+    await page.evaluate((value) => window.scrollTo(0, window.innerHeight * value), screens);
+    await page.waitForTimeout(130);
+  }
+  assert.equal(await page.locator("#surfaced-notification-host").count(), 0, "four screens stay below the seven-screen threshold");
+
+  const popup = await openPopup(context, extensionOrigin);
+  await popup.locator("#globalThresholdValue").click();
+  await popup.keyboard.press("ControlOrMeta+A");
+  await popup.keyboard.type("12", { delay: 180 });
+  await waitForPersistentSettings(worker, (settings) => settings.scrollNotifierThreshold === 12, "typed threshold 12");
+  await page.waitForTimeout(800);
+  assert.equal(
+    await page.evaluate(() => window.__surfacedReminderInsertions),
+    0,
+    "the partial threshold 1 typed on the way to 12 must not flash a reminder"
+  );
+
+  await popup.keyboard.press("ControlOrMeta+A");
+  await popup.keyboard.type("2");
+  await waitForReminder(page);
+  assert.equal(await page.evaluate(() => window.__surfacedReminderInsertions), 1, "the settled threshold applies once");
+  await popup.close();
+  await page.close();
+  await setPersistentSettings(worker, { scrollNotifierThreshold: 1 });
+}
+
+async function waitForBadgeText(worker, url, expected, label) {
+  let text;
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    text = await badgeTextForUrl(worker, url);
+    if (text === expected) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
+  throw new Error(`Timed out waiting for badge "${expected}" (last "${text}"): ${label}`);
+}
+
+async function exerciseBackForwardCacheResync(context, worker, extensionOrigin, origin) {
+  const feedUrl = `${origin}/bfcache-feed`;
+  const page = await openLongPage(context, feedUrl);
+  await scrollPastThreshold(page);
+  await waitForReminder(page);
+  const badge = await badgeTextForUrl(worker, feedUrl);
+  assert.notEqual(badge, "");
+
+  async function leaveAndReturn(whileAway = async () => undefined) {
+    await page.evaluate(() => {
+      window.__surfacedBfcacheMarker = true;
+    });
+    await page.goto(`${origin}/bfcache-away`, { waitUntil: "load" });
+    await page.waitForTimeout(200);
+    await whileAway();
+    // A back/forward cache restore fires pageshow but no new load event.
+    await page.goBack({ waitUntil: "commit" });
+    await page.waitForTimeout(300);
+    assert.equal(
+      await page.evaluate(() => window.__surfacedBfcacheMarker === true),
+      true,
+      "the feed must be restored from the back/forward cache"
+    );
+  }
+
+  await leaveAndReturn();
+  await waitForBadgeText(worker, feedUrl, badge, "a restored page republishes its cleared badge");
+  assert.equal(await page.locator("#surfaced-notification-host").count(), 1);
+
+  const popup = await openPopup(context, extensionOrigin);
+  await leaveAndReturn(() => clickSessionAction(popup, "paused"));
+  await page.waitForFunction(() => !document.getElementById("surfaced-notification-host"));
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 2));
+  await page.waitForTimeout(300);
+  assert.equal(
+    await page.locator("#surfaced-notification-host").count(),
+    0,
+    "a pause broadcast while the page was cached applies after restore"
+  );
+  assert.equal(await badgeTextForUrl(worker, feedUrl), "");
+
+  await leaveAndReturn(() => clickSessionAction(popup, "active"));
+  assert.equal(await page.locator("#surfaced-notification-host").count(), 0, "a resume while cached must not replay paused depth");
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 1.15));
+  await waitForReminder(page);
+
+  // The page never observes the paused state when both changes happen while it
+  // is cached; the resume must still start a fresh cycle at its position.
+  assert.notEqual(await badgeTextForUrl(worker, feedUrl), "");
+  await leaveAndReturn(async () => {
+    await clickSessionAction(popup, "paused");
+    await clickSessionAction(popup, "active");
+  });
+  await page.waitForFunction(() => !document.getElementById("surfaced-notification-host"));
+  await page.waitForTimeout(300);
+  assert.equal(await badgeTextForUrl(worker, feedUrl), "", "a skipped pause cycle clears the restored badge");
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.5));
+  await page.waitForTimeout(300);
+  assert.equal(
+    await page.locator("#surfaced-notification-host").count(),
+    0,
+    "a skipped pause cycle restarts depth from the restored position"
+  );
+  await page.evaluate(() => window.scrollBy(0, window.innerHeight * 0.7));
+  await waitForReminder(page);
+  await popup.close();
+  await page.close();
+}
+
 async function clickSessionAction(popup, expectedState) {
   await popup.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".session-action").click());
   await popup.waitForFunction((state) => (
@@ -296,6 +419,8 @@ try {
     scrollNotifierSiteOverrides: { "manager.example": 1 },
   });
   await exercisePopupClosePersistence(context, worker, extensionOrigin);
+  await exerciseThresholdTypingSettles(context, worker, extensionOrigin, server.origin);
+  await exerciseBackForwardCacheResync(context, worker, extensionOrigin, server.origin);
 
   const first = await openLongPage(context, `${server.origin}/first`);
   const second = await openLongPage(context, `${server.origin}/second`);

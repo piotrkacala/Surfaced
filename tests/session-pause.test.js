@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const { describe, test } = require("node:test");
 const {
   MESSAGE_TYPES,
+  RESUME_COUNT_KEY,
   SESSION_KEY,
   createSessionPauseController,
 } = require("../shared/session-pause.js");
@@ -24,7 +25,10 @@ function createSessionStorage(initial = {}, { getFailures = 0, setFailures = 0 }
         getFailures -= 1;
         throw new Error("session get failed");
       }
-      return Object.prototype.hasOwnProperty.call(data, key) ? { [key]: data[key] } : {};
+      const keys = Array.isArray(key) ? key : [key];
+      return Object.fromEntries(keys
+        .filter((entry) => Object.prototype.hasOwnProperty.call(data, entry))
+        .map((entry) => [entry, data[entry]]));
     },
     async set(values) {
       setCalls.push({ ...values });
@@ -78,10 +82,12 @@ describe("session pause background controller", () => {
     assert.deepEqual(await controller.handleMessage({ type: MESSAGE_TYPES.get }), {
       ok: true,
       paused: false,
+      resumeCount: 0,
     });
-    assert.deepEqual(storage.getCalls, [SESSION_KEY]);
+    assert.deepEqual(storage.getCalls, [[SESSION_KEY, RESUME_COUNT_KEY]]);
     assert.deepEqual(storage.setCalls, []);
     assert.equal(STORAGE_KEYS.includes(SESSION_KEY), false);
+    assert.equal(STORAGE_KEYS.includes(RESUME_COUNT_KEY), false);
   });
 
   test("pause reaches every existing tab, clears badges, and tolerates a missing receiver", async () => {
@@ -95,7 +101,7 @@ describe("session pause background controller", () => {
       paused: true,
     });
 
-    assert.deepEqual(response, { ok: true, paused: true });
+    assert.deepEqual(response, { ok: true, paused: true, resumeCount: 0 });
     assert.equal(storage.data[SESSION_KEY], true);
     assert.deepEqual(tabMessages.map(({ tabId }) => tabId), [1, 2, 3]);
     assert.deepEqual(badgeCalls, [
@@ -104,9 +110,9 @@ describe("session pause background controller", () => {
       { text: "", tabId: 3 },
     ]);
     tabMessages.forEach(({ message }) => {
-      assert.deepEqual(message, { type: MESSAGE_TYPES.changed, paused: true });
+      assert.deepEqual(message, { type: MESSAGE_TYPES.changed, paused: true, resumeCount: 0 });
     });
-    assert.deepEqual(runtimeMessages, [{ type: MESSAGE_TYPES.changed, paused: true }]);
+    assert.deepEqual(runtimeMessages, [{ type: MESSAGE_TYPES.changed, paused: true, resumeCount: 0 }]);
   });
 
   test("a new content script queries the same paused state and manual resume broadcasts false", async () => {
@@ -116,14 +122,65 @@ describe("session pause background controller", () => {
     assert.deepEqual(await controller.handleMessage({ type: MESSAGE_TYPES.get }), {
       ok: true,
       paused: true,
+      resumeCount: 0,
     });
 
     assert.deepEqual(await controller.handleMessage({
       type: MESSAGE_TYPES.set,
       paused: false,
-    }), { ok: true, paused: false });
+    }), { ok: true, paused: false, resumeCount: 1 });
     assert.equal(storage.data[SESSION_KEY], false);
     assert.equal(tabMessages.every(({ message }) => message.paused === false), true);
+  });
+
+  test("only a real resume increments the persisted resume count", async () => {
+    const storage = createSessionStorage();
+    const { controller, tabMessages } = createHarness(storage);
+    const setPaused = async (paused) => (
+      await controller.handleMessage({ type: MESSAGE_TYPES.set, paused })
+    ).resumeCount;
+
+    assert.equal(await setPaused(false), 0, "resuming an active session is not a resume");
+    assert.equal(await setPaused(true), 0);
+    assert.equal(await setPaused(true), 0, "pausing again changes nothing");
+    assert.equal(await setPaused(false), 1);
+    assert.equal(await setPaused(false), 1, "a repeated resume does not start another cycle");
+    assert.equal(await setPaused(true), 1);
+    assert.equal(await setPaused(false), 2);
+    assert.equal(storage.data[RESUME_COUNT_KEY], 2);
+    assert.deepEqual(tabMessages.at(-1).message, {
+      type: MESSAGE_TYPES.changed,
+      paused: false,
+      resumeCount: 2,
+    });
+  });
+
+  test("a restarted background continues the resume count from storage.session", async () => {
+    const storage = createSessionStorage({ [SESSION_KEY]: true, [RESUME_COUNT_KEY]: 4 });
+    const { controller } = createHarness(storage);
+
+    assert.deepEqual(await controller.handleMessage({
+      type: MESSAGE_TYPES.set,
+      paused: false,
+    }), { ok: true, paused: false, resumeCount: 5 });
+    assert.deepEqual(storage.setCalls, [{ [SESSION_KEY]: false, [RESUME_COUNT_KEY]: 5 }]);
+
+    for (const invalid of [-1, 1.5, "3", null]) {
+      const invalidStorage = createSessionStorage({ [SESSION_KEY]: false, [RESUME_COUNT_KEY]: invalid });
+      assert.equal((await createHarness(invalidStorage).controller.getState()).resumeCount, 0);
+    }
+  });
+
+  test("a change after a background restart fails explicitly when the state cannot be read", async () => {
+    const storage = createSessionStorage({ [SESSION_KEY]: true, [RESUME_COUNT_KEY]: 4 }, { getFailures: 1 });
+    const { controller, tabMessages } = createHarness(storage);
+
+    assert.deepEqual(await controller.handleMessage({
+      type: MESSAGE_TYPES.set,
+      paused: false,
+    }), { ok: false, error: "SESSION_STORAGE_READ_FAILED" });
+    assert.deepEqual(storage.setCalls, []);
+    assert.deepEqual(tabMessages, []);
   });
 
   test("a tab-query failure cannot roll back a successful session state change", async () => {
@@ -133,9 +190,9 @@ describe("session pause background controller", () => {
     assert.deepEqual(await controller.handleMessage({
       type: MESSAGE_TYPES.set,
       paused: true,
-    }), { ok: true, paused: true });
+    }), { ok: true, paused: true, resumeCount: 0 });
     assert.equal(storage.data[SESSION_KEY], true);
-    assert.deepEqual(runtimeMessages, [{ type: MESSAGE_TYPES.changed, paused: true }]);
+    assert.deepEqual(runtimeMessages, [{ type: MESSAGE_TYPES.changed, paused: true, resumeCount: 0 }]);
   });
 
   test("storage.session read and write failures are explicit and have no local fallback", async () => {

@@ -106,6 +106,15 @@ same signed update channel used for release.
 - Pause with multiple existing tabs, open another tab, then resume. Confirm badge
   and reminder clearing, no overdue reminder on resume, fresh session state after
   extension reload/update and browser restart, and unchanged persistent settings.
+- With a reminder visible, follow a link, pause from the popup on the next page,
+  and go Back. The restored page must drop its reminder and stop tracking; after
+  resuming elsewhere and going Back again, it must start a fresh cycle. Repeat
+  with both pause and resume made on the other page: the restored page must also
+  drop its reminder and badge and start a fresh cycle. Without pausing, a
+  restored page must show its badge again.
+- Type `12` one character at a time into the global threshold while another tab
+  is scrolled a few screens deep. That tab must not flash a reminder or badge for
+  the intermediate `1`.
 
 ## 5. Chrome desktop
 

@@ -9,7 +9,7 @@ const { spawnSync } = require("node:child_process");
 const { test } = require("node:test");
 
 const repoRoot = path.resolve(__dirname, "..");
-const VERSION = "1.3.0";
+const VERSION = "1.3.1";
 const ARTIFACTS = Object.freeze({
   unified: `surfaced-${VERSION}.zip`,
   desktop: `surfaced-desktop-${VERSION}.zip`,

@@ -127,6 +127,7 @@ export function installBrowserStub() {
     set: state.sessionSetFailures,
   };
   let sessionPaused = state.sessionPaused;
+  let sessionResumeCount = 0;
   let permissionState = state.permissionState;
   const badgeValues = [];
   const storageArea = createStorageArea(state.storage, storageChangeListeners, failureState);
@@ -142,7 +143,7 @@ export function installBrowserStub() {
         sessionFailureState.get -= 1;
         return { ok: false, error: "SESSION_STORAGE_READ_FAILED" };
       }
-      return { ok: true, paused: sessionPaused };
+      return { ok: true, paused: sessionPaused, resumeCount: sessionResumeCount };
     }
 
     if (message?.type === sessionMessageTypes.set) {
@@ -151,13 +152,18 @@ export function installBrowserStub() {
         return { ok: false, error: "SESSION_STORAGE_WRITE_FAILED" };
       }
 
-      sessionPaused = message.paused === true;
+      const nextPaused = message.paused === true;
+      if (sessionPaused && !nextPaused) {
+        sessionResumeCount += 1;
+      }
+      sessionPaused = nextPaused;
       const changedMessage = {
         type: sessionMessageTypes.changed,
         paused: sessionPaused,
+        resumeCount: sessionResumeCount,
       };
       runtimeListeners.forEach((listener) => listener(changedMessage, {}));
-      return { ok: true, paused: sessionPaused };
+      return { ok: true, paused: sessionPaused, resumeCount: sessionResumeCount };
     }
 
     return null;

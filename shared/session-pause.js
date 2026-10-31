@@ -10,6 +10,7 @@
   "use strict";
 
   const SESSION_KEY = "scrollNotifierSessionPaused";
+  const RESUME_COUNT_KEY = "scrollNotifierSessionResumeCount";
 
   const MESSAGE_TYPES = Object.freeze({
     get: "GET_SESSION_STATE",
@@ -28,6 +29,11 @@
     return value?.[SESSION_KEY] === true;
   }
 
+  function normalizeStoredResumeCount(value) {
+    const count = value?.[RESUME_COUNT_KEY];
+    return Number.isSafeInteger(count) && count >= 0 ? count : 0;
+  }
+
   function createSessionPauseController({
     storageArea,
     tabsApi,
@@ -38,7 +44,7 @@
       throw new TypeError("A session storage area with get() and set() is required");
     }
 
-    let paused = null;
+    let state = null;
     let operationQueue = Promise.resolve();
 
     function enqueue(operation) {
@@ -54,10 +60,11 @@
       return result;
     }
 
-    async function broadcast(nextPaused) {
+    async function broadcast(nextState) {
       const message = {
         type: MESSAGE_TYPES.changed,
-        paused: nextPaused,
+        paused: nextState.paused,
+        resumeCount: nextState.resumeCount,
       };
 
       let tabs = [];
@@ -104,35 +111,54 @@
       }
     }
 
-    function getState() {
-      return enqueue(async () => {
-        if (paused === null) {
-          let stored;
-          try {
-            stored = await storageArea.get(SESSION_KEY);
-          } catch (error) {
-            throw createSessionError("SESSION_STORAGE_READ_FAILED", error);
-          }
-          paused = normalizeStoredState(stored);
+    async function readState() {
+      if (state === null) {
+        let stored;
+        try {
+          stored = await storageArea.get([SESSION_KEY, RESUME_COUNT_KEY]);
+        } catch (error) {
+          throw createSessionError("SESSION_STORAGE_READ_FAILED", error);
         }
+        state = {
+          paused: normalizeStoredState(stored),
+          resumeCount: normalizeStoredResumeCount(stored),
+        };
+      }
 
-        return { paused };
-      });
+      return { ...state };
+    }
+
+    function getState() {
+      return enqueue(readState);
     }
 
     function setPaused(nextPaused) {
       const normalizedPaused = nextPaused === true;
 
       return enqueue(async () => {
+        const current = await readState();
+        // Every real resume starts a fresh cycle. Counting resumes lets a page
+        // that missed both broadcasts, such as one restored from the
+        // back/forward cache, recognize the complete cycle it skipped.
+        const nextState = {
+          paused: normalizedPaused,
+          resumeCount: current.paused && !normalizedPaused
+            ? current.resumeCount + 1
+            : current.resumeCount,
+        };
+
         try {
-          await storageArea.set({ [SESSION_KEY]: normalizedPaused });
+          await storageArea.set({
+            [SESSION_KEY]: nextState.paused,
+            [RESUME_COUNT_KEY]: nextState.resumeCount,
+          });
         } catch (error) {
           throw createSessionError("SESSION_STORAGE_WRITE_FAILED", error);
         }
 
-        paused = normalizedPaused;
-        await broadcast(paused);
-        return { paused };
+        state = nextState;
+        await broadcast(state);
+        return { ...state };
       });
     }
 
@@ -163,8 +189,10 @@
 
   return Object.freeze({
     SESSION_KEY,
+    RESUME_COUNT_KEY,
     MESSAGE_TYPES,
     createSessionPauseController,
+    normalizeStoredResumeCount,
     normalizeStoredState,
   });
 });
