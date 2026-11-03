@@ -427,14 +427,13 @@ async function testReducedMotion(browser, origin) {
       const root = document.getElementById("root").shadowRoot;
       const shell = root.querySelector(".shell");
       const preview = root.querySelector(".preview-block .notification");
-      const bubble = root.querySelector(".bubble");
       return {
         sessionState: root.querySelector(".session-section").dataset.state,
         shellAnimation: getComputedStyle(shell).animationName,
         shellBeforeAnimation: getComputedStyle(shell, "::before").animationName,
         previewChevronAnimations: [...preview.querySelectorAll(".notification__chevron")]
           .map((chevron) => getComputedStyle(chevron).animationName),
-        bubbleDisplay: getComputedStyle(bubble).display,
+        bubbleCount: root.querySelectorAll(".bubble").length,
       };
     });
     assert.deepEqual(popupMotion, {
@@ -442,7 +441,7 @@ async function testReducedMotion(browser, origin) {
       shellAnimation: "none",
       shellBeforeAnimation: "none",
       previewChevronAnimations: ["none", "none", "none"],
-      bubbleDisplay: "none",
+      bubbleCount: 0,
     });
     await page.close();
   }
@@ -455,7 +454,14 @@ async function testPopupSessionUi(browser, origin) {
   });
   await waitForReady(page);
 
-  await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".session-action").click());
+  assert.deepEqual(await sessionViews(page), {
+    state: "active",
+    bannerHidden: true,
+    pauseHidden: false,
+    pauseLabel: "Pause until browser restarts",
+  }, "active reminders show only the quiet pause action");
+
+  await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".pause-action").click());
   await page.waitForFunction(() => (
     document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state === "paused"
   ));
@@ -468,15 +474,22 @@ async function testPopupSessionUi(browser, origin) {
     };
   });
   assert.deepEqual(pausedUi, {
-    title: "Notifications paused",
+    title: "Reminders paused",
     action: "Resume now",
     aria: "Resume reminders now on all tabs",
   });
+  assert.deepEqual(await sessionViews(page), {
+    state: "paused",
+    bannerHidden: false,
+    pauseHidden: true,
+    pauseLabel: "Pause until browser restarts",
+  }, "a paused session replaces the quiet action with the banner");
 
   await page.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".session-action").click());
   await page.waitForFunction(() => (
     document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state === "active"
   ));
+  assert.equal((await sessionViews(page)).bannerHidden, true);
   await page.close();
 
   const errorPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -484,14 +497,31 @@ async function testPopupSessionUi(browser, origin) {
     waitUntil: "networkidle",
   });
   await waitForReady(errorPage);
-  assert.equal(await errorPage.evaluate(() => (
-    document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state
-  )), "error");
+  assert.deepEqual(await sessionViews(errorPage), {
+    state: "error",
+    bannerHidden: false,
+    pauseHidden: true,
+    pauseLabel: "Pause until browser restarts",
+  }, "an unavailable session state is shown in the banner with retry");
   await errorPage.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".session-action").click());
   await errorPage.waitForFunction(() => (
     document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state === "active"
   ));
+  assert.equal((await sessionViews(errorPage)).pauseHidden, false);
   await errorPage.close();
+}
+
+async function sessionViews(page) {
+  return page.evaluate(() => {
+    const root = document.getElementById("root").shadowRoot;
+    const pause = root.querySelector(".pause-action");
+    return {
+      state: root.querySelector(".session-section").dataset.state,
+      bannerHidden: root.querySelector(".session-section").hidden,
+      pauseHidden: pause.hidden,
+      pauseLabel: pause.textContent,
+    };
+  });
 }
 
 async function permissionUiSnapshot(page) {
@@ -512,6 +542,12 @@ async function permissionUiSnapshot(page) {
       thresholdDisabled: root.querySelector("#globalThresholdValue").disabled,
     };
   });
+}
+
+async function permissionSectionHidden(page) {
+  return page.evaluate(() => (
+    document.getElementById("root").shadowRoot.querySelector(".permission-section").hidden
+  ));
 }
 
 async function openPermissionPopup(browser, origin, params) {
@@ -549,6 +585,7 @@ async function testPermissionHealthUi(browser, origin) {
       siteUnavailable: false,
       thresholdDisabled: false,
     }, `${platform}: full host grant is separate from healthy storage`);
+    assert.equal(await permissionSectionHidden(fullPage), true, `${platform}: healthy page access needs no card`);
     await fullPage.close();
 
     const missingPage = await openPermissionPopup(browser, origin, {
@@ -558,6 +595,7 @@ async function testPermissionHealthUi(browser, origin) {
     });
     assert.equal((await permissionUiSnapshot(missingPage)).state, "missing");
     assert.equal((await permissionUiSnapshot(missingPage)).contentHidden, false);
+    assert.equal(await permissionSectionHidden(missingPage), false, `${platform}: missing page access shows the card`);
     await missingPage.evaluate(() => {
       const input = document.getElementById("root").shadowRoot.querySelector("#globalThresholdValue");
       input.value = "9";
@@ -596,7 +634,7 @@ async function testPermissionHealthUi(browser, origin) {
     await keyboardRestorePage.keyboard.press("Tab");
     assert.match((await popupFocus(keyboardRestorePage)).className, /permission-action/, `${platform}: missing permission adds restore to Tab order`);
     await keyboardRestorePage.keyboard.press("Tab");
-    assert.match((await popupFocus(keyboardRestorePage)).className, /session-action/, `${platform}: session action follows permission restore`);
+    assert.equal((await popupFocus(keyboardRestorePage)).controls, "thresholdHelper", `${platform}: threshold settings follow permission restore`);
     await keyboardRestorePage.keyboard.press("Shift+Tab");
     assert.match((await popupFocus(keyboardRestorePage)).className, /permission-action/);
     await keyboardRestorePage.keyboard.press("Enter");
@@ -613,7 +651,8 @@ async function testPermissionHealthUi(browser, origin) {
       return getComputedStyle(root.querySelector(".permission-status")).outlineStyle;
     }), "solid", `${platform}: restored status has visible focus`);
     await keyboardRestorePage.keyboard.press("Tab");
-    assert.match((await popupFocus(keyboardRestorePage)).className, /session-action/, `${platform}: restored status is not a permanent Tab stop`);
+    assert.equal((await popupFocus(keyboardRestorePage)).controls, "thresholdHelper", `${platform}: restored status is not a permanent Tab stop`);
+    assert.equal(await permissionSectionHidden(keyboardRestorePage), false, `${platform}: restored access keeps its reload hint visible`);
     await keyboardRestorePage.close();
 
     const partialPage = await openPermissionPopup(browser, origin, { platform, permission: "partial" });
@@ -740,20 +779,7 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
     )), true, `${platform}: Enter toggles a switch`);
 
     await page.keyboard.press("Tab");
-    assert.match((await popupFocus(page)).className, /session-action/);
-    const actionFocusStyle = await page.evaluate(() => {
-      const root = document.getElementById("root").shadowRoot;
-      return getComputedStyle(root.querySelector(".session-action")).outlineStyle;
-    });
-    assert.equal(actionFocusStyle, "solid", `${platform}: actions have visible keyboard focus`);
-    await page.keyboard.press("Enter");
-    await page.waitForFunction(() => (
-      document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state === "paused"
-    ));
-    await page.keyboard.press("Space");
-    await page.waitForFunction(() => (
-      document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state === "active"
-    ));
+    assert.equal((await popupFocus(page)).controls, "thresholdHelper", `${platform}: threshold settings follow the global switch`);
     await page.keyboard.press("Shift+Tab");
     assert.equal((await popupFocus(page)).id, "enabled", `${platform}: Shift+Tab reverses the order`);
 
@@ -765,12 +791,11 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
         focus.id
         || focus.controls
         || focus.direction
-        || (focus.className.includes("session-action") ? "session-action" : focus.tagName)
+        || (focus.className.includes("pause-action") ? "pause-action" : focus.tagName)
       );
     }
     assert.deepEqual(tabOrder, [
       "enabled",
-      "session-action",
       "thresholdHelper",
       "decrement",
       "globalThresholdValue",
@@ -778,6 +803,7 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
       "siteEnabled",
       "siteOverrideEnabled",
       "siteSettingsManager",
+      "pause-action",
       "notificationText",
       "settingsExport",
       "settingsImport",
@@ -788,7 +814,24 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
     await page.keyboard.press("Shift+Tab");
     assert.equal((await popupFocus(page)).id, "notificationText", `${platform}: Shift+Tab returns to reminder text`);
     await page.keyboard.press("Shift+Tab");
-    assert.equal((await popupFocus(page)).controls, "siteSettingsManager", `${platform}: Shift+Tab reaches site manager from reminder text`);
+    assert.match((await popupFocus(page)).className, /pause-action/, `${platform}: Shift+Tab reaches the quiet pause action`);
+    const actionFocusStyle = await page.evaluate(() => {
+      const root = document.getElementById("root").shadowRoot;
+      return getComputedStyle(root.querySelector(".pause-action")).outlineStyle;
+    });
+    assert.equal(actionFocusStyle, "solid", `${platform}: actions have visible keyboard focus`);
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => (
+      document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state === "paused"
+    ));
+    assert.match((await popupFocus(page)).className, /session-action/, `${platform}: pausing moves focus to Resume in the banner`);
+    await page.keyboard.press("Space");
+    await page.waitForFunction(() => (
+      document.getElementById("root").shadowRoot.querySelector(".session-section").dataset.state === "active"
+    ));
+    assert.match((await popupFocus(page)).className, /pause-action/, `${platform}: resuming returns focus to the quiet pause action`);
+    await page.keyboard.press("Shift+Tab");
+    assert.equal((await popupFocus(page)).controls, "siteSettingsManager", `${platform}: Shift+Tab reaches site manager from the pause action`);
     await page.keyboard.press("Shift+Tab");
     assert.equal((await popupFocus(page)).id, "siteOverrideEnabled", `${platform}: Shift+Tab reaches the site override switch`);
     await page.keyboard.press("Shift+Tab");
@@ -1314,7 +1357,7 @@ async function testFrenchLocalization(browser, origin) {
         lang: document.documentElement.lang,
         thresholdTitle: root.querySelector("#globalThresholdValue").getAttribute("aria-label"),
         site: root.querySelector("#siteEnabled").closest("section").querySelector(".section__title").textContent,
-        pause: root.querySelector(".session-action").textContent,
+        pause: root.querySelector(".pause-action").textContent,
         exportAction: root.querySelector("#settingsExport").textContent,
         previewSubtitle: root.querySelector(".preview-block .notification__sub"),
         previewInteractive: root.querySelectorAll(".preview-block button, .preview-block [role='status']").length,

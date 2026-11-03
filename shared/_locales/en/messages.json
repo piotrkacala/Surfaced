@@ -198,7 +198,7 @@
     "description": "Button label that pauses reminders for the browser session."
   },
   "sessionPausedTitle": {
-    "message": "Notifications paused",
+    "message": "Reminders paused",
     "description": "Heading shown while reminders are paused for the browser session."
   },
   "sessionPausedDescription": {

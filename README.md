@@ -95,7 +95,7 @@ Dismiss the current reminder with `✕`. If you scroll deeper, the next zone can
 Pause and site controls intentionally stay in the popup so changing behavior remains a deliberate choice rather than an automatic response to each reminder.
 
 **6. Pause for the browser session when needed**
-Use **Pause until browser restarts** in the popup to remove reminders and badges from every tab. **Resume now** starts a fresh cycle from each page's current position.
+Use **Pause until browser restarts** after the current-site settings in the popup to remove reminders and badges from every tab. While paused, a banner at the top of the popup offers **Resume now**, which starts a fresh cycle from each page's current position.
 
 **7. Back up or move your settings locally**
 Use **Export settings** to save all five persistent settings as a local JSON file. **Import settings** opens a dedicated local extension page that validates and previews a backup before replacing the current settings. Desktop browsers open that page in a new tab; Firefox for Android continues in the current extension tab. Session pause is intentionally not included, and Surfaced does not upload or synchronize the file.
@@ -110,14 +110,14 @@ Once you are past your threshold, the toolbar badge shows your current depth as 
 | Setting | What it does |
 |---|---|
 | **Enabled** | Master on/off switch for Surfaced. |
-| **Pause until browser restarts** | Temporarily stops reminders and badge updates on all tabs without changing saved settings. |
 | **Reminder threshold** | Sets when the first reminder appears. Defaults to `7`. Supports any finite positive value. |
-| **First reminder text** | Customizes the shallow-zone reminder. Mid and deep reminder text stays fixed. |
 | **Enabled on this site** | Turns Surfaced off only for the current site. |
 | **Use a different value on this site** | Applies a site-specific threshold override for the current host. |
 | **Manage site settings** | Opens every saved site configuration so you can enable or disable a host, set or remove its threshold override, or remove the complete host configuration. |
+| **First reminder text** | Customizes the shallow-zone reminder. Mid and deep reminder text stays fixed. |
+| **Pause until browser restarts** | Temporarily stops reminders and badge updates on all tabs without changing saved settings. |
 | **Import and export** | Saves or restores all persistent settings through a validated local JSON file. Export stays in the popup; import opens a durable local extension page and replaces the complete persistent settings set only after confirmation. |
-| **Page access** | Checks whether Surfaced can run on supported pages and offers a browser permission action when access is missing. This is independent from the local settings storage status. |
+| **Page access** | Appears at the top of the popup only when Surfaced cannot access supported pages, with a browser permission action to restore access. This is independent from the local settings storage status. |
 
 ---
 
@@ -150,7 +150,7 @@ No. Surfaced is reminder-first, not blocker-first. It adds awareness without loc
 No meaningful impact is expected. The scroll listener is passive and throttled.
 
 **Why did it not show up on a page I expected?**  
-Some sites use unusual virtual lists, custom scroll containers, or aggressive UI updates. Surfaced handles many of these better than a naive page-position check because it tracks signed, net cumulative scroll depth, but some edge cases may still slip through. Also check the popup's **Page access** status: missing host access does not mean your saved settings were reset.
+Some sites use unusual virtual lists, custom scroll containers, or aggressive UI updates. Surfaced handles many of these better than a naive page-position check because it tracks signed, net cumulative scroll depth, but some edge cases may still slip through. Also check whether the popup shows a **Page access** notice: missing host access does not mean your saved settings were reset.
 
 **What happens on single-page apps or URL changes without a full reload?**  
 Surfaced detects many in-app navigations and resets scroll tracking when you move to a new view, so the threshold applies fresh on the next page state.

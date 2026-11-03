@@ -118,23 +118,40 @@ export function mountPopup(platformConfig = {}) {
   style.textContent = `
     :host {
       box-sizing: border-box;
-      --deep: #020d1a;
-      --mid: #041628;
-      --panel: rgba(4, 24, 46, 0.9);
-      --panel-strong: rgba(4, 22, 42, 0.98);
-      --accent: #00d4ff;
-      --accent-soft: rgba(0, 212, 255, 0.12);
-      --accent-border: rgba(0, 212, 255, 0.18);
-      --text: #d7f1fb;
-      --text-dim: #7fb3c8;
-      --text-muted: rgba(200, 234, 247, 0.72);
-      --warning: #f0a500;
-      --danger: #ff4f4f;
+      color-scheme: light dark;
+      /* Light by default, dark by the browser's preference, matching the in-page reminder. */
+      --bg: #f3f6f8;
+      --surface: #ffffff;
+      --sunken: #f3f6f8;
+      --ink: #13293a;
+      --muted: #576c7b;
+      --border: rgba(19, 41, 58, 0.11);
+      --border-strong: rgba(19, 41, 58, 0.2);
+      --hover: rgba(19, 41, 58, 0.05);
+      --card-shadow: 0 1px 2px rgba(10, 32, 48, 0.05);
+      --accent: #0b8aa3;
+      --accent-ink: #0a7489;
+      --accent-fill: #0a7489;
+      --accent-fill-hover: #08677a;
+      --on-accent: #ffffff;
+      --accent-tint: rgba(11, 138, 163, 0.1);
+      --accent-border: rgba(11, 138, 163, 0.34);
+      --switch-off: #9fb0ba;
+      --warning-ink: #7a4a00;
+      --warning-tint: #fff7e8;
+      --warning-border: rgba(196, 128, 0, 0.36);
+      --danger-ink: #b3261e;
+      --danger-tint: #fdeeec;
+      --danger-border: rgba(179, 38, 30, 0.3);
+      --focus: #0a7489;
       --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
-      --control-height: ${config.isTouch ? "44px" : "36px"};
-      --control-radius: ${config.isTouch ? "12px" : "9px"};
-      --chip-height: ${config.isTouch ? "38px" : "30px"};
+      --control-height: ${config.isTouch ? "44px" : "32px"};
+      --control-radius: ${config.isTouch ? "12px" : "8px"};
+      --button-padding: ${config.isTouch ? "10px 16px" : "6px 12px"};
+      --button-size: ${config.isTouch ? "14px" : "12.5px"};
+      --title-size: ${config.isTouch ? "16px" : "14px"};
+      --body-size: ${config.isTouch ? "15px" : "13px"};
+      --small-size: ${config.isTouch ? "13.5px" : "12px"};
 
       display: block;
       width: 100%;
@@ -142,10 +159,39 @@ export function mountPopup(platformConfig = {}) {
       height: ${config.isTouch ? "auto" : "100%"};
       overflow: ${config.isTouch ? "visible" : "hidden"};
       ${config.isTouch ? "touch-action: pan-y;" : ""}
-      color: var(--text);
+      color: var(--ink);
       font-family: var(--font-ui);
-      font-size: ${config.isTouch ? "14px" : "12px"};
+      font-size: var(--body-size);
       -webkit-font-smoothing: antialiased;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host {
+        --bg: #0f1b23;
+        --surface: #172530;
+        --sunken: #13212b;
+        --ink: #e6eff4;
+        --muted: #9db0bc;
+        --border: rgba(255, 255, 255, 0.09);
+        --border-strong: rgba(255, 255, 255, 0.18);
+        --hover: rgba(255, 255, 255, 0.06);
+        --card-shadow: none;
+        --accent: #5fcfe1;
+        --accent-ink: #5fcfe1;
+        --accent-fill: #5fcfe1;
+        --accent-fill-hover: #82dcea;
+        --on-accent: #06262e;
+        --accent-tint: rgba(95, 207, 225, 0.12);
+        --accent-border: rgba(95, 207, 225, 0.36);
+        --switch-off: #5b6f7c;
+        --warning-ink: #f3cf7f;
+        --warning-tint: rgba(240, 180, 60, 0.1);
+        --warning-border: rgba(240, 180, 60, 0.34);
+        --danger-ink: #ff9c92;
+        --danger-tint: rgba(255, 110, 100, 0.1);
+        --danger-border: rgba(255, 110, 100, 0.32);
+        --focus: #5fcfe1;
+      }
     }
 
     *,
@@ -167,96 +213,17 @@ export function mountPopup(platformConfig = {}) {
       flex-direction: column;
       overflow: ${config.isTouch ? "visible" : "hidden"};
       ${config.isTouch ? "touch-action: pan-y;" : ""}
-      background:
-        radial-gradient(circle at top left, rgba(26, 111, 168, 0.16), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.08), transparent 32%),
-        linear-gradient(135deg, rgba(4, 22, 42, 0.97) 0%, rgba(2, 14, 30, 0.99) 100%);
-      border: 1px solid rgba(0, 212, 255, 0.24);
-      border-radius: 10px;
-      box-shadow:
-        0 0 0 1px rgba(0, 212, 255, 0.08),
-        0 14px 36px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(0, 212, 255, 0.08);
-      animation: surface-up 0.32s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
-    }
-
-    .shell::before,
-    .shell::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    .shell::before {
-      background:
-        radial-gradient(ellipse 120px 40px at 18% 12%, rgba(0, 212, 255, 0.07) 0%, transparent 72%),
-        radial-gradient(ellipse 90px 60px at 78% 22%, rgba(0, 180, 220, 0.05) 0%, transparent 72%);
-      animation: caustic-shift 8s ease-in-out infinite alternate;
-    }
-
-    .shell::after {
-      top: 0;
-      left: 12%;
-      right: 12%;
-      bottom: auto;
-      height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(0, 212, 255, 0.55),
-        rgba(91, 196, 245, 0.8),
-        rgba(0, 212, 255, 0.55),
-        transparent
-      );
-      animation: surface-shimmer 3s ease-in-out infinite;
-    }
-
-    @keyframes surface-up {
-      from {
-        opacity: 0;
-        transform: translateY(14px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes caustic-shift {
-      0% {
-        opacity: 0.65;
-        transform: scale(1) translateX(0);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1.04) translateX(6px);
-      }
-    }
-
-    @keyframes surface-shimmer {
-      0%, 100% {
-        opacity: 0.45;
-        transform: scaleX(0.94);
-      }
-      50% {
-        opacity: 1;
-        transform: scaleX(1);
-      }
+      background: var(--bg);
     }
 
     .header {
-      position: relative;
-      z-index: 1;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      align-items: start;
+      align-items: center;
       column-gap: ${config.isTouch ? "16px" : "12px"};
-      row-gap: 8px;
-      padding: ${config.isTouch ? "16px" : "14px"};
-      border-bottom: 1px solid rgba(0, 212, 255, 0.12);
-      background: linear-gradient(180deg, rgba(3, 26, 50, 0.94) 0%, rgba(2, 16, 32, 0.7) 100%);
-      backdrop-filter: blur(6px);
+      row-gap: ${config.isTouch ? "8px" : "6px"};
+      padding: ${config.isTouch ? "18px 16px 16px" : "14px 14px 12px"};
+      border-bottom: 1px solid var(--border);
     }
 
     .brand {
@@ -267,16 +234,15 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .brand__icon {
-      width: ${config.isTouch ? "34px" : "30px"};
-      height: ${config.isTouch ? "34px" : "30px"};
-      border-radius: 8px;
+      width: ${config.isTouch ? "36px" : "30px"};
+      height: ${config.isTouch ? "36px" : "30px"};
+      border-radius: ${config.isTouch ? "11px" : "9px"};
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      background: var(--accent-tint);
+      color: var(--accent);
     }
 
     .brand__icon svg {
@@ -286,20 +252,19 @@ export function mountPopup(platformConfig = {}) {
 
     .brand__name {
       margin: 0;
-      font-size: ${config.isTouch ? "17px" : "15px"};
-      line-height: 1;
-      font-weight: 600;
-      color: #edf9ff;
-      letter-spacing: 0.2px;
+      font-size: ${config.isTouch ? "18px" : "15px"};
+      line-height: 1.2;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      color: var(--ink);
     }
 
     .header-description {
       grid-column: 1 / -1;
       margin: 0;
-      color: var(--text-muted);
-      line-height: 1.42;
-      font-size: ${config.isTouch ? "13px" : "12px"};
-      max-width: ${config.isTouch ? "30ch" : "none"};
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: var(--small-size);
     }
 
     .header__toggle {
@@ -310,11 +275,9 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .toggle-label {
-      color: var(--text-dim);
-      font-size: ${config.isTouch ? "11px" : "10px"};
+      color: var(--muted);
+      font-size: var(--small-size);
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
       white-space: nowrap;
     }
 
@@ -347,13 +310,12 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .switch__track {
-      width: 38px;
-      height: 22px;
+      width: ${config.isTouch ? "42px" : "36px"};
+      height: ${config.isTouch ? "24px" : "20px"};
       position: relative;
       border-radius: 999px;
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+      background: var(--switch-off);
+      transition: background-color 0.18s;
       pointer-events: none;
     }
 
@@ -361,80 +323,73 @@ export function mountPopup(platformConfig = {}) {
       position: absolute;
       top: 2px;
       left: 2px;
-      width: 16px;
-      height: 16px;
+      width: ${config.isTouch ? "20px" : "16px"};
+      height: ${config.isTouch ? "20px" : "16px"};
       border-radius: 50%;
-      background: rgba(90, 143, 174, 0.82);
-      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, box-shadow 0.2s;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+      transition: transform 0.18s ease;
     }
 
     .switch input:checked + .switch__track {
-      background: rgba(0, 212, 255, 0.18);
-      border-color: rgba(0, 212, 255, 0.48);
-      box-shadow: 0 0 10px rgba(0, 212, 255, 0.18);
+      background: var(--accent-fill);
     }
 
     .switch input:checked + .switch__track .switch__thumb {
-      transform: translateX(16px);
-      background: var(--accent);
-      box-shadow: 0 0 10px rgba(0, 212, 255, 0.45);
+      transform: translateX(${config.isTouch ? "18px" : "16px"});
+    }
+
+    .switch input:disabled + .switch__track {
+      opacity: 0.5;
     }
 
     .switch input:focus-visible + .switch__track {
-      outline: 3px solid #8ceeff;
-      outline-offset: 3px;
-      box-shadow: 0 0 0 5px rgba(0, 212, 255, 0.2);
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
     }
 
     button:focus-visible,
     input:focus-visible {
-      outline: 3px solid #8ceeff;
+      outline: 2px solid var(--focus);
       outline-offset: 2px;
     }
 
     .content {
-      position: relative;
-      z-index: 1;
       flex: ${config.isTouch ? "0 0 auto" : "1 1 auto"};
       overflow-y: ${config.isTouch ? "visible" : "auto"};
       ${config.isTouch ? "touch-action: pan-y;" : ""}
-      padding: ${config.isTouch ? "16px" : "14px"};
+      padding: ${config.isTouch ? "16px" : "12px"};
       display: flex;
       flex-direction: column;
-      gap: ${config.isTouch ? "14px" : "12px"};
+      gap: ${config.isTouch ? "12px" : "10px"};
       transition: opacity 0.25s, filter 0.25s;
     }
 
     .section {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding: ${config.isTouch ? "14px" : "12px"};
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(5, 26, 50, 0.78) 0%, rgba(3, 18, 35, 0.88) 100%);
-      border: 1px solid rgba(0, 212, 255, 0.12);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.03),
-        0 8px 20px rgba(0, 0, 0, 0.18);
+      gap: ${config.isTouch ? "14px" : "12px"};
+      padding: ${config.isTouch ? "16px" : "14px"};
+      border-radius: ${config.isTouch ? "16px" : "12px"};
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--card-shadow);
     }
 
     .persistent-settings {
       display: flex;
       flex-direction: column;
-      gap: ${config.isTouch ? "14px" : "12px"};
+      gap: ${config.isTouch ? "12px" : "10px"};
       transition: opacity 0.25s, filter 0.25s;
     }
 
-    .session-section {
-      gap: 10px;
-    }
-
+    .session-section,
     .permission-section {
       gap: 10px;
     }
 
     .permission-status:focus-visible {
-      outline: 3px solid #8ceeff;
+      outline: 2px solid var(--focus);
       outline-offset: 3px;
     }
 
@@ -444,109 +399,99 @@ export function mountPopup(platformConfig = {}) {
     .permission-section[data-state="denied"],
     .permission-section[data-state="exception"],
     .permission-section[data-state="unverified"] {
-      border-color: rgba(240, 165, 0, 0.34);
-      background: rgba(67, 43, 5, 0.3);
+      border-color: var(--warning-border);
+      background: var(--warning-tint);
     }
 
     .permission-section[data-state="restored"] {
-      border-color: rgba(0, 212, 255, 0.3);
-      background: rgba(0, 82, 110, 0.18);
-    }
-
-    .permission-action {
-      align-self: flex-start;
-      min-height: var(--control-height);
-      max-width: 100%;
-      padding: ${config.isTouch ? "10px 18px" : "8px 14px"};
-      border-radius: var(--control-radius);
-      border: 1px solid rgba(240, 165, 0, 0.44);
-      background: rgba(240, 165, 0, 0.1);
-      color: #ffd884;
-      font: 600 ${config.isTouch ? "13px" : "11px"}/1.3 var(--font-ui);
-      white-space: normal;
-      text-align: center;
-      ${pointerStyles}
-    }
-
-    .permission-action:${interactionPseudoClass}:not(:disabled) {
-      border-color: rgba(240, 165, 0, 0.66);
-      background: rgba(240, 165, 0, 0.18);
-    }
-
-    .permission-action:disabled {
-      opacity: 0.55;
-      ${config.isTouch ? "" : "cursor: default;"}
+      border-color: var(--accent-border);
+      background: var(--accent-tint);
     }
 
     .permission-fallback,
     .permission-reload {
       margin: 0;
-      color: var(--text-muted);
-      font-size: ${config.isTouch ? "12px" : "10px"};
+      color: var(--muted);
+      font-size: var(--small-size);
       line-height: 1.45;
     }
 
     .session-section[data-state="paused"] {
-      border-color: rgba(0, 212, 255, 0.3);
-      background:
-        linear-gradient(180deg, rgba(0, 82, 110, 0.22) 0%, rgba(3, 18, 35, 0.92) 100%);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 0 20px rgba(0, 212, 255, 0.07);
+      border-color: var(--accent-border);
+      background: var(--accent-tint);
     }
 
     .session-section[data-state="error"] {
-      border-color: rgba(255, 79, 79, 0.28);
-      background: rgba(60, 18, 28, 0.3);
+      border-color: var(--danger-border);
+      background: var(--danger-tint);
     }
 
-    .session-action {
-      align-self: flex-start;
+    /* Buttons: secondary by default, primary where a state calls for the next step. */
+    .permission-action,
+    .session-action,
+    .ghost-button,
+    .site-manager__action,
+    .storage-state__retry {
+      appearance: none;
       max-width: 100%;
       min-height: var(--control-height);
-      padding: ${config.isTouch ? "10px 18px" : "8px 14px"};
+      padding: var(--button-padding);
       border-radius: var(--control-radius);
-      border: 1px solid rgba(0, 212, 255, 0.28);
-      background: rgba(0, 212, 255, 0.08);
-      color: var(--accent);
-      font: 600 ${config.isTouch ? "13px" : "11px"}/1.3 var(--font-ui);
-      white-space: normal;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--ink);
+      font: 600 var(--button-size)/1.25 var(--font-ui);
       text-align: center;
-      transition: background 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+      white-space: normal;
+      transition: background-color 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
       ${pointerStyles}
     }
 
+    .permission-action:${interactionPseudoClass}:not(:disabled),
+    .session-action:${interactionPseudoClass}:not(:disabled),
+    .ghost-button:${interactionPseudoClass}:not(:disabled),
+    .site-manager__action:${interactionPseudoClass}:not(:disabled),
+    .storage-state__retry:${interactionPseudoClass}:not(:disabled) {
+      background: var(--hover);
+    }
+
+    .permission-action,
+    .storage-state__retry,
     .session-section[data-state="paused"] .session-action {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #02111f;
+      border-color: var(--accent-fill);
+      background: var(--accent-fill);
+      color: var(--on-accent);
+    }
+
+    .permission-action:${interactionPseudoClass}:not(:disabled),
+    .storage-state__retry:${interactionPseudoClass}:not(:disabled),
+    .session-section[data-state="paused"] .session-action:${interactionPseudoClass}:not(:disabled) {
+      border-color: var(--accent-fill-hover);
+      background: var(--accent-fill-hover);
     }
 
     .session-section[data-state="error"] .session-action {
-      color: #ffd7d7;
-      border-color: rgba(255, 79, 79, 0.34);
-      background: rgba(255, 79, 79, 0.08);
+      border-color: var(--danger-border);
+      color: var(--danger-ink);
     }
 
-    .session-action:${interactionPseudoClass}:not(:disabled) {
-      border-color: rgba(0, 212, 255, 0.5);
-      background: rgba(0, 212, 255, 0.16);
+    .permission-action,
+    .session-action {
+      align-self: flex-start;
     }
 
-    .session-section[data-state="paused"] .session-action:${interactionPseudoClass}:not(:disabled) {
-      background: #5ee7ff;
-      border-color: #5ee7ff;
-    }
-
-    .session-action:disabled {
-      opacity: 0.55;
+    .permission-action:disabled,
+    .session-action:disabled,
+    .quiet-button:disabled,
+    .ghost-button:disabled {
+      opacity: 0.5;
       ${config.isTouch ? "" : "cursor: default;"}
     }
 
     .section__header {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     .section__header-row {
@@ -558,17 +503,17 @@ export function mountPopup(platformConfig = {}) {
 
     .section__title {
       margin: 0;
-      font-size: ${config.isTouch ? "15px" : "14px"};
+      font-size: var(--title-size);
       line-height: 1.3;
       font-weight: 600;
-      color: #eefaff;
+      color: var(--ink);
     }
 
     .section__description {
       margin: 0;
-      color: var(--text-muted);
+      color: var(--muted);
       line-height: 1.45;
-      font-size: ${config.isTouch ? "12px" : "11px"};
+      font-size: var(--small-size);
     }
 
     .threshold-shell {
@@ -585,19 +530,14 @@ export function mountPopup(platformConfig = {}) {
 
     .threshold-stepper {
       display: grid;
-      grid-template-columns: ${config.isTouch ? "48px" : "44px"} minmax(0, 1fr) ${config.isTouch ? "48px" : "44px"};
+      grid-template-columns: ${config.isTouch ? "52px" : "44px"} minmax(0, 1fr) ${config.isTouch ? "52px" : "44px"};
       align-items: stretch;
-      width: min(100%, ${config.isTouch ? "320px" : "300px"});
-      margin: 0 auto;
-      min-height: ${config.isTouch ? "48px" : "44px"};
-      border-radius: calc(var(--control-radius) + 3px);
+      width: 100%;
+      min-height: ${config.isTouch ? "56px" : "46px"};
+      border-radius: calc(var(--control-radius) + 2px);
       overflow: hidden;
-      background:
-        linear-gradient(180deg, rgba(0, 212, 255, 0.09) 0%, rgba(0, 212, 255, 0.04) 100%);
-      border: 1px solid rgba(0, 212, 255, 0.18);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 0 0 1px rgba(0, 212, 255, 0.04);
+      background: var(--sunken);
+      border: 1px solid var(--border);
     }
 
     .stepper-button {
@@ -608,30 +548,23 @@ export function mountPopup(platformConfig = {}) {
       min-height: 100%;
       border: none;
       border-radius: 0;
-      background: rgba(0, 212, 255, 0.06);
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 20px;
-      line-height: 1;
-      transition: transform 0.15s, background 0.2s, color 0.2s;
+      background: transparent;
+      color: var(--ink);
+      font: 500 ${config.isTouch ? "22px" : "19px"}/1 var(--font-ui);
+      transition: background-color 0.15s;
       ${pointerStyles}
     }
 
     .stepper-button[data-direction="decrement"] {
-      border-right: 1px solid rgba(0, 212, 255, 0.14);
+      border-right: 1px solid var(--border);
     }
 
     .stepper-button[data-direction="increment"] {
-      border-left: 1px solid rgba(0, 212, 255, 0.14);
+      border-left: 1px solid var(--border);
     }
 
     .stepper-button:${interactionPseudoClass} {
-      background: rgba(0, 212, 255, 0.12);
-      color: #effaff;
-    }
-
-    .stepper-button:active {
-      transform: scale(0.98);
+      background: var(--hover);
     }
 
     .stepper-display {
@@ -646,26 +579,22 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .stepper-display:focus-within {
-      box-shadow:
-        inset 0 0 0 1px rgba(0, 212, 255, 0.18),
-        inset 0 0 0 2px rgba(0, 212, 255, 0.12);
+      background: var(--surface);
+      box-shadow: inset 0 0 0 2px var(--accent-border);
     }
 
     .threshold-input {
-      width: ${config.isTouch ? "6.5ch" : "6ch"};
+      width: ${config.isTouch ? "5ch" : "4.5ch"};
       min-width: 0;
       border: none;
       background: transparent;
-      color: var(--accent);
-      font-family: var(--font-mono);
-      font-size: ${config.isTouch ? "28px" : "23px"};
-      font-weight: 700;
+      color: var(--accent-ink);
+      font: 650 ${config.isTouch ? "28px" : "24px"}/1 var(--font-ui);
       font-variant-numeric: tabular-nums;
-      line-height: 1;
+      letter-spacing: -0.01em;
       text-align: center;
       outline: none;
       -moz-appearance: textfield;
-      text-shadow: 0 0 14px rgba(0, 212, 255, 0.34);
     }
 
     .threshold-input::-webkit-outer-spin-button,
@@ -677,98 +606,67 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .threshold-unit {
-      font-family: var(--font-mono);
-      font-size: ${config.isTouch ? "11px" : "10px"};
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
+      color: var(--muted);
+      font-size: var(--small-size);
+      font-weight: 500;
     }
 
     .helper-copy {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
     }
 
     .helper-copy p {
       margin: 0;
-      color: var(--text-muted);
-      line-height: 1.4;
-      font-size: ${config.isTouch ? "12px" : "11px"};
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: var(--small-size);
     }
 
     .ghost-button {
-      min-height: 30px;
-      padding: 0 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 212, 255, 0.18);
-      background: transparent;
-      color: var(--accent);
-      font-family: var(--font-ui);
-      font-size: 11px;
-      font-weight: 600;
-      line-height: 1;
-      transition: border-color 0.2s, background 0.2s, opacity 0.2s;
-      ${pointerStyles}
-    }
-
-    .ghost-button:${interactionPseudoClass} {
-      border-color: rgba(0, 212, 255, 0.32);
-      background: rgba(0, 212, 255, 0.08);
-    }
-
-    .ghost-button:disabled {
-      opacity: 0.45;
-      ${config.isTouch ? "" : "cursor: default;"}
+      min-height: ${config.isTouch ? "44px" : "28px"};
+      padding: ${config.isTouch ? "8px 14px" : "4px 10px"};
     }
 
     .icon-button {
-      width: 28px;
-      height: 28px;
+      width: ${config.isTouch ? "44px" : "28px"};
+      height: ${config.isTouch ? "44px" : "28px"};
       display: inline-flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
       border-radius: 999px;
-      border: 1px solid rgba(0, 212, 255, 0.18);
-      background: rgba(0, 212, 255, 0.04);
-      color: var(--accent);
-      font-family: var(--font-mono);
-      font-size: 14px;
-      line-height: 1;
-      transition: border-color 0.2s, background 0.2s, color 0.2s;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--muted);
+      font: 600 ${config.isTouch ? "15px" : "13px"}/1 var(--font-ui);
+      transition: background-color 0.15s, color 0.15s;
       ${pointerStyles}
     }
 
     .icon-button:${interactionPseudoClass} {
-      border-color: rgba(0, 212, 255, 0.32);
-      background: rgba(0, 212, 255, 0.1);
-      color: #effaff;
+      background: var(--hover);
+      color: var(--ink);
     }
 
     .text-input {
       width: 100%;
       box-sizing: border-box;
       min-height: var(--control-height);
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 212, 255, 0.18);
-      background: rgba(0, 212, 255, 0.04);
-      color: var(--text);
-      font-family: var(--font-ui);
-      font-size: ${config.isTouch ? "13px" : "12px"};
+      padding: ${config.isTouch ? "10px 12px" : "7px 10px"};
+      border-radius: var(--control-radius);
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--ink);
+      font: 400 var(--body-size)/1.35 var(--font-ui);
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    }
-
-    .text-input:focus,
-    .threshold-input:focus {
-      box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.12);
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     .text-input:focus {
-      border-color: rgba(0, 212, 255, 0.34);
-      background: rgba(0, 212, 255, 0.08);
+      border-color: var(--accent-fill);
+      box-shadow: 0 0 0 3px var(--accent-tint);
     }
 
     .preview-block {
@@ -778,14 +676,19 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .preview-label {
-      color: var(--text-dim);
-      font-size: 11px;
+      color: var(--muted);
+      font-size: var(--small-size);
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
     }
 
-    /* The card itself comes from the shared reminder view; the popup shell already rises. */
+    /* A page-like backdrop, so the floating card reads as it will over a page. */
+    .preview-stage {
+      padding: ${config.isTouch ? "14px 12px" : "12px 10px"};
+      border-radius: var(--control-radius);
+      background: var(--sunken);
+    }
+
+    /* The card itself comes from the shared reminder view; the popup does not replay its entrance. */
     .preview-block .notification {
       animation: none;
     }
@@ -805,43 +708,40 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .section-row__title {
-      color: #e3f7ff;
-      font-size: ${config.isTouch ? "13px" : "12px"};
+      color: var(--ink);
+      font-size: var(--body-size);
       line-height: 1.4;
       font-weight: 500;
     }
 
     .site-note {
       padding: 10px 12px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px dashed rgba(0, 212, 255, 0.14);
-      color: var(--text-muted);
-      font-size: ${config.isTouch ? "12px" : "11px"};
+      border-radius: var(--control-radius);
+      background: var(--sunken);
+      border: 1px dashed var(--border-strong);
+      color: var(--muted);
+      font-size: var(--small-size);
       line-height: 1.45;
     }
 
     .site-override-panel {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      padding-top: 2px;
+      gap: 8px;
     }
 
     .site-override-label {
-      color: var(--text-dim);
-      font-size: ${config.isTouch ? "11px" : "10px"};
+      color: var(--muted);
+      font-size: var(--small-size);
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
     }
 
     .site-manager {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(0, 212, 255, 0.08);
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
     }
 
     .site-manager__header {
@@ -853,15 +753,16 @@ export function mountPopup(platformConfig = {}) {
 
     .site-manager__title {
       margin: 0;
-      color: #eefaff;
-      font-size: ${config.isTouch ? "14px" : "13px"};
+      color: var(--ink);
+      font-size: var(--body-size);
+      font-weight: 600;
       line-height: 1.35;
     }
 
     .site-manager__list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       max-height: ${config.isTouch ? "420px" : "290px"};
       overflow-y: auto;
       scrollbar-gutter: stable;
@@ -870,23 +771,23 @@ export function mountPopup(platformConfig = {}) {
     .site-manager__item {
       display: flex;
       flex-direction: column;
-      gap: 9px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: rgba(0, 212, 255, 0.04);
-      border: 1px solid rgba(0, 212, 255, 0.08);
+      gap: 10px;
+      padding: ${config.isTouch ? "12px" : "10px"};
+      border-radius: var(--control-radius);
+      background: var(--sunken);
+      border: 1px solid var(--border);
     }
 
     .site-manager__summary {
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
     .site-manager__host {
-      color: #dff5ff;
-      font-weight: 650;
+      color: var(--ink);
+      font-weight: 600;
       line-height: 1.35;
       overflow-wrap: anywhere;
     }
@@ -894,19 +795,19 @@ export function mountPopup(platformConfig = {}) {
     .site-manager__meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px 10px;
-      color: var(--text-muted);
-      font-size: ${config.isTouch ? "12px" : "10px"};
+      gap: 4px 10px;
+      color: var(--muted);
+      font-size: var(--small-size);
       line-height: 1.4;
     }
 
     .site-manager__state[data-enabled="false"] {
-      color: #ffd0d0;
+      color: var(--warning-ink);
     }
 
     .site-manager__threshold {
-      color: var(--accent);
-      font-family: var(--font-mono);
+      color: var(--accent-ink);
+      font-variant-numeric: tabular-nums;
     }
 
     .site-manager__actions,
@@ -914,38 +815,26 @@ export function mountPopup(platformConfig = {}) {
     .site-manager__editor-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 7px;
+      gap: 6px;
     }
 
     .site-manager__action {
-      min-height: ${config.isTouch ? "44px" : "32px"};
-      padding: 7px 10px;
-      border-radius: 9px;
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      background: rgba(0, 212, 255, 0.06);
-      color: var(--text);
-      font: 600 ${config.isTouch ? "12px" : "10px"}/1.25 var(--font-ui);
-      white-space: normal;
-      ${pointerStyles}
-    }
-
-    .site-manager__action:${interactionPseudoClass} {
-      border-color: rgba(0, 212, 255, 0.38);
-      background: rgba(0, 212, 255, 0.12);
+      min-height: ${config.isTouch ? "44px" : "28px"};
+      padding: ${config.isTouch ? "8px 12px" : "4px 10px"};
+      font-size: ${config.isTouch ? "13px" : "12px"};
     }
 
     .site-manager__action--danger {
-      border-color: rgba(255, 79, 79, 0.25);
-      background: rgba(255, 79, 79, 0.06);
-      color: #ffb8b8;
+      border-color: var(--danger-border);
+      color: var(--danger-ink);
     }
 
     .site-manager__editor,
     .site-manager__confirmation {
-      padding: 9px;
-      border-radius: 10px;
-      background: rgba(2, 13, 26, 0.58);
-      border: 1px solid rgba(0, 212, 255, 0.12);
+      padding: 10px;
+      border-radius: var(--control-radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
     }
 
     .site-manager__editor {
@@ -956,24 +845,25 @@ export function mountPopup(platformConfig = {}) {
 
     .site-manager__editor-label,
     .site-manager__confirmation-text {
-      color: var(--text-muted);
-      font-size: ${config.isTouch ? "12px" : "10px"};
+      color: var(--muted);
+      font-size: var(--small-size);
       line-height: 1.4;
     }
 
     .site-manager__editor-input {
       width: 100%;
       min-height: var(--control-height);
-      padding: 8px 10px;
-      border-radius: 9px;
-      border: 1px solid rgba(0, 212, 255, 0.22);
-      background: rgba(0, 212, 255, 0.04);
-      color: var(--accent);
-      font: 700 ${config.isTouch ? "16px" : "14px"}/1 var(--font-mono);
+      padding: 6px 10px;
+      border-radius: var(--control-radius);
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--accent-ink);
+      font: 650 ${config.isTouch ? "17px" : "15px"}/1 var(--font-ui);
+      font-variant-numeric: tabular-nums;
     }
 
     .site-manager__editor-input[aria-invalid="true"] {
-      border-color: var(--danger);
+      border-color: var(--danger-ink);
     }
 
     .site-manager__confirmation {
@@ -982,19 +872,17 @@ export function mountPopup(platformConfig = {}) {
 
     .site-manager__empty {
       padding: 14px 12px;
-      border-radius: 12px;
+      border-radius: var(--control-radius);
       text-align: center;
-      color: var(--text-muted);
-      font-size: ${config.isTouch ? "12px" : "11px"};
-      font-style: italic;
-      background: rgba(0, 212, 255, 0.03);
-      border: 1px dashed rgba(0, 212, 255, 0.1);
+      color: var(--muted);
+      font-size: var(--small-size);
+      background: var(--sunken);
+      border: 1px dashed var(--border-strong);
     }
 
     .site-manager__empty:focus {
-      font-style: normal;
-      outline: 3px solid #8ceeff;
-      outline-offset: -3px;
+      outline: 2px solid var(--focus);
+      outline-offset: -2px;
     }
 
     .site-manager__host,
@@ -1003,53 +891,73 @@ export function mountPopup(platformConfig = {}) {
       text-overflow: ellipsis;
     }
 
+    /* Low-frequency actions sit between and below the cards, without card chrome. */
+    .pause-row {
+      display: flex;
+      padding: 0 ${config.isTouch ? "4px" : "2px"};
+      margin: ${config.isTouch ? "-6px 0" : "-4px 0"};
+    }
+
+    .quiet-button {
+      appearance: none;
+      max-width: 100%;
+      min-height: ${config.isTouch ? "44px" : "28px"};
+      margin: 0 ${config.isTouch ? "-10px" : "-8px"};
+      padding: ${config.isTouch ? "8px 10px" : "4px 8px"};
+      border: 0;
+      border-radius: var(--control-radius);
+      background: transparent;
+      color: var(--accent-ink);
+      font: 600 var(--button-size)/1.25 var(--font-ui);
+      text-align: left;
+      white-space: normal;
+      transition: background-color 0.15s;
+      ${pointerStyles}
+    }
+
+    .quiet-button:${interactionPseudoClass}:not(:disabled) {
+      background: var(--hover);
+    }
+
     .backup-section {
-      gap: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      margin: 0 ${config.isTouch ? "4px" : "2px"};
+      padding-top: ${config.isTouch ? "6px" : "4px"};
+      border-top: 1px solid var(--border);
     }
 
     .backup-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 0 ${config.isTouch ? "20px" : "16px"};
     }
 
-    .backup-action {
-      min-height: var(--control-height);
-      padding: ${config.isTouch ? "10px 16px" : "8px 13px"};
-      border-radius: var(--control-radius);
-      border: 1px solid rgba(0, 212, 255, 0.24);
-      background: rgba(0, 212, 255, 0.07);
-      color: var(--text);
-      font: 600 ${config.isTouch ? "13px" : "11px"}/1.3 var(--font-ui);
-      text-align: center;
-      white-space: normal;
-      ${pointerStyles}
+    .backup-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: var(--small-size);
+      line-height: 1.45;
     }
 
-    .backup-action:${interactionPseudoClass}:not(:disabled) {
-      border-color: rgba(0, 212, 255, 0.46);
-      background: rgba(0, 212, 255, 0.14);
-    }
-
-    .backup-action:disabled {
-      opacity: 0.55;
-      cursor: default;
+    .backup-section .import-error {
+      margin-top: 6px;
     }
 
     .import-error {
       margin: 0;
       padding: 9px 10px;
-      border-radius: 9px;
-      border: 1px solid rgba(255, 79, 79, 0.3);
-      background: rgba(255, 79, 79, 0.08);
-      color: #ffd7d7;
-      font-size: ${config.isTouch ? "12px" : "10px"};
+      border-radius: var(--control-radius);
+      border: 1px solid var(--danger-border);
+      background: var(--danger-tint);
+      color: var(--danger-ink);
+      font-size: var(--small-size);
       line-height: 1.45;
     }
 
     .storage-state {
-      position: relative;
-      z-index: 1;
       flex: 1 1 auto;
       min-height: ${config.isTouch ? "180px" : "220px"};
       padding: ${config.isTouch ? "24px 18px" : "22px 16px"};
@@ -1066,98 +974,39 @@ export function mountPopup(platformConfig = {}) {
       align-items: center;
       gap: 12px;
       text-align: center;
-      border-radius: 14px;
-      color: var(--text-muted);
-      background: rgba(4, 24, 46, 0.84);
-      border: 1px solid rgba(0, 212, 255, 0.16);
+      border-radius: ${config.isTouch ? "16px" : "12px"};
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
     }
 
     .storage-state[data-phase="error"] .storage-state__panel {
-      color: #ffd7d7;
-      border-color: rgba(255, 79, 79, 0.34);
-      background: rgba(60, 18, 28, 0.34);
+      color: var(--danger-ink);
+      border-color: var(--danger-border);
+      background: var(--danger-tint);
     }
 
     .storage-state__message {
       margin: 0;
-      font-size: ${config.isTouch ? "14px" : "12px"};
+      font-size: var(--body-size);
       line-height: 1.5;
     }
 
-    .storage-state__retry {
-      min-height: var(--control-height);
-      padding: 0 18px;
-      border-radius: var(--control-radius);
-      border: 1px solid rgba(0, 212, 255, 0.34);
-      background: rgba(0, 212, 255, 0.12);
-      color: var(--accent);
-      font: 600 ${config.isTouch ? "13px" : "11px"}/1 var(--font-ui);
-      ${pointerStyles}
-    }
-
-    .storage-state__retry:${interactionPseudoClass} {
-      background: rgba(0, 212, 255, 0.2);
-      border-color: rgba(0, 212, 255, 0.5);
-    }
-
-    .bubbles {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 0;
-      opacity: ${config.isTouch ? "0.85" : "1"};
-    }
-
-    .bubble {
-      position: absolute;
-      bottom: -28px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.34), rgba(0, 212, 255, 0.11));
-      border: 1px solid rgba(0, 212, 255, 0.22);
-      box-shadow: 0 0 12px rgba(0, 212, 255, 0.08);
-      opacity: 0;
-      animation: bubble-rise linear infinite;
-    }
-
-    @keyframes bubble-rise {
-      0% {
-        transform: translateY(0) translateX(0);
-        opacity: 0;
-      }
-      12% {
-        opacity: 0.68;
-      }
-      88% {
-        opacity: 0.24;
-      }
-      100% {
-        transform: translateY(-520px) translateX(var(--drift, 0px));
-        opacity: 0;
-      }
-    }
-
     .footer {
-      position: relative;
-      z-index: 1;
-      min-height: 38px;
+      min-height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 8px 16px;
-      border-top: 1px solid rgba(0, 212, 255, 0.12);
-      background: linear-gradient(0deg, rgba(2, 10, 20, 0.95) 0%, rgba(4, 22, 42, 0.8) 100%);
-      backdrop-filter: blur(4px);
+      border-top: 1px solid var(--border);
     }
 
     .status {
       opacity: 0;
-      color: var(--accent);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      line-height: 1;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      color: var(--accent-ink);
+      font-size: var(--small-size);
+      font-weight: 600;
+      line-height: 1.2;
       transition: opacity 0.25s;
     }
 
@@ -1166,26 +1015,6 @@ export function mountPopup(platformConfig = {}) {
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .shell,
-      .shell::before,
-      .shell::after {
-        animation: none !important;
-        transform: none !important;
-      }
-
-      .shell {
-        opacity: 1;
-      }
-
-      .bubbles {
-        display: none;
-      }
-
-      .bubble {
-        display: none;
-        animation: none !important;
-      }
-
       *,
       *::before,
       *::after {
@@ -1216,7 +1045,7 @@ export function mountPopup(platformConfig = {}) {
     return element;
   }
 
-  function createLogoSvg(color) {
+  function createLogoSvg() {
     const svg = svgEl("svg", {
       width: "18",
       height: "18",
@@ -1232,7 +1061,7 @@ export function mountPopup(platformConfig = {}) {
     ].forEach((polyline) => {
       svg.appendChild(svgEl("polyline", {
         points: polyline.points,
-        stroke: color,
+        stroke: "currentColor",
         "stroke-width": "1.8",
         "stroke-linecap": "round",
         "stroke-linejoin": "round",
@@ -1305,12 +1134,11 @@ export function mountPopup(platformConfig = {}) {
   }
 
   const shell = el("div", "shell");
-  const bubblesEl = el("div", "bubbles");
 
   const header = el("header", "header");
   const brand = el("div", "brand");
   const brandIcon = el("div", "brand__icon");
-  brandIcon.appendChild(createLogoSvg("#00d4ff"));
+  brandIcon.appendChild(createLogoSvg());
   const brandName = el("h1", "brand__name");
   brandName.textContent = msg("extensionName");
   brand.append(brandIcon, brandName);
@@ -1397,6 +1225,18 @@ export function mountPopup(platformConfig = {}) {
   sessionActionButton.textContent = msg("sessionStateLoadingAction");
   sessionActionButton.disabled = true;
   sessionSection.append(sessionHeader, sessionActionButton);
+  sessionSection.hidden = true;
+
+  // While reminders run, pausing is a quiet action after the current-site
+  // settings; the session banner above them only appears while paused or unavailable.
+  const pauseRow = el("div", "pause-row");
+  const pauseActionButton = el("button", "quiet-button pause-action", {
+    type: "button",
+    "aria-label": msg("ariaSessionPause"),
+  });
+  pauseActionButton.textContent = msg("sessionPauseAction");
+  pauseActionButton.disabled = true;
+  pauseRow.appendChild(pauseActionButton);
 
   const persistentSettings = el("div", "persistent-settings");
 
@@ -1462,7 +1302,9 @@ export function mountPopup(platformConfig = {}) {
     text: DEFAULTS.text,
     preview: true,
   });
-  previewBlock.append(previewLabel, previewCard);
+  const previewStage = el("div", "preview-stage");
+  previewStage.appendChild(previewCard);
+  previewBlock.append(previewLabel, previewStage);
 
   const siteSection = el("section", "section");
   const siteHeader = el("div", "section__header");
@@ -1541,21 +1383,19 @@ export function mountPopup(platformConfig = {}) {
 
   textSection.append(textHeader, textInput, previewBlock);
 
-  const backupSection = el("section", "section backup-section");
-  const backupHeader = el("div", "section__header");
-  const backupTitle = el("h2", "section__title");
+  const backupSection = el("section", "backup-section", { "aria-labelledby": "settingsBackupTitle" });
+  const backupTitle = el("h2", "sr-only", { id: "settingsBackupTitle" });
   backupTitle.textContent = msg("settingsBackupTitle");
-  const backupDescription = el("p", "section__description");
+  const backupDescription = el("p", "backup-note");
   backupDescription.textContent = msg("settingsBackupDescription");
-  backupHeader.append(backupTitle, backupDescription);
   const backupActions = el("div", "backup-actions");
-  const exportButton = el("button", "backup-action", {
+  const exportButton = el("button", "quiet-button backup-action", {
     type: "button",
     id: "settingsExport",
     "aria-label": msg("ariaExportSettings"),
   });
   exportButton.textContent = msg("settingsExportAction");
-  const importButton = el("button", "backup-action", {
+  const importButton = el("button", "quiet-button backup-action", {
     type: "button",
     id: "settingsImport",
     "aria-label": msg("ariaImportSettings"),
@@ -1569,17 +1409,17 @@ export function mountPopup(platformConfig = {}) {
     tabindex: "-1",
   });
   importError.hidden = true;
-  backupSection.append(backupHeader, backupActions, importError);
+  backupSection.append(backupTitle, backupActions, backupDescription, importError);
 
-  persistentSettings.append(thresholdSection, siteSection, textSection, backupSection);
-  content.append(permissionSection, sessionSection, persistentSettings);
+  persistentSettings.append(thresholdSection, siteSection, pauseRow, textSection);
+  content.append(permissionSection, sessionSection, persistentSettings, backupSection);
 
   const footer = el("footer", "footer");
   const statusEl = el("span", "status");
   statusEl.setAttribute("aria-live", "polite");
   footer.appendChild(statusEl);
 
-  shell.append(bubblesEl, header, storageStateEl, content, footer);
+  shell.append(header, storageStateEl, content, footer);
   shadow.appendChild(shell);
 
   let activeHostname = "";
@@ -1624,31 +1464,6 @@ export function mountPopup(platformConfig = {}) {
   function syncThresholdHelpVisibility() {
     const isExpanded = !thresholdHelper.hidden;
     thresholdHelpButton.setAttribute("aria-expanded", String(isExpanded));
-  }
-
-  function spawnBubbles() {
-    bubblesEl.textContent = "";
-    const bubbleCount = config.isTouch ? 10 : 10;
-
-    for (let index = 0; index < bubbleCount; index += 1) {
-      const bubble = el("div", "bubble");
-      const size = (config.isTouch ? 3 : 3) + Math.random() * (config.isTouch ? 7 : 6);
-      const left = 6 + Math.random() * 88;
-      const duration = (config.isTouch ? 7 : 8) + Math.random() * 8;
-      const delay = Math.random() * 10;
-      const drift = (Math.random() - 0.5) * 24;
-
-      bubble.style.cssText = `
-        width: ${size}px;
-        height: ${size}px;
-        left: ${left}%;
-        animation-duration: ${duration}s;
-        animation-delay: -${delay}s;
-        --drift: ${drift}px;
-      `;
-
-      bubblesEl.appendChild(bubble);
-    }
   }
 
   function syncTextResetState() {
@@ -1744,6 +1559,8 @@ export function mountPopup(platformConfig = {}) {
     const failedOutcome = outcome && outcome !== REQUEST_OUTCOMES.restored;
 
     permissionSection.dataset.state = restored ? "restored" : outcome || state;
+    // Healthy access needs no card; it appears only when access needs attention.
+    permissionSection.hidden = !outcome && (state === "loading" || state === ACCESS_STATES.granted);
     permissionSection.setAttribute("aria-busy", String(state === "loading" || requesting));
     permissionActionButton.hidden = !(missingState || failedOutcome || requesting);
     permissionActionButton.disabled = requesting;
@@ -1805,10 +1622,22 @@ export function mountPopup(platformConfig = {}) {
   }
 
   function syncSessionUi(phase, paused = isSessionPaused, { preserveActionFocus = false } = {}) {
+    const focusedAction = [sessionActionButton, pauseActionButton]
+      .find((button) => button === shadow.activeElement);
     sessionUiPhase = phase;
     isSessionPaused = paused === true;
     sessionSection.setAttribute("aria-busy", String(phase === "loading"));
     sessionActionButton.disabled = phase === "loading" && !preserveActionFocus;
+    pauseActionButton.disabled = phase === "loading" && !preserveActionFocus;
+
+    // Visibility follows confirmed state only, so a pending toggle keeps its button in place.
+    // A confirmed change, including one broadcast from another page, carries focus across.
+    const showBanner = phase === "error" || isSessionPaused;
+    sessionSection.hidden = !showBanner;
+    pauseActionButton.hidden = showBanner;
+    if (focusedAction?.closest("[hidden]")) {
+      focusVisibleSessionAction();
+    }
 
     if (phase === "loading") {
       sessionSection.dataset.state = "loading";
@@ -2370,19 +2199,27 @@ export function mountPopup(platformConfig = {}) {
     }
   });
 
-  sessionActionButton.addEventListener("click", async () => {
+  function focusVisibleSessionAction() {
+    (sessionSection.hidden ? pauseActionButton : sessionActionButton).focus();
+  }
+
+  async function toggleSessionPause(trigger) {
     if (sessionUiPhase === "loading") {
       return;
     }
 
+    const restoreActionFocus = shadow.activeElement === trigger;
+
     if (sessionUiPhase === "error") {
       await loadSessionState();
+      if (restoreActionFocus) {
+        focusVisibleSessionAction();
+      }
       return;
     }
 
     const nextPaused = !isSessionPaused;
     const revision = ++sessionRequestRevision;
-    const restoreActionFocus = shadow.activeElement === sessionActionButton;
     syncSessionUi("loading", isSessionPaused, { preserveActionFocus: restoreActionFocus });
 
     try {
@@ -2401,17 +2238,20 @@ export function mountPopup(platformConfig = {}) {
 
       syncSessionUi("ready", response.paused);
       if (restoreActionFocus) {
-        sessionActionButton.focus();
+        focusVisibleSessionAction();
       }
     } catch (error) {
       if (revision === sessionRequestRevision) {
         syncSessionUi("error", isSessionPaused);
         if (restoreActionFocus) {
-          sessionActionButton.focus();
+          focusVisibleSessionAction();
         }
       }
     }
-  });
+  }
+
+  sessionActionButton.addEventListener("click", () => toggleSessionPause(sessionActionButton));
+  pauseActionButton.addEventListener("click", () => toggleSessionPause(pauseActionButton));
 
   globalSwitch.input.addEventListener("change", () => {
     syncGlobalState();
@@ -2678,7 +2518,6 @@ export function mountPopup(platformConfig = {}) {
   syncOverrideVisibility();
   syncSessionUi("loading");
   syncPermissionUi("loading");
-  spawnBubbles();
 
   init().catch((error) => {
     console.error("Failed to initialize popup", error);

@@ -369,7 +369,12 @@ async function exerciseBackForwardCacheResync(context, worker, extensionOrigin, 
 }
 
 async function clickSessionAction(popup, expectedState) {
-  await popup.evaluate(() => document.getElementById("root").shadowRoot.querySelector(".session-action").click());
+  // Pausing uses the quiet action; resuming uses the banner shown while paused.
+  await popup.evaluate(() => {
+    const root = document.getElementById("root").shadowRoot;
+    const banner = root.querySelector(".session-section");
+    (banner.hidden ? root.querySelector(".pause-action") : root.querySelector(".session-action")).click();
+  });
   await popup.waitForFunction((state) => (
     document.getElementById("root")?.shadowRoot
       ?.querySelector(".session-section")?.dataset.state === state

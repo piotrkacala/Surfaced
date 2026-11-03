@@ -10,10 +10,16 @@
 body {
   width: 360px;
   overflow-x: hidden;
-  background: #020d1a;
+  background: #f3f6f8;
   /* fallback while shadow DOM mounts */
 }
 
 #root {
   width: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f1b23;
+  }
 }

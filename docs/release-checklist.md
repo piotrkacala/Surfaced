@@ -74,6 +74,9 @@ same signed update channel used for release.
 - Verify routed desktop popup rendering and complete Tab/Shift+Tab navigation,
   Space/Enter activation, visible focus, confirmations, retry states, permission
   restore focus, and import/export controls.
+- With a screen reader, pause from the quiet action after the current-site
+  settings and confirm the paused banner is announced with focus on
+  **Resume now**; resume and confirm focus returns to the pause action.
 - Enter `5.5` and `5.25` one character at a time in the global, current-site,
   and site-manager threshold fields. Confirm incomplete drafts stay untouched,
   exact values persist, and `0.5` stepper changes do not round them.

@@ -149,7 +149,7 @@
         "message": "Wstrzymaj do restartu przeglądarki"
     },
     "sessionPausedTitle": {
-        "message": "Powiadomienia wstrzymane"
+        "message": "Przypomnienia wstrzymane"
     },
     "sessionPausedDescription": {
         "message": "Przypomnienia i aktualizacje odznaki są wstrzymane do restartu przeglądarki."
