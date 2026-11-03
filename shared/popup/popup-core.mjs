@@ -136,13 +136,14 @@ export function mountPopup(platformConfig = {}) {
       --on-accent: #ffffff;
       --accent-tint: rgba(11, 138, 163, 0.1);
       --accent-border: rgba(11, 138, 163, 0.34);
-      --switch-off: #9fb0ba;
+      --switch-off: #778a96;
       --warning-ink: #7a4a00;
       --warning-tint: #fff7e8;
       --warning-border: rgba(196, 128, 0, 0.36);
       --danger-ink: #b3261e;
       --danger-tint: #fdeeec;
       --danger-border: rgba(179, 38, 30, 0.3);
+      --danger-quiet: #94524c;
       --focus: #0a7489;
       --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --control-height: ${config.isTouch ? "44px" : "32px"};
@@ -183,13 +184,14 @@ export function mountPopup(platformConfig = {}) {
         --on-accent: #06262e;
         --accent-tint: rgba(95, 207, 225, 0.12);
         --accent-border: rgba(95, 207, 225, 0.36);
-        --switch-off: #5b6f7c;
+        --switch-off: #6a7f8c;
         --warning-ink: #f3cf7f;
         --warning-tint: rgba(240, 180, 60, 0.1);
         --warning-border: rgba(240, 180, 60, 0.34);
         --danger-ink: #ff9c92;
         --danger-tint: rgba(255, 110, 100, 0.1);
         --danger-border: rgba(255, 110, 100, 0.32);
+        --danger-quiet: #cf8f87;
         --focus: #5fcfe1;
       }
     }
@@ -599,6 +601,8 @@ export function mountPopup(platformConfig = {}) {
 
     .threshold-input::-webkit-outer-spin-button,
     .threshold-input::-webkit-inner-spin-button,
+    .site-manager__editor-input::-webkit-outer-spin-button,
+    .site-manager__editor-input::-webkit-inner-spin-button,
     .text-input::-webkit-outer-spin-button,
     .text-input::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -771,57 +775,92 @@ export function mountPopup(platformConfig = {}) {
     .site-manager__item {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: ${config.isTouch ? "6px" : "4px"};
       padding: ${config.isTouch ? "12px" : "10px"};
       border-radius: var(--control-radius);
       background: var(--sunken);
       border: 1px solid var(--border);
     }
 
-    .site-manager__summary {
-      min-width: 0;
+    .site-manager__row {
       display: flex;
-      flex-direction: column;
-      gap: 3px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
     }
 
     .site-manager__host {
+      min-width: 0;
       color: var(--ink);
       font-weight: 600;
       line-height: 1.35;
       overflow-wrap: anywhere;
     }
 
-    .site-manager__meta {
+    .site-manager__toggle {
       display: flex;
-      flex-wrap: wrap;
-      gap: 4px 10px;
-      color: var(--muted);
-      font-size: var(--small-size);
-      line-height: 1.4;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
-    .site-manager__state[data-enabled="false"] {
-      color: var(--warning-ink);
+    .site-manager__state {
+      color: var(--muted);
+      font-size: var(--small-size);
     }
 
     .site-manager__threshold {
-      color: var(--accent-ink);
+      min-width: 0;
+      color: var(--ink);
+      font-size: var(--small-size);
       font-variant-numeric: tabular-nums;
     }
 
-    .site-manager__actions,
-    .site-manager__confirmation,
+    .site-manager__item .quiet-button {
+      flex-shrink: 0;
+    }
+
+    .site-manager__row > .quiet-button {
+      margin-right: ${config.isTouch ? "-10px" : "-8px"};
+    }
+
+    .site-manager__remove {
+      align-self: flex-start;
+    }
+
+    /* Doubled class: the base quiet button rule comes later in this sheet. */
+    .quiet-button.quiet-button--danger {
+      color: var(--danger-quiet);
+      font-weight: 500;
+    }
+
     .site-manager__editor-actions {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 6px;
+    }
+
+    .site-manager__editor-actions .quiet-button {
+      margin: 0;
     }
 
     .site-manager__action {
       min-height: ${config.isTouch ? "44px" : "28px"};
       padding: ${config.isTouch ? "8px 12px" : "4px 10px"};
       font-size: ${config.isTouch ? "13px" : "12px"};
+    }
+
+    .site-manager__action--primary {
+      border-color: var(--accent-fill);
+      background: var(--accent-fill);
+      color: var(--on-accent);
+    }
+
+    .site-manager__action--primary:${interactionPseudoClass}:not(:disabled) {
+      border-color: var(--accent-fill-hover);
+      background: var(--accent-fill-hover);
     }
 
     .site-manager__action--danger {
@@ -860,6 +899,7 @@ export function mountPopup(platformConfig = {}) {
       color: var(--accent-ink);
       font: 650 ${config.isTouch ? "17px" : "15px"}/1 var(--font-ui);
       font-variant-numeric: tabular-nums;
+      -moz-appearance: textfield;
     }
 
     .site-manager__editor-input[aria-invalid="true"] {
@@ -867,7 +907,10 @@ export function mountPopup(platformConfig = {}) {
     }
 
     .site-manager__confirmation {
+      display: flex;
       flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
     }
 
     .site-manager__empty {
@@ -885,7 +928,6 @@ export function mountPopup(platformConfig = {}) {
       outline-offset: -2px;
     }
 
-    .site-manager__host,
     .site-manager__threshold {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1427,6 +1469,8 @@ export function mountPopup(platformConfig = {}) {
   let currentSiteThreshold = DEFAULTS.threshold;
   let isSiteManagerOpen = false;
   let editingOverrideHost = "";
+  // Unsaved editor text, kept while the manager list is rebuilt around it.
+  let editingDraft = null;
   let pendingConfirmation = null;
   let statusTimer = null;
   let storageErrorPhase = null;
@@ -1879,7 +1923,7 @@ export function mountPopup(platformConfig = {}) {
 
   function closeSiteManager({ restoreFocus = true } = {}) {
     isSiteManagerOpen = false;
-    editingOverrideHost = "";
+    setEditingHost("");
     pendingConfirmation = null;
     syncSiteManagerVisibility();
     if (restoreFocus) {
@@ -1913,30 +1957,43 @@ export function mountPopup(platformConfig = {}) {
     target?.focus();
   }
 
-  function createManagerAction(label, hostname, action, onClick, { danger = false } = {}) {
-    const button = el(
-      "button",
-      `site-manager__action${danger ? " site-manager__action--danger" : ""}`,
-      {
-        type: "button",
-        "data-manager-action": action,
-        "aria-label": `${label}: ${hostname}`,
-      }
-    );
+  function createManagerAction(label, hostname, action, onClick, {
+    className = "site-manager__action",
+    ariaLabel = `${label}: ${hostname}`,
+  } = {}) {
+    const button = el("button", className, {
+      type: "button",
+      "data-manager-action": action,
+      "aria-label": ariaLabel,
+    });
     button.textContent = label;
     button.addEventListener("click", onClick);
     return button;
   }
 
-  function beginConfirmation(hostname, kind) {
-    editingOverrideHost = "";
-    pendingConfirmation = { hostname, kind };
+  function setEditingHost(hostname) {
+    editingOverrideHost = hostname;
+    editingDraft = null;
+  }
+
+  function beginSiteRemoval(hostname) {
+    setEditingHost("");
+    pendingConfirmation = { hostname };
     renderSiteManager({ type: "host", hostname, action: "confirm" });
   }
 
   function renderSiteManager(focusRequest = null) {
     siteManagerList.textContent = "";
     const entries = getManagedSiteEntries(settingsState, { defaultText: DEFAULTS.text });
+    // A row can disappear while open (enabled with nothing else saved, or changed
+    // elsewhere); its editor or confirmation must not keep claiming Escape and focus.
+    const hostnames = new Set(entries.map((entry) => entry.hostname));
+    if (editingOverrideHost && !hostnames.has(editingOverrideHost)) {
+      setEditingHost("");
+    }
+    if (pendingConfirmation && !hostnames.has(pendingConfirmation.hostname)) {
+      pendingConfirmation = null;
+    }
 
     if (entries.length === 0) {
       const empty = el("div", "site-manager__empty", {
@@ -1951,25 +2008,60 @@ export function mountPopup(platformConfig = {}) {
 
     entries.forEach((entry, index) => {
       const { hostname, enabled, hasOverride, threshold } = entry;
+      const isEditing = editingOverrideHost === hostname;
+      const isConfirming = pendingConfirmation?.hostname === hostname;
       const item = el("article", "site-manager__item", { "data-hostname": hostname });
-      const summary = el("div", "site-manager__summary");
+
+      // Domain and state lead; the threshold and its edit action follow.
+      const hostRow = el("div", "site-manager__row");
       const hostLine = el("div", "site-manager__host");
       hostLine.textContent = hostname;
-      const meta = el("div", "site-manager__meta");
+      const toggle = el("div", "site-manager__toggle");
       const stateLine = el("span", "site-manager__state", {
         "data-enabled": String(enabled),
+        "aria-hidden": "true",
       });
       stateLine.textContent = msg(enabled ? "siteManagerEnabled" : "siteManagerDisabled");
+      const enabledSwitch = createSwitch(`managerEnabled-${index}`, msg("enabledOnHost", hostname));
+      enabledSwitch.input.checked = enabled;
+      enabledSwitch.input.dataset.managerAction = "toggle-enabled";
+      enabledSwitch.input.addEventListener("change", () => {
+        const nextEnabled = enabledSwitch.input.checked;
+        persistSiteSettingsIntent(
+          { hostname, enabled: nextEnabled },
+          msg(nextEnabled ? "statusEnabledOnHost" : "statusDisabledOnHost", hostname),
+          // An enabled site without a custom threshold has nothing left to save.
+          nextEnabled && !hasOverride
+            ? { type: "neighbor", index }
+            : { type: "host", hostname, action: "toggle-enabled" }
+        );
+      });
+      toggle.append(stateLine, enabledSwitch.wrap);
+      hostRow.append(hostLine, toggle);
+
+      const thresholdRow = el("div", "site-manager__row");
       const thresholdLine = el("span", "site-manager__threshold");
       thresholdLine.textContent = msg(
         hasOverride ? "siteManagerOverrideThreshold" : "siteManagerGlobalThreshold",
         `${formatThresholdNumber(threshold)} ${getUnitScreensMsg(threshold)}`
       );
-      meta.append(stateLine, thresholdLine);
-      summary.append(hostLine, meta);
-      item.appendChild(summary);
+      thresholdRow.appendChild(thresholdLine);
+      if (!isEditing && !isConfirming) {
+        thresholdRow.appendChild(createManagerAction(
+          msg("siteManagerEdit"),
+          hostname,
+          "edit-threshold",
+          () => {
+            pendingConfirmation = null;
+            setEditingHost(hostname);
+            renderSiteManager({ type: "host", hostname, action: "override-input" });
+          },
+          { className: "quiet-button", ariaLabel: msg("siteManagerEditLabel", hostname) }
+        ));
+      }
+      item.append(hostRow, thresholdRow);
 
-      if (editingOverrideHost === hostname) {
+      if (isEditing) {
         const editor = el("form", "site-manager__editor");
         const editorLabel = el("label", "site-manager__editor-label", {
           for: `managerOverride-${index}`,
@@ -1980,15 +2072,19 @@ export function mountPopup(platformConfig = {}) {
           type: "number",
           step: "any",
           inputmode: "decimal",
-          value: String(threshold),
+          value: editingDraft ?? String(threshold),
           "data-manager-action": "override-input",
+        });
+        editorInput.addEventListener("input", () => {
+          editingDraft = editorInput.value;
         });
         const editorActions = el("div", "site-manager__editor-actions");
         const saveButton = createManagerAction(
           msg("siteManagerSaveOverride"),
           hostname,
           "save-override",
-          () => undefined
+          () => undefined,
+          { className: "site-manager__action site-manager__action--primary" }
         );
         saveButton.type = "submit";
         const cancelButton = createManagerAction(
@@ -1996,11 +2092,32 @@ export function mountPopup(platformConfig = {}) {
           hostname,
           "cancel-edit",
           () => {
-            editingOverrideHost = "";
-            renderSiteManager({ type: "host", hostname, action: hasOverride ? "edit-override" : "set-override" });
+            setEditingHost("");
+            renderSiteManager({ type: "host", hostname, action: "edit-threshold" });
           }
         );
         editorActions.append(saveButton, cancelButton);
+
+        if (hasOverride) {
+          // Only the threshold changes; the site's enabled state stays as it is.
+          editorActions.appendChild(createManagerAction(
+            msg("siteManagerUseGlobal"),
+            hostname,
+            "use-global",
+            () => {
+              setEditingHost("");
+              persistSiteSettingsIntent(
+                { hostname, override: null },
+                msg("statusOverrideDisabled", hostname),
+                enabled
+                  ? { type: "neighbor", index }
+                  : { type: "host", hostname, action: "edit-threshold" }
+              );
+            },
+            { className: "quiet-button" }
+          ));
+        }
+
         editor.append(editorLabel, editorInput, editorActions);
         editor.addEventListener("submit", (event) => {
           event.preventDefault();
@@ -2011,25 +2128,21 @@ export function mountPopup(platformConfig = {}) {
             return;
           }
 
-          editingOverrideHost = "";
+          setEditingHost("");
           persistSiteSettingsIntent(
             { hostname, override: value },
             msg("statusOverrideEnabled", hostname),
-            { type: "host", hostname, action: "edit-override" }
+            { type: "host", hostname, action: "edit-threshold" }
           );
         });
         item.appendChild(editor);
-      } else if (pendingConfirmation?.hostname === hostname) {
-        const kind = pendingConfirmation.kind;
+      } else if (isConfirming) {
         const confirmation = el("div", "site-manager__confirmation", {
           role: "group",
-          "aria-label": msg(kind === "override" ? "siteManagerConfirmOverride" : "siteManagerConfirmRemove", hostname),
+          "aria-label": msg("siteManagerConfirmRemove", hostname),
         });
         const confirmationText = el("span", "site-manager__confirmation-text");
-        confirmationText.textContent = msg(
-          kind === "override" ? "siteManagerConfirmOverride" : "siteManagerConfirmRemove",
-          hostname
-        );
+        confirmationText.textContent = msg("siteManagerConfirmRemove", hostname);
         const confirmationActions = el("div", "site-manager__editor-actions");
         const confirmButton = createManagerAction(
           msg("siteManagerConfirmAction"),
@@ -2038,14 +2151,12 @@ export function mountPopup(platformConfig = {}) {
           () => {
             pendingConfirmation = null;
             persistSiteSettingsIntent(
-              kind === "override"
-                ? { hostname, override: null }
-                : { hostname, remove: true },
-              msg(kind === "override" ? "statusOverrideRemoved" : "statusSiteSettingsRemoved", hostname),
+              { hostname, remove: true },
+              msg("statusSiteSettingsRemoved", hostname),
               { type: "neighbor", index }
             );
           },
-          { danger: true }
+          { className: "site-manager__action site-manager__action--danger" }
         );
         const cancelButton = createManagerAction(
           msg("siteManagerCancel"),
@@ -2053,60 +2164,20 @@ export function mountPopup(platformConfig = {}) {
           "cancel-confirm",
           () => {
             pendingConfirmation = null;
-            renderSiteManager({
-              type: "host",
-              hostname,
-              action: kind === "override" ? "remove-override" : "remove-site",
-            });
+            renderSiteManager({ type: "host", hostname, action: "remove-site" });
           }
         );
         confirmationActions.append(confirmButton, cancelButton);
         confirmation.append(confirmationText, confirmationActions);
         item.appendChild(confirmation);
       } else {
-        const actions = el("div", "site-manager__actions");
-        actions.appendChild(createManagerAction(
-          msg(enabled ? "siteManagerDisable" : "siteManagerEnable"),
-          hostname,
-          "toggle-enabled",
-          () => persistSiteSettingsIntent(
-            { hostname, enabled: !enabled },
-            msg(enabled ? "statusDisabledOnHost" : "statusEnabledOnHost", hostname),
-            !enabled && !hasOverride
-              ? { type: "neighbor", index }
-              : { type: "host", hostname, action: "toggle-enabled" }
-          )
-        ));
-
-        actions.appendChild(createManagerAction(
-          msg(hasOverride ? "siteManagerEditOverride" : "siteManagerSetOverride"),
-          hostname,
-          hasOverride ? "edit-override" : "set-override",
-          () => {
-            pendingConfirmation = null;
-            editingOverrideHost = hostname;
-            renderSiteManager({ type: "host", hostname, action: "override-input" });
-          }
-        ));
-
-        if (hasOverride) {
-          actions.appendChild(createManagerAction(
-            msg("siteManagerRemoveOverride"),
-            hostname,
-            "remove-override",
-            () => beginConfirmation(hostname, "override"),
-            { danger: true }
-          ));
-        }
-
-        actions.appendChild(createManagerAction(
+        item.appendChild(createManagerAction(
           msg("siteManagerRemoveSite"),
           hostname,
           "remove-site",
-          () => beginConfirmation(hostname, "site"),
-          { danger: true }
+          () => beginSiteRemoval(hostname),
+          { className: "quiet-button quiet-button--danger site-manager__remove" }
         ));
-        item.appendChild(actions);
       }
 
       siteManagerList.appendChild(item);
@@ -2379,7 +2450,7 @@ export function mountPopup(platformConfig = {}) {
     }
 
     isSiteManagerOpen = true;
-    editingOverrideHost = "";
+    setEditingHost("");
     pendingConfirmation = null;
     syncSiteManagerVisibility();
     renderSiteManager();
@@ -2396,27 +2467,15 @@ export function mountPopup(platformConfig = {}) {
     event.preventDefault();
     if (editingOverrideHost) {
       const hostname = editingOverrideHost;
-      const hasOverride = Object.prototype.hasOwnProperty.call(
-        settingsState[KEYS.siteOverrides],
-        hostname
-      );
-      editingOverrideHost = "";
-      renderSiteManager({
-        type: "host",
-        hostname,
-        action: hasOverride ? "edit-override" : "set-override",
-      });
+      setEditingHost("");
+      renderSiteManager({ type: "host", hostname, action: "edit-threshold" });
       return;
     }
 
     if (pendingConfirmation) {
-      const { hostname, kind } = pendingConfirmation;
+      const { hostname } = pendingConfirmation;
       pendingConfirmation = null;
-      renderSiteManager({
-        type: "host",
-        hostname,
-        action: kind === "override" ? "remove-override" : "remove-site",
-      });
+      renderSiteManager({ type: "host", hostname, action: "remove-site" });
       return;
     }
 

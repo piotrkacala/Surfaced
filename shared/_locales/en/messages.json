@@ -353,36 +353,33 @@
   "siteManagerEnabled": { "message": "Enabled", "description": "Enabled state shown for a hostname in the site settings manager." },
   "siteManagerDisabled": { "message": "Disabled", "description": "Disabled state shown for a hostname in the site settings manager." },
   "siteManagerGlobalThreshold": {
-    "message": "Global threshold: $VALUE$",
+    "message": "Global threshold · $VALUE$",
     "description": "Effective global threshold shown for a hostname without an override.",
     "placeholders": { "value": { "content": "$1", "example": "7 screens" } }
   },
   "siteManagerOverrideThreshold": {
-    "message": "Site override: $VALUE$",
-    "description": "Site threshold override shown for a hostname.",
+    "message": "Custom threshold · $VALUE$",
+    "description": "Site-specific threshold shown for a hostname.",
     "placeholders": { "value": { "content": "$1", "example": "12 screens" } }
   },
-  "siteManagerEnable": { "message": "Enable", "description": "Action that enables Surfaced on a saved hostname." },
-  "siteManagerDisable": { "message": "Disable", "description": "Action that disables Surfaced on a saved hostname." },
-  "siteManagerSetOverride": { "message": "Set override", "description": "Action that opens the threshold override editor for a hostname." },
-  "siteManagerEditOverride": { "message": "Edit override", "description": "Action that edits an existing threshold override for a hostname." },
-  "siteManagerRemoveOverride": { "message": "Remove override", "description": "Action that begins removal of a threshold override." },
+  "siteManagerEdit": { "message": "Edit", "description": "Action that opens the threshold editor for a saved hostname." },
+  "siteManagerEditLabel": {
+    "message": "Edit threshold for $HOST$",
+    "description": "Accessible label for the action that opens the threshold editor for a hostname.",
+    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
+  },
+  "siteManagerUseGlobal": { "message": "Use global threshold", "description": "Editor action that removes a site-specific threshold and keeps the site's enabled state." },
   "siteManagerRemoveSite": { "message": "Remove site settings", "description": "Action that begins removal of all saved settings for a hostname." },
   "siteManagerOverrideInput": {
-    "message": "Threshold override for $HOST$",
-    "description": "Label for the threshold override input in the site settings manager.",
+    "message": "Custom threshold for $HOST$",
+    "description": "Label for the site-specific threshold input in the site settings manager.",
     "placeholders": { "host": { "content": "$1", "example": "example.com" } }
   },
-  "siteManagerSaveOverride": { "message": "Save override", "description": "Action that saves a threshold override in the site settings manager." },
+  "siteManagerSaveOverride": { "message": "Save", "description": "Action that saves a site-specific threshold in the site settings manager." },
   "siteManagerCancel": { "message": "Cancel", "description": "Action that cancels an edit or destructive confirmation." },
-  "siteManagerConfirmOverride": {
-    "message": "Remove the threshold override for $HOST$?",
-    "description": "Confirmation copy before removing a threshold override.",
-    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
-  },
   "siteManagerConfirmRemove": {
-    "message": "Remove all saved settings for $HOST$?",
-    "description": "Confirmation copy before removing complete site configuration.",
+    "message": "Remove saved settings for $HOST$? The site will follow your global settings again. This does not turn reminders off.",
+    "description": "Confirmation copy before removing complete site configuration; it must say the site returns to global settings.",
     "placeholders": { "host": { "content": "$1", "example": "example.com" } }
   },
   "siteManagerConfirmAction": { "message": "Confirm removal", "description": "Destructive confirmation action in the site settings manager." },
@@ -456,16 +453,6 @@
   "statusOverrideDisabled": {
     "message": "Global threshold restored for $HOST$",
     "description": "Status message when a custom threshold is disabled.",
-    "placeholders": {
-      "host": {
-        "content": "$1",
-        "example": "reddit.com"
-      }
-    }
-  },
-  "statusOverrideRemoved": {
-    "message": "Override removed for $HOST$",
-    "description": "Status message when an override is deleted from the management list.",
     "placeholders": {
       "host": {
         "content": "$1",

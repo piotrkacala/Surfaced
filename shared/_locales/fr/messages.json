@@ -98,31 +98,28 @@
   "siteManagerEnabled": { "message": "Activé" },
   "siteManagerDisabled": { "message": "Désactivé" },
   "siteManagerGlobalThreshold": {
-    "message": "Seuil global : $VALUE$",
+    "message": "Seuil global · $VALUE$",
     "placeholders": { "value": { "content": "$1", "example": "7 écrans" } }
   },
   "siteManagerOverrideThreshold": {
-    "message": "Seuil propre au site : $VALUE$",
+    "message": "Seuil propre au site · $VALUE$",
     "placeholders": { "value": { "content": "$1", "example": "12 écrans" } }
   },
-  "siteManagerEnable": { "message": "Activer" },
-  "siteManagerDisable": { "message": "Désactiver" },
-  "siteManagerSetOverride": { "message": "Définir un seuil propre au site" },
-  "siteManagerEditOverride": { "message": "Modifier le seuil propre au site" },
-  "siteManagerRemoveOverride": { "message": "Supprimer le seuil propre au site" },
+  "siteManagerEdit": { "message": "Modifier" },
+  "siteManagerEditLabel": {
+    "message": "Modifier le seuil de $HOST$",
+    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
+  },
+  "siteManagerUseGlobal": { "message": "Utiliser le seuil global" },
   "siteManagerRemoveSite": { "message": "Supprimer les paramètres du site" },
   "siteManagerOverrideInput": {
     "message": "Seuil propre à $HOST$",
     "placeholders": { "host": { "content": "$1", "example": "example.com" } }
   },
-  "siteManagerSaveOverride": { "message": "Enregistrer le seuil" },
+  "siteManagerSaveOverride": { "message": "Enregistrer" },
   "siteManagerCancel": { "message": "Annuler" },
-  "siteManagerConfirmOverride": {
-    "message": "Supprimer le seuil propre à $HOST$ ?",
-    "placeholders": { "host": { "content": "$1", "example": "example.com" } }
-  },
   "siteManagerConfirmRemove": {
-    "message": "Supprimer tous les paramètres enregistrés pour $HOST$ ?",
+    "message": "Supprimer les paramètres enregistrés pour $HOST$ ? Le site reprendra vos paramètres globaux. Cela ne désactive pas les rappels.",
     "placeholders": { "host": { "content": "$1", "example": "example.com" } }
   },
   "siteManagerConfirmAction": { "message": "Confirmer la suppression" },
@@ -185,10 +182,6 @@
   },
   "statusOverrideDisabled": {
     "message": "Seuil global rétabli pour $HOST$",
-    "placeholders": { "host": { "content": "$1", "example": "reddit.com" } }
-  },
-  "statusOverrideRemoved": {
-    "message": "Seuil propre au site supprimé pour $HOST$",
     "placeholders": { "host": { "content": "$1", "example": "reddit.com" } }
   },
   "ariaRemoveSiteOverride": {

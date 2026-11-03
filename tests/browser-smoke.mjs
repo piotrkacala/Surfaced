@@ -97,6 +97,25 @@ async function popupFocus(page) {
   });
 }
 
+async function managerFocus(page) {
+  const focus = await popupFocus(page);
+  return focus ? { hostname: focus.hostname, action: focus.action } : null;
+}
+
+async function managerRowText(page, hostname, selector) {
+  return page.evaluate(({ hostname, selector }) => (
+    document.getElementById("root").shadowRoot
+      .querySelector(`[data-hostname='${hostname}'] ${selector}`)?.textContent ?? null
+  ), { hostname, selector });
+}
+
+async function managerActionCount(page, hostname, action) {
+  return page.evaluate(({ hostname, action }) => (
+    document.getElementById("root").shadowRoot
+      .querySelectorAll(`[data-hostname='${hostname}'] [data-manager-action='${action}']`).length
+  ), { hostname, action });
+}
+
 async function tabUntil(page, predicate, { backwards = false, limit = 60 } = {}) {
   for (let index = 0; index < limit; index += 1) {
     await page.keyboard.press(backwards ? "Shift+Tab" : "Tab");
@@ -883,53 +902,114 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
       }));
     });
     assert.deepEqual(rows, [
-      { hostname: "both.example", state: "Disabled", threshold: "Site override: 5.5 screens" },
-      { hostname: "disabled-only.example", state: "Disabled", threshold: "Global threshold: 7 screens" },
-      { hostname: "override-only.example", state: "Enabled", threshold: "Site override: 12 screens" },
+      { hostname: "both.example", state: "Disabled", threshold: "Custom threshold · 5.5 screens" },
+      { hostname: "disabled-only.example", state: "Disabled", threshold: "Global threshold · 7 screens" },
+      { hostname: "override-only.example", state: "Enabled", threshold: "Custom threshold · 12 screens" },
     ]);
+    assert.deepEqual(await managerPage.evaluate(() => {
+      const input = document.getElementById("root").shadowRoot
+        .querySelector("[data-hostname='both.example'] [data-manager-action='toggle-enabled']");
+      return { role: input.getAttribute("role"), label: input.getAttribute("aria-label"), checked: input.checked };
+    }), { role: "switch", label: "Enabled on both.example", checked: false }, `${platform}: each saved site has an enabled switch`);
 
     await tabUntil(managerPage, (focus) => (
       focus?.hostname === "both.example" && focus.action === "toggle-enabled"
     ));
     await managerPage.keyboard.press("Space");
-    assert.equal(await managerPage.evaluate(() => (
-      document.getElementById("root").shadowRoot
-        .querySelector("[data-hostname='both.example'] .site-manager__state").textContent
-    )), "Enabled");
+    assert.equal(await managerRowText(managerPage, "both.example", ".site-manager__state"), "Enabled");
+    assert.deepEqual(
+      await managerFocus(managerPage),
+      { hostname: "both.example", action: "toggle-enabled" },
+      `${platform}: a row that remains keeps focus on its switch`
+    );
 
     await tabUntil(managerPage, (focus) => (
-      focus?.hostname === "disabled-only.example" && focus.action === "set-override"
+      focus?.hostname === "disabled-only.example" && focus.action === "edit-threshold"
     ));
     await managerPage.keyboard.press("Enter");
     assert.equal((await popupFocus(managerPage)).action, "override-input");
+    assert.equal(
+      await managerActionCount(managerPage, "disabled-only.example", "use-global"),
+      0,
+      `${platform}: Use global threshold appears only for a saved custom threshold`
+    );
     await managerPage.keyboard.press("Control+A");
     await managerPage.keyboard.type("5.25");
     await managerPage.keyboard.press("Enter");
-    assert.equal(await managerPage.evaluate(() => (
-      document.getElementById("root").shadowRoot
-        .querySelector("[data-hostname='disabled-only.example'] .site-manager__threshold").textContent
-    )), "Site override: 5.25 screens");
+    assert.equal(
+      await managerRowText(managerPage, "disabled-only.example", ".site-manager__threshold"),
+      "Custom threshold · 5.25 screens"
+    );
+    assert.deepEqual(
+      await managerFocus(managerPage),
+      { hostname: "disabled-only.example", action: "edit-threshold" },
+      `${platform}: saving returns focus to Edit`
+    );
+
+    await managerPage.keyboard.press("Enter");
+    await managerPage.keyboard.press("Escape");
+    assert.deepEqual(
+      await managerFocus(managerPage),
+      { hostname: "disabled-only.example", action: "edit-threshold" },
+      `${platform}: Escape in the editor returns focus to Edit`
+    );
+
+    await managerPage.keyboard.press("Enter");
+    await tabUntil(managerPage, (focus) => (
+      focus?.hostname === "disabled-only.example" && focus.action === "use-global"
+    ));
+    await managerPage.keyboard.press("Enter");
+    assert.deepEqual({
+      state: await managerRowText(managerPage, "disabled-only.example", ".site-manager__state"),
+      threshold: await managerRowText(managerPage, "disabled-only.example", ".site-manager__threshold"),
+    }, {
+      state: "Disabled",
+      threshold: "Global threshold · 7 screens",
+    }, `${platform}: Use global threshold changes only the threshold`);
+    assert.deepEqual(
+      await managerFocus(managerPage),
+      { hostname: "disabled-only.example", action: "edit-threshold" },
+      `${platform}: a row that remains after Use global threshold focuses Edit`
+    );
+
+    // Enabling a site with nothing else saved removes its row.
+    await tabUntil(managerPage, (focus) => (
+      focus?.hostname === "disabled-only.example" && focus.action === "toggle-enabled"
+    ), { backwards: true });
+    await managerPage.keyboard.press("Space");
+    assert.equal(await managerActionCount(managerPage, "disabled-only.example", "toggle-enabled"), 0);
+    assert.equal(
+      (await popupFocus(managerPage))?.hostname,
+      "override-only.example",
+      `${platform}: a row that disappears focuses the next row`
+    );
 
     await tabUntil(managerPage, (focus) => (
-      focus?.hostname === "disabled-only.example" && focus.action === "remove-override"
+      focus?.hostname === "override-only.example" && focus.action === "remove-site"
     ));
     await managerPage.keyboard.press("Enter");
     assert.equal((await popupFocus(managerPage)).action, "confirm");
-    await managerPage.keyboard.press("Enter");
-    assert.equal(await managerPage.evaluate(() => (
-      document.getElementById("root").shadowRoot
-        .querySelector("[data-hostname='disabled-only.example'] .site-manager__threshold").textContent
-    )), "Global threshold: 7 screens");
+    assert.equal(
+      await managerRowText(managerPage, "override-only.example", ".site-manager__confirmation-text"),
+      "Remove saved settings for override-only.example? The site will follow your global settings again. This does not turn reminders off.",
+      `${platform}: removal explains the site returns to global settings`
+    );
+    await managerPage.keyboard.press("Escape");
+    assert.deepEqual(
+      await managerFocus(managerPage),
+      { hostname: "override-only.example", action: "remove-site" },
+      `${platform}: Escape in the confirmation returns focus to Remove site settings`
+    );
 
-    // Start from the row focused by the preceding override removal, then follow
-    // the manager's real next-neighbor focus. This keeps every traversal inside
-    // the document and does not depend on Firefox wrapping Tab after the page.
-    const removalOrder = ["disabled-only.example", "override-only.example", "both.example"];
-    const expectedFocusAfterRemoval = ["override-only.example", "both.example", ""];
+    // Follow the manager's real next-neighbor focus. This keeps every traversal
+    // inside the document and does not depend on Firefox wrapping Tab after the page.
+    const removalOrder = ["override-only.example", "both.example"];
+    const expectedFocusAfterRemoval = ["both.example", ""];
     for (const [index, hostname] of removalOrder.entries()) {
-      await tabUntil(managerPage, (focus) => (
-        focus?.hostname === hostname && focus.action === "remove-site"
-      ));
+      const isTarget = (focus) => focus?.hostname === hostname && focus.action === "remove-site";
+      if (!isTarget(await managerFocus(managerPage))) {
+        await tabUntil(managerPage, isTarget);
+      }
       await managerPage.keyboard.press("Enter");
       assert.equal((await popupFocus(managerPage)).action, "confirm");
       await managerPage.keyboard.press("Enter");
@@ -1004,6 +1084,48 @@ async function testPopupKeyboardAndSiteManager(browser, origin) {
   }
 }
 
+// The manager list is rebuilt after every change, so editor state must survive
+// a rebuild and must not outlive the row it belongs to.
+async function testSiteManagerEditorAcrossRebuilds(browser, origin) {
+  for (const platform of ["desktop", "android"]) {
+    const params = new URLSearchParams({
+      platform,
+      tab: "about:config",
+      disabledDomains: "both.example,disabled-only.example",
+      siteOverrides: "both.example:5.5",
+    });
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await page.goto(`${origin}/tools/capture/popup-harness.html?${params}`, { waitUntil: "networkidle" });
+    await waitForReady(page);
+    const root = page.locator("#root");
+    await root.locator("[aria-controls='siteSettingsManager']").click();
+
+    await root.locator("[data-hostname='both.example'] [data-manager-action='edit-threshold']").click();
+    const draftInput = root.locator("[data-hostname='both.example'] [data-manager-action='override-input']");
+    await draftInput.fill("9.25");
+    await root.locator("[data-hostname='both.example'] [data-manager-action='toggle-enabled']").focus();
+    await page.keyboard.press("Space");
+    assert.equal(await managerRowText(page, "both.example", ".site-manager__state"), "Enabled");
+    assert.equal(await draftInput.inputValue(), "9.25", `${platform}: switching a site keeps its unsaved threshold`);
+
+    await root.locator("[data-hostname='disabled-only.example'] [data-manager-action='edit-threshold']").click();
+    await root.locator("[data-hostname='disabled-only.example'] [data-manager-action='toggle-enabled']").focus();
+    await page.keyboard.press("Space");
+    assert.equal(await managerActionCount(page, "disabled-only.example", "toggle-enabled"), 0);
+    assert.equal((await popupFocus(page))?.hostname, "both.example", `${platform}: the edited row disappearing focuses the next row`);
+    await page.keyboard.press("Escape");
+    assert.equal(
+      (await popupFocus(page))?.controls,
+      "siteSettingsManager",
+      `${platform}: Escape after the edited row disappears closes the manager`
+    );
+    assert.equal(await page.evaluate(() => (
+      document.getElementById("root").shadowRoot.querySelector("#siteSettingsManager").hidden
+    )), true);
+    await page.close();
+  }
+}
+
 async function testThresholdEditing(browser, origin) {
   for (const platform of ["desktop", "android"]) {
     const params = new URLSearchParams({
@@ -1059,8 +1181,8 @@ async function testThresholdEditing(browser, origin) {
 
     await root.locator("[aria-controls='siteSettingsManager']").click();
     const summaries = await root.locator(".site-manager__threshold").allTextContents();
-    assert.ok(summaries.includes("Site override: 0.004 screens"));
-    assert.ok(summaries.includes("Site override: 7.999 screens"));
+    assert.ok(summaries.includes("Custom threshold · 0.004 screens"));
+    assert.ok(summaries.includes("Custom threshold · 7.999 screens"));
 
     for (const input of [globalInput, siteInput]) {
       const control = input.locator("../..");
@@ -1426,6 +1548,7 @@ try {
     await testPopupSessionUi(browser, server.origin);
     await testPermissionHealthUi(browser, server.origin);
     await testPopupKeyboardAndSiteManager(browser, server.origin);
+    await testSiteManagerEditorAcrossRebuilds(browser, server.origin);
     await testThresholdEditing(browser, server.origin);
     await testPopupSettingsImportExport(browser, server.origin);
     await testFrenchLocalization(browser, server.origin);

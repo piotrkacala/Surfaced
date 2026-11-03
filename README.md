@@ -113,7 +113,7 @@ Once you are past your threshold, the toolbar badge shows your current depth as 
 | **Reminder threshold** | Sets when the first reminder appears. Defaults to `7`. Supports any finite positive value. |
 | **Enabled on this site** | Turns Surfaced off only for the current site. |
 | **Use a different value on this site** | Applies a site-specific threshold override for the current host. |
-| **Manage site settings** | Opens every saved site configuration so you can enable or disable a host, set or remove its threshold override, or remove the complete host configuration. |
+| **Manage site settings** | Opens every saved site configuration so you can switch a host on or off, edit its custom threshold or return it to the global threshold without changing whether it is on, or remove its saved settings so it follows your global settings again. |
 | **First reminder text** | Customizes the shallow-zone reminder. Mid and deep reminder text stays fixed. |
 | **Pause until browser restarts** | Temporarily stops reminders and badge updates on all tabs without changing saved settings. |
 | **Import and export** | Saves or restores all persistent settings through a validated local JSON file. Export stays in the popup; import opens a durable local extension page and replaces the complete persistent settings set only after confirmation. |

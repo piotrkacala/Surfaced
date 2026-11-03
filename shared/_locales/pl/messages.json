@@ -268,31 +268,28 @@
     "siteManagerEnabled": { "message": "Włączone" },
     "siteManagerDisabled": { "message": "Wyłączone" },
     "siteManagerGlobalThreshold": {
-        "message": "Próg globalny: $VALUE$",
+        "message": "Próg globalny · $VALUE$",
         "placeholders": { "value": { "content": "$1" } }
     },
     "siteManagerOverrideThreshold": {
-        "message": "Próg witryny: $VALUE$",
+        "message": "Własny próg · $VALUE$",
         "placeholders": { "value": { "content": "$1" } }
     },
-    "siteManagerEnable": { "message": "Włącz" },
-    "siteManagerDisable": { "message": "Wyłącz" },
-    "siteManagerSetOverride": { "message": "Ustaw własny próg" },
-    "siteManagerEditOverride": { "message": "Edytuj własny próg" },
-    "siteManagerRemoveOverride": { "message": "Usuń własny próg" },
+    "siteManagerEdit": { "message": "Edytuj" },
+    "siteManagerEditLabel": {
+        "message": "Edytuj próg dla $HOST$",
+        "placeholders": { "host": { "content": "$1" } }
+    },
+    "siteManagerUseGlobal": { "message": "Użyj progu globalnego" },
     "siteManagerRemoveSite": { "message": "Usuń ustawienia strony" },
     "siteManagerOverrideInput": {
         "message": "Własny próg dla $HOST$",
         "placeholders": { "host": { "content": "$1" } }
     },
-    "siteManagerSaveOverride": { "message": "Zapisz własny próg" },
+    "siteManagerSaveOverride": { "message": "Zapisz" },
     "siteManagerCancel": { "message": "Anuluj" },
-    "siteManagerConfirmOverride": {
-        "message": "Usunąć własny próg dla $HOST$?",
-        "placeholders": { "host": { "content": "$1" } }
-    },
     "siteManagerConfirmRemove": {
-        "message": "Usunąć wszystkie zapisane ustawienia dla $HOST$?",
+        "message": "Usunąć zapisane ustawienia dla $HOST$? Strona wróci do ustawień globalnych. To nie wyłącza przypomnień.",
         "placeholders": { "host": { "content": "$1" } }
     },
     "siteManagerConfirmAction": { "message": "Potwierdź usunięcie" },
@@ -361,14 +358,6 @@
     },
     "statusOverrideDisabled": {
         "message": "Przywrócono próg globalny dla $HOST$",
-        "placeholders": {
-            "host": {
-                "content": "$1"
-            }
-        }
-    },
-    "statusOverrideRemoved": {
-        "message": "Usunięto wyjątek dla $HOST$",
         "placeholders": {
             "host": {
                 "content": "$1"
