@@ -30,6 +30,7 @@
         "settings.js",
         "session-pause.js",
         "scroll-tracker.js",
+        "reminder-view.js",
         "content.js"
       ],
       "run_at": "document_idle"

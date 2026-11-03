@@ -40,9 +40,9 @@
 
   // Depth Zones
   const ZONES = [
-    { multiplier: 1, color: "#00d4ff", messageKey: "defaultNotificationText" },
-    { multiplier: 2, color: "#f0a500", messageKey: "notificationMid" },
-    { multiplier: 3, color: "#ff4f4f", messageKey: "notificationDeep" }
+    { multiplier: 1, messageKey: "defaultNotificationText" },
+    { multiplier: 2, messageKey: "notificationMid" },
+    { multiplier: 3, messageKey: "notificationDeep" }
   ];
   const scrollTracker = SurfacedScrollTracker.createTracker({
     threshold: DEFAULT_THRESHOLD_SCREENS,
@@ -261,7 +261,6 @@
   // ── Build notification ────────────────────────────────────────────────────
   function createNotification(zoneIdx) {
     const zone = ZONES[zoneIdx];
-    const color = zone.color;
     // Use user-customized text only for the shallow zone (index 0)
     const text = zoneIdx === 0 ? notificationText : browser.i18n.getMessage(zone.messageKey);
 
@@ -297,331 +296,31 @@
 
     // ── Styles ──────────────────────────────────────────────────────────────
     const style = document.createElement("style");
-    style.textContent = `
+    style.textContent = SurfacedReminderView.createReminderStyles() + `
       .notification {
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 18px;
-
-        position: relative;
-        margin: 0 auto 24px auto;
+        margin: 0 auto 20px auto;
         width: calc(100% - 24px);
-        min-width: 0;
-        max-width: 580px;
-        padding: 16px 22px;
-        border-radius: 14px;
+        max-width: 520px;
         pointer-events: all;
-        overflow: hidden;
-
-        /* Ocean dark background */
-        background: linear-gradient(
-          135deg,
-          rgba(4, 22, 42, 0.98) 0%,
-          rgba(2, 14, 30, 0.98) 100%
-        );
-        border: 1px solid ${color}40;
-        box-shadow:
-          0 0 0 1px ${color}14,
-          0 12px 40px rgba(0, 0, 0, 0.7),
-          0 0 50px ${color}14,
-          inset 0 1px 0 ${color}1a;
-
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        animation: surface-up 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
-      }
-
-      @keyframes surface-up {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-          box-shadow: 0 0 0 1px ${color}14, 0 0 0 rgba(0,0,0,0);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-          box-shadow:
-            0 0 0 1px ${color}14,
-            0 8px 32px rgba(0, 0, 0, 0.6),
-            0 0 40px ${color}14,
-            inset 0 1px 0 ${color}1a;
-        }
-      }
-
-      /* Caustic shimmer layer inside the notification */
-      .notification::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background:
-          radial-gradient(ellipse 80px 30px at 20% 50%, ${color}0d 0%, transparent 70%),
-          radial-gradient(ellipse 60px 40px at 75% 30%, ${color}0a 0%, transparent 70%);
-        pointer-events: none;
-        animation: caustic-shift 6s ease-in-out infinite alternate;
-      }
-
-      @keyframes caustic-shift {
-        0%   { opacity: 0.6; transform: scale(1) translateX(0); }
-        100% { opacity: 1;   transform: scale(1.05) translateX(4px); }
-      }
-
-      /* Glowing top-edge line — like light at the water surface */
-      .notification::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 10%;
-        right: 10%;
-        height: 1px;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          ${color}99,
-          ${color}cc,
-          ${color}99,
-          transparent
-        );
-        animation: surface-shimmer 3s ease-in-out infinite;
-      }
-
-      @keyframes surface-shimmer {
-        0%, 100% { opacity: 0.5; transform: scaleX(0.9); }
-        50%       { opacity: 1.0; transform: scaleX(1.0); }
-      }
-
-      /* Left: icon + text */
-      .notification__left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        position: relative;
-        z-index: 1;
-        min-width: 0;
-      }
-
-      /* Depth icon */
-      .notification__icon {
-        box-sizing: border-box;
-        flex-shrink: 0;
-        width: 30px;
-        height: 30px;
-        border-radius: 7px;
-        background: ${color}14;
-        border: 1px solid ${color}33;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .notification__icon svg {
-        width: 16px;
-        height: 16px;
-      }
-
-      /* Text block */
-      .notification__text {
-        min-width: 0;
-      }
-
-      .notification__title {
-        font-size: 14px;
-        font-weight: 500;
-        color: #c8eaf7;
-        line-height: 1.3;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      /* Right: close button */
-      .notification__close {
-        box-sizing: border-box;
-        flex-shrink: 0;
-        position: relative;
-        z-index: 1;
-        width: 30px;
-        height: 30px;
-        border-radius: 7px;
-        background: ${color}0d;
-        border: 1px solid ${color}26;
-        color: rgba(90, 143, 174, 0.8);
-        font-size: 14px;
-        line-height: 1;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
-      }
-
-      .notification__close:hover {
-        background: ${color}1f;
-        border-color: ${color}66;
-        color: ${color};
-        box-shadow: 0 0 10px ${color}33;
-      }
-
-      .notification__close:focus-visible {
-        outline: 2px solid ${color};
-        outline-offset: 2px;
-        background: ${color}1f;
-        border-color: ${color}99;
-        color: ${color};
-      }
-
-      /* Bubble particles */
-      .bubble {
-        position: absolute;
-        bottom: 4px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.35), ${color}0f);
-        border: 1px solid ${color}33;
-        pointer-events: none;
-        animation: bubble-float linear infinite;
-      }
-
-      @keyframes bubble-float {
-        0%   { transform: translateY(0) translateX(0); opacity: 0; }
-        15%  { opacity: 0.7; }
-        85%  { opacity: 0.4; }
-        100% { transform: translateY(-60px) translateX(var(--dx, 0px)); opacity: 0; }
       }
 
       @media (max-width: 386px) {
         .notification {
-          gap: 10px;
           margin-bottom: 12px;
-          padding: 12px;
-          border-radius: 12px;
-        }
-
-        .notification__left {
-          gap: 8px;
-        }
-
-        .notification__icon {
-          width: 30px;
-          height: 30px;
-        }
-      }
-
-      @media (max-width: 386px), (pointer: coarse) {
-        .notification__close {
-          width: 44px;
-          height: 44px;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .notification,
-        .notification::before,
-        .notification::after {
-          animation: none !important;
-          transform: none !important;
-        }
-
-        .notification {
-          opacity: 1;
-        }
-
-        .notification__close {
-          transition: none;
-        }
-
-        .bubble {
-          display: none;
-          animation: none !important;
         }
       }
     `;
 
     // ── Structure ────────────────────────────────────────────────────────────
-    const notification = document.createElement("div");
-    notification.className = "notification";
-
-    // Bubbles
-    for (let i = 0; i < 5; i++) {
-      const b = document.createElement("div");
-      b.className = "bubble";
-      const size = 3 + Math.random() * 5;
-      const left = 5 + Math.random() * 90;
-      const delay = Math.random() * 4;
-      const dur = 3 + Math.random() * 3;
-      const dx = (Math.random() - 0.5) * 16;
-      b.style.cssText = `
-        width:${size}px; height:${size}px;
-        left:${left}%;
-        animation-duration:${dur}s;
-        animation-delay:-${delay}s;
-        --dx:${dx}px;
-      `;
-      notification.appendChild(b);
-    }
-
-    // Left section
-    const left = document.createElement("div");
-    left.className = "notification__left";
-
-    // Icon: three chevrons (matching the extension icon concept)
-    const iconWrap = document.createElement("div");
-    iconWrap.className = "notification__icon";
-    iconWrap.setAttribute("aria-hidden", "true");
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", "16");
-    svg.setAttribute("height", "16");
-    svg.setAttribute("viewBox", "0 0 16 16");
-    svg.setAttribute("fill", "none");
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("focusable", "false");
-
-    const polylines = [
-      { points: "3,3 8,7 13,3", opacity: "1" },
-      { points: "3,7 8,11 13,7", opacity: "0.55" },
-      { points: "3,11 8,15 13,11", opacity: "0.2" }
-    ];
-
-    polylines.forEach(p => {
-      const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-      poly.setAttribute("points", p.points);
-      poly.setAttribute("stroke", color);
-      poly.setAttribute("stroke-width", "1.8");
-      poly.setAttribute("stroke-linecap", "round");
-      poly.setAttribute("stroke-linejoin", "round");
-      poly.setAttribute("opacity", p.opacity);
-      svg.appendChild(poly);
+    const { card } = SurfacedReminderView.createReminderCard({
+      depth: zoneIdx + 1,
+      text,
+      dismissLabel: browser.i18n.getMessage("ariaNotificationDismiss"),
+      onDismiss: () => dismissNotification(zoneIdx),
     });
 
-    iconWrap.appendChild(svg);
-
-    const textBlock = document.createElement("div");
-    textBlock.className = "notification__text";
-    textBlock.setAttribute("role", "status");
-    textBlock.setAttribute("aria-live", "polite");
-    textBlock.setAttribute("aria-atomic", "true");
-
-    const title = document.createElement("span");
-    title.className = "notification__title";
-    title.textContent = text;
-
-    textBlock.appendChild(title);
-    left.appendChild(iconWrap);
-    left.appendChild(textBlock);
-
-    // Close button
-    const closeBtn = document.createElement("button");
-    closeBtn.className = "notification__close";
-    closeBtn.setAttribute("aria-label", browser.i18n.getMessage("ariaNotificationDismiss"));
-    closeBtn.textContent = "✕";
-    closeBtn.addEventListener("click", () => dismissNotification(zoneIdx));
-
-    notification.appendChild(left);
-    notification.appendChild(closeBtn);
-
     shadow.appendChild(style);
-    shadow.appendChild(notification);
+    shadow.appendChild(card);
     document.body.appendChild(shadowHost);
 
     notificationVisible = true;

@@ -68,7 +68,7 @@ Browser smoke tests use Playwright from the configured global module path. A phy
 
 ## Repository Structure
 
-- `shared/` — cross-platform runtime code: content script, background script, i18n, icons, popup dispatcher, persistent settings import page
+- `shared/` — cross-platform runtime code: content script, reminder view, background script, i18n, icons, popup dispatcher, persistent settings import page
 - `desktop/` — desktop-specific manifest and popup implementation
 - `android/` — Android-specific manifest and popup implementation; source of truth for unified release metadata
 - `chrome/` — Chrome desktop manifest; reuses the desktop popup at build time
@@ -87,7 +87,7 @@ Browser smoke tests use Playwright from the configured global module path. A phy
 - The dispatcher selects `android/popup.html` or `desktop/popup.html` with `browser.runtime.getPlatformInfo()` and `location.replace()`. If popup routing changes, verify unified packaging as well.
 - Popup CSS files are only shell/fallback styling. The actual popup UI is mounted and styled inside Shadow DOM from `popup.js`.
 - Settings export remains in the popup. Settings import is owned by `shared/settings-import/`: desktop and Chrome open it in a new tab, while Android navigates the current extension tab.
-- Notification host positioning and internals are owned directly by `shared/content.js` inside the injected host and closed shadow root.
+- Notification host positioning and page placement are owned by `shared/content.js` inside the injected host and closed shadow root. The reminder card itself (styles, light/dark themes, depth icon, dismiss control) lives in `shared/reminder-view.js`, which the popup preview also uses. The preview shares the card's look, not its line wrapping: popup width and the desktop preview's opt-out from viewport-width rules still change the layout, so check reminder changes visually in both places.
 - Current persisted settings keys are `scrollNotifierThreshold`, `scrollNotifierText`, `scrollNotifierEnabled`, `scrollNotifierDisabledDomains`, and `scrollNotifierSiteOverrides`.
 - Locales live in `shared/_locales/{en,pl,fr}/messages.json`. Keep English, Polish, and French in sync when changing copy or adding UI strings.
 

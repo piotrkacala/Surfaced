@@ -78,16 +78,16 @@ Install Surfaced from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon
 Open the Surfaced popup and set the first reminder threshold in screens. The default is **7**. The UI is optimized around a recommended band of **7–14** screens, but custom positive values such as `5.5` or `20` are supported too.
 
 **3. Browse normally**  
-Surfaced runs quietly in the background. When you pass your threshold, a notification appears at the bottom of the page.
+Surfaced runs quietly in the background. When you pass your threshold, a notification appears at the bottom of the page. It uses a light card, or a dark one when your browser prefers dark pages.
 
 **4. Go deeper, get stronger reminders**  
-There are three depth zones:
+There are three depth zones. Each one lights another chevron in the reminder icon and shifts it toward deeper water:
 
-| Zone | Trigger | Color |
+| Zone | Trigger | Depth cue |
 |---|---|---|
-| Shallow | `1×` your threshold | Cyan |
-| Mid | `2×` your threshold | Amber |
-| Deep | `3×` your threshold | Coral |
+| Shallow | `1×` your threshold | One chevron, sea teal |
+| Mid | `2×` your threshold | Two chevrons, ocean blue |
+| Deep | `3×` your threshold | Filled icon, indigo |
 
 **5. Dismiss or keep scrolling**  
 Dismiss the current reminder with `✕`. If you scroll deeper, the next zone can still trigger. If you come back up below the threshold, the reminder clears and the cycle resets.

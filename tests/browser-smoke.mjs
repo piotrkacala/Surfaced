@@ -165,8 +165,11 @@ async function testReminderResponsiveness(browser, origin) {
     await waitForReady(page);
     await page.waitForFunction(() => document.getElementById("surfaced-notification-host"));
     assert.equal(await page.evaluate(() => matchMedia("(pointer: coarse)").matches), hasTouch);
+    // Hostile page CSS aimed at the reminder host. The fixture root is spared:
+    // collapsing it scrolls the page to the top, which correctly hides the
+    // reminder and made this check race the scroll handler.
     await page.addStyleTag({ content: `
-      body > div {
+      body > div:not(#fixture-root) {
         display: none;
         visibility: hidden;
         width: 1px;
@@ -188,7 +191,7 @@ async function testReminderResponsiveness(browser, origin) {
     assert.equal(metrics.hostVisibility, "visible");
     assert.equal(metrics.hostOpacity, "1");
     assert.equal(metrics.hostPosition, "fixed");
-    assert.equal(metrics.iconWidth, 30);
+    assert.equal(metrics.iconWidth, 32);
     assert.equal(metrics.iconAriaHidden, "true");
     assert.equal(metrics.svgAriaHidden, "true");
     assert.equal(metrics.messageRole, "status");
@@ -212,6 +215,44 @@ async function testReminderResponsiveness(browser, origin) {
     assert.notEqual(closeFocus.outlineWidth, "0px", `close button focus must have non-zero width at ${width}px`);
     await page.keyboard.press(width === 360 ? "Space" : "Enter");
     await page.waitForFunction(() => !document.getElementById("surfaced-notification-host"));
+    await page.close();
+  }
+}
+
+// These localized reminders need three lines at 320px; textContent alone would
+// still pass if the card clipped them.
+async function testLocalizedReminderFitsNarrowViewport(browser, origin) {
+  const zoneMessageKeys = { mid: "notificationMid", deep: "notificationDeep" };
+  for (const { locale, zone } of [
+    { locale: "pl", zone: "deep" },
+    { locale: "fr", zone: "mid" },
+    { locale: "fr", zone: "deep" },
+  ]) {
+    const messages = JSON.parse(await fs.readFile(
+      path.join(repoRoot, "shared", "_locales", locale, "messages.json"),
+      "utf8"
+    ));
+    const page = await browser.newPage({ viewport: { width: 320, height: 640 } });
+    await installClosedShadowProbe(page);
+    await page.goto(`${origin}/fixtures/marketing/long-article.html?threshold=1&zone=${zone}&locale=${locale}`, {
+      waitUntil: "networkidle",
+    });
+    await waitForReady(page);
+    await page.waitForFunction(() => document.getElementById("surfaced-notification-host"));
+    const message = await page.evaluate(() => {
+      const host = document.getElementById("surfaced-notification-host");
+      const title = window.__surfacedTestShadowRoots.get(host).querySelector(".notification__title");
+      return {
+        text: title.textContent,
+        scrollHeight: title.scrollHeight,
+        clientHeight: title.clientHeight,
+      };
+    });
+    assert.equal(message.text, messages[zoneMessageKeys[zone]].message);
+    assert.ok(
+      message.scrollHeight <= message.clientHeight,
+      `${locale} ${zone} reminder must be fully visible at 320px (${message.scrollHeight}px content in ${message.clientHeight}px)`
+    );
     await page.close();
   }
 }
@@ -361,19 +402,17 @@ async function testReducedMotion(browser, origin) {
     const host = document.getElementById("surfaced-notification-host");
     const root = window.__surfacedTestShadowRoots.get(host);
     const notification = root.querySelector(".notification");
-    const bubble = root.querySelector(".bubble");
+    const chevrons = [...root.querySelectorAll(".notification__chevron")];
     return {
       animation: getComputedStyle(notification).animationName,
-      beforeAnimation: getComputedStyle(notification, "::before").animationName,
-      afterAnimation: getComputedStyle(notification, "::after").animationName,
-      bubbleDisplay: getComputedStyle(bubble).display,
+      chevronAnimations: chevrons.map((chevron) => getComputedStyle(chevron).animationName),
+      bubbleCount: root.querySelectorAll(".bubble").length,
     };
   });
   assert.deepEqual(reminderMotion, {
     animation: "none",
-    beforeAnimation: "none",
-    afterAnimation: "none",
-    bubbleDisplay: "none",
+    chevronAnimations: ["none", "none", "none"],
+    bubbleCount: 0,
   });
   await reminderPage.close();
 
@@ -387,13 +426,14 @@ async function testReducedMotion(browser, origin) {
     const popupMotion = await page.evaluate(() => {
       const root = document.getElementById("root").shadowRoot;
       const shell = root.querySelector(".shell");
-      const preview = root.querySelector(".preview-card");
+      const preview = root.querySelector(".preview-block .notification");
       const bubble = root.querySelector(".bubble");
       return {
         sessionState: root.querySelector(".session-section").dataset.state,
         shellAnimation: getComputedStyle(shell).animationName,
         shellBeforeAnimation: getComputedStyle(shell, "::before").animationName,
-        previewBeforeAnimation: getComputedStyle(preview, "::before").animationName,
+        previewChevronAnimations: [...preview.querySelectorAll(".notification__chevron")]
+          .map((chevron) => getComputedStyle(chevron).animationName),
         bubbleDisplay: getComputedStyle(bubble).display,
       };
     });
@@ -401,7 +441,7 @@ async function testReducedMotion(browser, origin) {
       sessionState: "active",
       shellAnimation: "none",
       shellBeforeAnimation: "none",
-      previewBeforeAnimation: "none",
+      previewChevronAnimations: ["none", "none", "none"],
       bubbleDisplay: "none",
     });
     await page.close();
@@ -1276,7 +1316,8 @@ async function testFrenchLocalization(browser, origin) {
         site: root.querySelector("#siteEnabled").closest("section").querySelector(".section__title").textContent,
         pause: root.querySelector(".session-action").textContent,
         exportAction: root.querySelector("#settingsExport").textContent,
-        previewSubtitle: root.querySelector(".preview-card__sub"),
+        previewSubtitle: root.querySelector(".preview-block .notification__sub"),
+        previewInteractive: root.querySelectorAll(".preview-block button, .preview-block [role='status']").length,
         scrollWidth: shell.scrollWidth,
         clientWidth: shell.clientWidth,
       };
@@ -1288,6 +1329,7 @@ async function testFrenchLocalization(browser, origin) {
       pause: "Mettre en pause jusqu’au redémarrage du navigateur",
       exportAction: "Exporter les paramètres",
       previewSubtitle: null,
+      previewInteractive: 0,
       scrollWidth: popupCopy.clientWidth,
       clientWidth: popupCopy.clientWidth,
     });
@@ -1333,6 +1375,7 @@ try {
     await testPopupSettingsImportExport(browser, server.origin);
   } else {
     await testReminderResponsiveness(browser, server.origin);
+    await testLocalizedReminderFitsNarrowViewport(browser, server.origin);
     await testReminderCycleAndSessionPause(browser, server.origin);
     await testRestoredPageSessionRefreshFailure(browser, server.origin);
     await testCanonicalRuntimeHostname(browser, server.origin);

@@ -20,6 +20,7 @@ const REQUIRED_SHARED_MODULES = Object.freeze([
   "settings.js",
   "session-pause.js",
   "scroll-tracker.js",
+  "reminder-view.js",
   "permission-health.js",
   "settings-import/index.html",
   "settings-import/settings-import.js",
@@ -148,6 +149,7 @@ test("build contract, fail-fast gates, artifact preservation, and reproducible Z
         "settings.js",
         "session-pause.js",
         "scroll-tracker.js",
+        "reminder-view.js",
         "content.js",
       ]);
 

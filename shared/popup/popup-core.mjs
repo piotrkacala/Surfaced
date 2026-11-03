@@ -1,6 +1,7 @@
 import "../settings.js";
 import "../session-pause.js";
 import "../permission-health.js";
+import "../reminder-view.js";
 
 const DEFAULT_PLATFORM_CONFIG = {
   isTouch: false,
@@ -53,6 +54,7 @@ export function mountPopup(platformConfig = {}) {
     serializeSettingsExport,
   } = globalThis.SurfacedSettings;
   const { MESSAGE_TYPES: SESSION_MESSAGE_TYPES } = globalThis.SurfacedSessionPause;
+  const { createReminderCard, createReminderStyles } = globalThis.SurfacedReminderView;
   const {
     ACCESS_STATES,
     REQUEST_OUTCOMES,
@@ -783,112 +785,9 @@ export function mountPopup(platformConfig = {}) {
       letter-spacing: 0.8px;
     }
 
-    .preview-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      position: relative;
-      overflow: hidden;
-      padding: 14px 16px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(4, 22, 42, 0.98) 0%, rgba(2, 14, 30, 0.98) 100%);
-      border: 1px solid rgba(0, 212, 255, 0.22);
-      box-shadow:
-        0 0 0 1px rgba(0, 212, 255, 0.06),
-        inset 0 1px 0 rgba(0, 212, 255, 0.08);
-    }
-
-    .preview-card::before,
-    .preview-card::after {
-      content: "";
-      position: absolute;
-      pointer-events: none;
-    }
-
-    .preview-card::before {
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80px 30px at 20% 50%, rgba(0, 212, 255, 0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 60px 40px at 75% 30%, rgba(0, 212, 255, 0.06) 0%, transparent 70%);
-      animation: caustic-shift 7s ease-in-out infinite alternate;
-    }
-
-    .preview-card::after {
-      top: 0;
-      left: 12%;
-      right: 12%;
-      height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(0, 212, 255, 0.55),
-        rgba(91, 196, 245, 0.7),
-        rgba(0, 212, 255, 0.55),
-        transparent
-      );
-      animation: surface-shimmer 3s ease-in-out infinite;
-    }
-
-    .preview-card__left {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .preview-card__icon {
-      box-sizing: border-box;
-      width: 30px;
-      height: 30px;
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      background: rgba(0, 212, 255, 0.1);
-      border: 1px solid rgba(0, 212, 255, 0.22);
-    }
-
-    .preview-card__icon svg {
-      width: 18px;
-      height: 18px;
-    }
-
-    .preview-card__copy {
-      min-width: 0;
-    }
-
-    .preview-card__title {
-      color: #c8eaf7;
-      font-size: ${config.isTouch ? "14px" : "13px"};
-      line-height: 1.35;
-      font-weight: 500;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .preview-card__close {
-      box-sizing: border-box;
-      position: relative;
-      z-index: 1;
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: rgba(90, 143, 174, 0.8);
-      background: rgba(0, 212, 255, 0.06);
-      border: 1px solid rgba(0, 212, 255, 0.14);
-      font-size: 14px;
-      line-height: 1;
+    /* The card itself comes from the shared reminder view; the popup shell already rises. */
+    .preview-block .notification {
+      animation: none;
     }
 
     .section-row {
@@ -1269,9 +1168,7 @@ export function mountPopup(platformConfig = {}) {
     @media (prefers-reduced-motion: reduce) {
       .shell,
       .shell::before,
-      .shell::after,
-      .preview-card::before,
-      .preview-card::after {
+      .shell::after {
         animation: none !important;
         transform: none !important;
       }
@@ -1296,7 +1193,7 @@ export function mountPopup(platformConfig = {}) {
         transition-duration: 0.01ms !important;
       }
     }
-  `;
+  ` + createReminderStyles({ adaptToViewport: config.isTouch });
 
   shadow.appendChild(style);
 
@@ -1560,18 +1457,11 @@ export function mountPopup(platformConfig = {}) {
   const previewBlock = el("div", "preview-block");
   const previewLabel = el("span", "preview-label");
   previewLabel.textContent = msg("popupPreviewLabel");
-  const previewCard = el("div", "preview-card");
-  const previewLeft = el("div", "preview-card__left");
-  const previewIcon = el("div", "preview-card__icon", { "aria-hidden": "true" });
-  previewIcon.appendChild(createLogoSvg("#00d4ff"));
-  const previewCopy = el("div", "preview-card__copy");
-  const previewTitle = el("span", "preview-card__title");
-  previewTitle.textContent = DEFAULTS.text;
-  previewCopy.append(previewTitle);
-  previewLeft.append(previewIcon, previewCopy);
-  const previewClose = el("span", "preview-card__close", { "aria-hidden": "true" });
-  previewClose.textContent = "✕";
-  previewCard.append(previewLeft, previewClose);
+  const { card: previewCard, message: previewTitle } = createReminderCard({
+    depth: 1,
+    text: DEFAULTS.text,
+    preview: true,
+  });
   previewBlock.append(previewLabel, previewCard);
 
   const siteSection = el("section", "section");
