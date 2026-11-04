@@ -6,16 +6,20 @@ body {
 }
 
 body {
-  color: #d9edf7;
+  color: #13293a;
   font-family: Georgia, "Times New Roman", serif;
-  background:
-    radial-gradient(circle at top left, rgba(0, 212, 255, 0.14), transparent 28%),
-    linear-gradient(180deg, #07111a 0%, #091827 100%);
+  background: #f3f6f8;
 }
 
 .fixture-page {
   position: relative;
   min-height: 100vh;
+}
+
+/* A store scene can soften the placeholder page so the reminder stays the focal point. */
+.fixture-page--soft .article-shell,
+.fixture-page--soft .feed-shell {
+  filter: blur(2px);
 }
 
 .capture-copy {
@@ -26,11 +30,9 @@ body {
   max-width: 360px;
   padding: 22px 24px;
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(6, 19, 31, 0.98) 0%, rgba(4, 15, 25, 0.98) 100%);
-  border: 1px solid rgba(0, 212, 255, 0.16);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(4px);
+  background: #ffffff;
+  border: 1px solid rgba(19, 41, 58, 0.14);
+  box-shadow: 0 18px 48px rgba(10, 32, 48, 0.14);
 }
 
 .capture-copy[hidden] {
@@ -40,17 +42,15 @@ body {
 .capture-copy__eyebrow {
   display: inline-flex;
   margin-bottom: 14px;
-  color: #7fdff5;
+  color: #0a7489;
   font-size: 12px;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .capture-copy__title {
   margin: 0 0 10px;
-  color: #eef8ff;
+  color: #13293a;
   font-size: 34px;
   line-height: 1.02;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -59,7 +59,7 @@ body {
 
 .capture-copy__subtitle {
   margin: 0;
-  color: rgba(225, 241, 249, 0.84);
+  color: #576c7b;
   font-size: 17px;
   line-height: 1.42;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -75,9 +75,8 @@ body {
   margin-bottom: 42px;
   padding: 42px 46px;
   border-radius: 32px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 250, 252, 0.94) 100%);
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.16);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(10, 32, 48, 0.05);
 }
 
 .article-kicker,
@@ -92,14 +91,14 @@ body {
 
 .article-kicker {
   margin: 0 0 16px;
-  color: #4b7d92;
+  color: #0a7489;
   font-size: 13px;
   font-weight: 700;
 }
 
 .article-title {
   margin: 0 0 14px;
-  color: #102231;
+  color: #13293a;
   font-size: 54px;
   line-height: 1.02;
   letter-spacing: -0.04em;
@@ -107,13 +106,13 @@ body {
 
 .article-dek {
   margin: 0 0 18px;
-  color: #365060;
+  color: #576c7b;
   font-size: 22px;
   line-height: 1.45;
 }
 
 .article-meta {
-  color: #598196;
+  color: #576c7b;
   font-size: 12px;
   font-weight: 700;
 }
@@ -126,20 +125,20 @@ body {
 .article-section {
   padding: 34px 38px;
   border-radius: 28px;
-  background: rgba(249, 252, 254, 0.96);
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(10, 32, 48, 0.05);
 }
 
 .article-section__label {
   margin: 0 0 14px;
-  color: #4f8096;
+  color: #0a7489;
   font-size: 12px;
   font-weight: 700;
 }
 
 .article-section__title {
   margin: 0 0 16px;
-  color: #102231;
+  color: #13293a;
   font-size: 32px;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -147,7 +146,7 @@ body {
 
 .article-section__copy {
   margin: 0;
-  color: #233847;
+  color: #13293a;
   font-size: 21px;
   line-height: 1.85;
 }
@@ -164,14 +163,14 @@ body {
 
 .feed-shell__label {
   margin: 0 0 16px;
-  color: #86dcef;
+  color: #0a7489;
   font-size: 13px;
   font-weight: 700;
 }
 
 .feed-shell__title {
   margin: 0 0 12px;
-  color: #eef9ff;
+  color: #13293a;
   font-size: 50px;
   line-height: 1.04;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -181,7 +180,7 @@ body {
 .feed-shell__subtitle {
   margin: 0 0 28px;
   max-width: 40ch;
-  color: rgba(219, 239, 248, 0.82);
+  color: #576c7b;
   font-size: 20px;
   line-height: 1.5;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -197,19 +196,19 @@ body {
   gap: 14px;
   padding: 24px 26px;
   border-radius: 24px;
-  background: rgba(248, 251, 253, 0.96);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(10, 32, 48, 0.05);
 }
 
 .feed-card__meta {
-  color: #5c8599;
+  color: #576c7b;
   font-size: 11px;
   font-weight: 700;
 }
 
 .feed-card__title {
   margin: 0;
-  color: #102231;
+  color: #13293a;
   font-size: 28px;
   line-height: 1.15;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -218,7 +217,7 @@ body {
 
 .feed-card__copy {
   margin: 0;
-  color: #294050;
+  color: #13293a;
   font-size: 19px;
   line-height: 1.65;
 }

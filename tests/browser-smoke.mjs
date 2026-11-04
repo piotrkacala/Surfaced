@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { capturePageOptions, MOTION_SCENES, STATIC_SCENES } from "../tools/capture/scene-definitions.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
@@ -1472,6 +1473,97 @@ async function testSettingsImportAppearance(browser, origin) {
   assert.notEqual(backgrounds.light, backgrounds.dark, "page background follows the system theme");
 }
 
+async function openStoreScene(browser, origin, scene) {
+  const page = await browser.newPage(capturePageOptions(scene));
+  await installClosedShadowProbe(page);
+  await page.goto(`${origin}${scene.page}?${new URLSearchParams(scene.params)}`, { waitUntil: "networkidle" });
+  await waitForReady(page);
+  return page;
+}
+
+async function renderedReminder(browser, origin, scene) {
+  const page = await openStoreScene(browser, origin, scene);
+  const reminder = await page.evaluate(() => {
+    const host = document.getElementById("surfaced-notification-host");
+    const card = host && window.__surfacedTestShadowRoots.get(host).querySelector(".notification");
+    return card && {
+      depth: Number(card.dataset.depth),
+      litChevrons: card.querySelectorAll(".notification__chevron--lit").length,
+      opacity: getComputedStyle(card).opacity,
+    };
+  });
+  await page.close();
+  return reminder;
+}
+
+async function renderedPopupScene(browser, origin, scene) {
+  const page = await openStoreScene(browser, origin, scene);
+  const state = await page.evaluate(() => {
+    const root = document.getElementById("root").shadowRoot;
+    return {
+      focused: root.activeElement?.className ?? null,
+      managerExpanded: root.querySelector("[aria-controls='siteSettingsManager']").getAttribute("aria-expanded"),
+      customThresholdVisible: !root.querySelector(".site-override-panel").hidden,
+      stageBackground: getComputedStyle(document.body).backgroundColor,
+      popupBackground: getComputedStyle(root.querySelector(".shell")).backgroundColor,
+    };
+  });
+  await page.close();
+  return state;
+}
+
+// Store scenes must show what they claim, so this reads what each one rendered
+// under the capture tool's own page options, not the scene's parameters.
+async function testStoreScenes(browser, origin) {
+  const settled = (depth) => ({ depth, litChevrons: depth, opacity: "1" });
+  assert.deepEqual(
+    await renderedReminder(browser, origin, STATIC_SCENES["desktop-reminder-context"]),
+    settled(1),
+    "s1 shows the first reminder in its settled state"
+  );
+  assert.deepEqual(
+    await renderedReminder(browser, origin, STATIC_SCENES["reminder-escalation"]),
+    settled(3),
+    "the escalation scene reaches the deepest zone"
+  );
+
+  const heroPage = await openStoreScene(browser, origin, STATIC_SCENES["desktop-reminder-context"]);
+  assert.deepEqual(await heroPage.evaluate(() => {
+    const filterOf = (element) => getComputedStyle(element).filter;
+    return {
+      pageBlurred: filterOf(document.querySelector(".article-shell")) !== "none",
+      copy: filterOf(document.querySelector(".capture-copy")),
+      reminder: filterOf(document.getElementById("surfaced-notification-host")),
+    };
+  }), { pageBlurred: true, copy: "none", reminder: "none" }, "s1 softens only the placeholder page");
+  await heroPage.close();
+
+  const depthAnimation = MOTION_SCENES["anim-reminder-depth"];
+  const depths = [];
+  for (let frame = 0; frame < depthAnimation.frames; frame += 1) {
+    const reminder = await renderedReminder(browser, origin, depthAnimation.build(frame / (depthAnimation.frames - 1)));
+    depths.push(reminder?.depth ?? 0);
+  }
+  assert.equal(depths[0], 0, "the depth animation starts before the first reminder");
+  assert.deepEqual(depths, [...depths].sort(), `the depth animation only goes deeper: ${depths}`);
+  for (const zone of [1, 2, 3]) {
+    assert.ok(depths.filter((depth) => depth === zone).length >= 3, `the depth animation holds zone ${zone}: ${depths}`);
+  }
+
+  const savedSites = await renderedPopupScene(browser, origin, STATIC_SCENES["site-settings-list"]);
+  assert.equal(savedSites.managerExpanded, "true");
+  assert.equal(savedSites.focused, null, "the open manager leaves no focus ring in the scene");
+
+  const siteSettings = await renderedPopupScene(browser, origin, STATIC_SCENES["desktop-site-settings"]);
+  assert.equal(siteSettings.managerExpanded, "false", "s4 keeps the saved-site manager closed");
+  assert.equal(siteSettings.customThresholdVisible, true, "s4 shows the custom threshold");
+
+  const lightPopup = await renderedPopupScene(browser, origin, STATIC_SCENES["desktop-threshold-control"]);
+  const darkPopup = await renderedPopupScene(browser, origin, STATIC_SCENES["android-popup"]);
+  assert.notEqual(darkPopup.popupBackground, lightPopup.popupBackground, "s5 shows the dark popup");
+  assert.equal(darkPopup.stageBackground, lightPopup.stageBackground, "s5 keeps the light composition");
+}
+
 async function testFrenchLocalization(browser, origin) {
   const reminderMessages = {
     shallow: "Vous voilà déjà bien loin. Remontez prendre l’air.",
@@ -1574,6 +1666,8 @@ try {
   } else if (smokeScope === "import-export") {
     await testPopupSettingsImportExport(browser, server.origin);
     await testSettingsImportAppearance(browser, server.origin);
+  } else if (smokeScope === "store-scenes") {
+    await testStoreScenes(browser, server.origin);
   } else {
     await testReminderResponsiveness(browser, server.origin);
     await testLocalizedReminderFitsNarrowViewport(browser, server.origin);
@@ -1588,6 +1682,7 @@ try {
     await testThresholdEditing(browser, server.origin);
     await testPopupSettingsImportExport(browser, server.origin);
     await testSettingsImportAppearance(browser, server.origin);
+    await testStoreScenes(browser, server.origin);
     await testFrenchLocalization(browser, server.origin);
   }
   console.log(`${browserName === "firefox" ? "Firefox" : "Chromium"} harness smoke: pass`);

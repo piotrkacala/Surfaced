@@ -3,7 +3,7 @@ import http from "node:http";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { MOTION_SCENES, PRIMARY_STATIC_SCENE_IDS, STATIC_SCENES } from "./scene-definitions.mjs";
+import { capturePageOptions, MOTION_SCENES, PRIMARY_STATIC_SCENE_IDS, STATIC_SCENES } from "./scene-definitions.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -125,9 +125,9 @@ async function ensureOutputDir(targetDir) {
   await fs.mkdir(targetDir, { recursive: true });
 }
 
-async function capturePage(browserType, url, destinationPath) {
+async function capturePage(browserType, url, destinationPath, definition) {
   const browser = await browserType.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const page = await browser.newPage(capturePageOptions(definition));
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForFunction(() => document.documentElement.dataset.ready === "1");
   await page.screenshot({ path: destinationPath });
@@ -151,10 +151,16 @@ async function captureStaticScenes(sceneNames) {
         throw new Error(`Unknown static scene: ${sceneName}`);
       }
 
+      if (definition.requires) {
+        await fs.access(path.join(outputRoot, definition.requires)).catch(() => {
+          throw new Error(`Scene ${sceneName} needs ${definition.requires}; capture that scene first.`);
+        });
+      }
+
       const url = buildSceneUrl(server.origin, definition);
       const destination = path.join(outputRoot, definition.output || `${sceneName}.png`);
       console.log(`Capturing ${sceneName} -> ${destination}`);
-      await capturePage(browserType, url, destination);
+      await capturePage(browserType, url, destination, definition);
     }
   } finally {
     await server.close();
@@ -186,7 +192,7 @@ async function captureMotionFrames(sceneName, frameCountOverride) {
       const url = buildSceneUrl(server.origin, definition);
       const destination = path.join(frameDir, `frame-${String(frameIndex).padStart(3, "0")}.png`);
       console.log(`Capturing ${sceneName} frame ${frameIndex + 1}/${frameCount}`);
-      await capturePage(browserType, url, destination);
+      await capturePage(browserType, url, destination, definition);
     }
   } finally {
     await server.close();

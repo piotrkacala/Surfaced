@@ -1,4 +1,16 @@
 const DEFAULT_TEXT = "You've drifted pretty far. Come up for air.";
+// The fixtures are under ten screens long, so scenes that go past the first zone
+// need a threshold low enough for its later zones to be reachable.
+const DEPTH_SCENE_THRESHOLD = "1.5";
+
+export function capturePageOptions({ viewport = { width: 1280, height: 800 }, colorScheme } = {}) {
+  return {
+    viewport,
+    // The reminder skips its entrance animation, so every frame shows a settled state.
+    reducedMotion: "reduce",
+    ...(colorScheme ? { colorScheme } : {}),
+  };
+}
 
 export const STATIC_SCENES = {
   "desktop-reminder-context": {
@@ -14,6 +26,7 @@ export const STATIC_SCENES = {
       threshold: "7",
       zone: "shallow",
       text: DEFAULT_TEXT,
+      softPage: "1",
     },
   },
   "desktop-threshold-control": {
@@ -59,7 +72,6 @@ export const STATIC_SCENES = {
       threshold: "7",
       tab: "https://forum.example/threads/signal-design",
       siteOverrides: "forum.example:11.5;news.example:9",
-      overridesOpen: "1",
     },
   },
   "android-popup": {
@@ -68,10 +80,11 @@ export const STATIC_SCENES = {
     amoCaptionEn: "The same calm controls are available on Firefox for Android.",
     amoCaptionPl: "Te same spokojne ustawienia są dostępne w Firefoksie na Androidzie.",
     page: "/tools/capture/popup-harness.html",
+    colorScheme: "dark",
     params: {
       platform: "android",
       title: "The same calm control on Android",
-      subtitle: "Surfaced works on Firefox desktop and Firefox for Android.",
+      subtitle: "Surfaced works on Firefox desktop, Firefox for Android, and Chrome desktop.",
       threshold: "7",
       tab: "https://reading.example/articles/quiet-patterns",
       text: DEFAULT_TEXT,
@@ -87,7 +100,7 @@ export const STATIC_SCENES = {
       fixture: "feed",
       title: "Deeper scroll, stronger cue",
       subtitle: "Surfaced escalates gently as depth increases.",
-      threshold: "7",
+      threshold: DEPTH_SCENE_THRESHOLD,
       zone: "deep",
       text: DEFAULT_TEXT,
     },
@@ -107,6 +120,14 @@ export const STATIC_SCENES = {
       siteOverrides: "forum.example:11.5;news.example:9;research.example:14",
       overridesOpen: "1",
     },
+  },
+  "chrome-small-promo-tile": {
+    output: "chrome-small-promo-tile.png",
+    purpose: "Chrome Web Store small promo tile, built around the rendered hero shot.",
+    page: "/tools/capture/chrome-small-promo-tile.html",
+    requires: "amo-s1-desktop-reminder-context.png",
+    viewport: { width: 440, height: 280 },
+    params: {},
   },
 };
 
@@ -141,7 +162,7 @@ export const MOTION_SCENES = {
           fixture: "article",
           title: "A gentle cue for endless scroll",
           subtitle: "Know when the feed has gone deeper than planned.",
-          threshold: "7",
+          threshold: DEPTH_SCENE_THRESHOLD,
           motion: "depth",
           progress: progress.toFixed(4),
           text: DEFAULT_TEXT,

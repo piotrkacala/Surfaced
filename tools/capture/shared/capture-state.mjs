@@ -69,6 +69,7 @@ export function getCaptureState() {
     enabled: asBoolean(params.get("enabled"), true),
     helpExpanded: asBoolean(params.get("help"), false),
     overridesOpen: asBoolean(params.get("overridesOpen"), false),
+    softPage: asBoolean(params.get("softPage"), false),
     disabledDomains: parseDomains(params.get("disabledDomains")),
     siteOverrides: parseOverrides(params.get("siteOverrides")),
     tabUrl,

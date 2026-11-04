@@ -159,6 +159,8 @@ async function init() {
   await openSiteManagerIfNeeded(shadowRoot);
   await applyMotion(shadowRoot);
 
+  // The document only sees the shadow host, so its blur leaves the inner focus ring.
+  shadowRoot.activeElement?.blur();
   document.activeElement?.blur();
   await waitForAnimationFrames(4);
   setCaptureReady();

@@ -201,7 +201,7 @@ async function runSurfacedDemo() {
   await wait(80);
 
   const targetScreens = state.motion === "depth"
-    ? state.threshold * (0.9 + (2.2 * state.progress))
+    ? state.threshold * (0.9 + (2.6 * state.progress))
     : getScrollTargetScreens();
 
   await scrollByScreens(targetScreens);
@@ -210,6 +210,7 @@ async function runSurfacedDemo() {
 
 async function init() {
   const root = document.getElementById("fixture-root");
+  root.classList.toggle("fixture-page--soft", state.softPage);
   renderCopyOverlay(root);
 
   if (state.fixture === "feed") {
