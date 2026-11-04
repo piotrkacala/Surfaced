@@ -29,7 +29,7 @@ function setBadgeValue(tabId, value) {
 
     return Promise.all([
         browser.action.setBadgeText({ text, tabId }).catch(() => { }),
-        browser.action.setBadgeBackgroundColor({ color: "#00d4ff", tabId }).catch(() => { })
+        browser.action.setBadgeBackgroundColor({ color: "#5fcfe1", tabId }).catch(() => { })
     ]);
 }
 

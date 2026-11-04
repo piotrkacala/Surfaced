@@ -98,6 +98,9 @@ same signed update channel used for release.
 - On normal HTTP(S) pages verify window and element scrolling, all three reminder
   levels, `×`, badge, Home/back-to-top, End, an anchor or programmatic jump,
   virtual-list behavior, and SPA navigation.
+- With one-digit and two-digit depths, check the toolbar badge on light and dark
+  browser themes in Firefox and Chrome: the digits stay readable and the badge
+  stays distinct from the icon.
 - With a reminder visible, raise the threshold and confirm the reminder is
   replaced or hidden for the newly calculated zone. On local fixtures, confirm
   broad page CSS cannot hide the notification host and a trailing-dot hostname
