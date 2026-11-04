@@ -81,10 +81,15 @@
 
     root.innerHTML = `
       <main class="import-page">
-        <div class="bubbles" aria-hidden="true"></div>
         <article class="import-card">
           <header class="brand">
-            <span class="brand__mark" aria-hidden="true">◡</span>
+            <span class="brand__mark" aria-hidden="true">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3,3 8,7 13,3" />
+                <polyline points="3,7 8,11 13,7" opacity="0.55" />
+                <polyline points="3,11 8,15 13,11" opacity="0.2" />
+              </svg>
+            </span>
             <span id="extensionName" class="brand__name"></span>
           </header>
           <input id="settingsImportFile" class="visually-hidden" type="file" accept=".json,application/json" tabindex="-1" />
@@ -122,7 +127,7 @@
             </div>
           </section>
 
-          <section id="importSuccess" class="state-panel success" hidden>
+          <section id="importSuccess" class="state-panel" hidden>
             <div class="success__message" role="status" aria-live="polite">
               <p id="successEyebrow" class="eyebrow"></p>
               <h2 id="successTitle" tabindex="-1"></h2>

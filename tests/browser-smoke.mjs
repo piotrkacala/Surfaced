@@ -1439,6 +1439,39 @@ async function testPopupSettingsImportExport(browser, origin) {
   await writeErrorPage.close();
 }
 
+// The import page follows the system theme, holds still, keeps its brand mark
+// decorative, and stays inside a narrow viewport with a long unbroken value.
+async function testSettingsImportAppearance(browser, origin) {
+  const backgrounds = {};
+  for (const colorScheme of ["light", "dark"]) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 640 }, colorScheme });
+    await page.goto(`${origin}/tools/capture/settings-import-harness.html?locale=fr-FR`, {
+      waitUntil: "networkidle",
+    });
+    await waitForReady(page);
+    backgrounds[colorScheme] = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    assert.equal(await page.evaluate(() => document.getAnimations().length), 0, `${colorScheme}: no running animations`);
+    assert.deepEqual(await page.evaluate(() => {
+      const mark = document.querySelector(".brand__mark");
+      return {
+        ariaHidden: mark.getAttribute("aria-hidden"),
+        text: mark.textContent.trim(),
+        icon: Boolean(mark.querySelector("svg")),
+      };
+    }), { ariaHidden: "true", text: "", icon: true });
+
+    await setImportFile(page, JSON.stringify(importEnvelope({ scrollNotifierText: "W".repeat(120) })));
+    await waitForImportPreview(page);
+    const widths = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollWidth,
+      client: document.documentElement.clientWidth,
+    }));
+    assert.ok(widths.scroll <= widths.client, `${colorScheme}: preview overflows at 320px (${widths.scroll}px in ${widths.client}px)`);
+    await page.close();
+  }
+  assert.notEqual(backgrounds.light, backgrounds.dark, "page background follows the system theme");
+}
+
 async function testFrenchLocalization(browser, origin) {
   const reminderMessages = {
     shallow: "Vous voilà déjà bien loin. Remontez prendre l’air.",
@@ -1540,6 +1573,7 @@ try {
     await testPermissionHealthUi(browser, server.origin);
   } else if (smokeScope === "import-export") {
     await testPopupSettingsImportExport(browser, server.origin);
+    await testSettingsImportAppearance(browser, server.origin);
   } else {
     await testReminderResponsiveness(browser, server.origin);
     await testLocalizedReminderFitsNarrowViewport(browser, server.origin);
@@ -1553,6 +1587,7 @@ try {
     await testSiteManagerEditorAcrossRebuilds(browser, server.origin);
     await testThresholdEditing(browser, server.origin);
     await testPopupSettingsImportExport(browser, server.origin);
+    await testSettingsImportAppearance(browser, server.origin);
     await testFrenchLocalization(browser, server.origin);
   }
   console.log(`${browserName === "firefox" ? "Firefox" : "Chromium"} harness smoke: pass`);

@@ -85,6 +85,12 @@ same signed update channel used for release.
   Unicode export, malformed input, cancellation, preview focus, write retry, and
   completion after closing the import tab immediately after confirmation. Reopen
   the popup and confirm that all five accepted settings persisted atomically.
+- Check the import page in light and dark appearance: start, invalid file,
+  preview, failed write with the preview kept, and success stay legible, and the
+  replace notice stands out. If Firefox's website appearance differs from its
+  theme, record which one the import tab follows and whether the popup matches.
+  After choosing a file with the mouse, note whether the preview title shows its
+  focus ring.
 - After a simulated failed popup write, replace settings from the import page,
   then retry in the original context and confirm the imported snapshot remains
   authoritative. Verify an oversized export reports its specific error without
@@ -164,7 +170,7 @@ Android/Fenix version on a physical device.
 - Confirm that import navigates the current extension tab instead of opening a
   second tab. Exercise the Android system file picker with a Unicode export/import,
   close-tab action, cancellation, and malformed input; no failure may partially
-  replace settings.
+  replace settings. Check the import page layout in light and dark appearance.
 - Test permission revoke, partial access when available, and restore through the
   real Fenix permission UI.
 - Verify window and element scrolling, reminder levels, `×`, Home/back-to-top or

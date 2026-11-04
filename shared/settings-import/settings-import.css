@@ -1,16 +1,53 @@
+/* Local copy of the palette tokens this page uses. Names and values come from
+   the :host blocks in shared/popup/popup-core.mjs. */
 :root {
-  color-scheme: dark;
-  --deep: #020d1a;
-  --mid: #041628;
-  --panel: rgba(4, 24, 46, 0.94);
-  --accent: #00d4ff;
-  --accent-bright: #69eaff;
-  --text: #d7f1fb;
-  --text-dim: #8bb9cb;
-  --danger: #ff8585;
+  color-scheme: light dark;
+  --bg: #f3f6f8;
+  --surface: #ffffff;
+  --ink: #13293a;
+  --muted: #576c7b;
+  --border: rgba(19, 41, 58, 0.11);
+  --border-strong: rgba(19, 41, 58, 0.2);
+  --hover: rgba(19, 41, 58, 0.05);
+  --card-shadow: 0 1px 2px rgba(10, 32, 48, 0.05);
+  --accent: #0b8aa3;
+  --accent-ink: #0a7489;
+  --accent-fill: #0a7489;
+  --accent-fill-hover: #08677a;
+  --on-accent: #ffffff;
+  --accent-tint: rgba(11, 138, 163, 0.1);
+  --accent-border: rgba(11, 138, 163, 0.34);
+  --danger-ink: #b3261e;
+  --danger-tint: #fdeeec;
+  --danger-border: rgba(179, 38, 30, 0.3);
+  --focus: #0a7489;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: var(--deep);
-  color: var(--text);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1b23;
+    --surface: #172530;
+    --ink: #e6eff4;
+    --muted: #9db0bc;
+    --border: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --hover: rgba(255, 255, 255, 0.06);
+    --card-shadow: none;
+    --accent: #5fcfe1;
+    --accent-ink: #5fcfe1;
+    --accent-fill: #5fcfe1;
+    --accent-fill-hover: #82dcea;
+    --on-accent: #06262e;
+    --accent-tint: rgba(95, 207, 225, 0.12);
+    --accent-border: rgba(95, 207, 225, 0.36);
+    --danger-ink: #ff9c92;
+    --danger-tint: rgba(255, 110, 100, 0.1);
+    --danger-border: rgba(255, 110, 100, 0.32);
+    --focus: #5fcfe1;
+  }
 }
 
 * {
@@ -21,9 +58,7 @@ body {
   min-width: 280px;
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(0, 212, 255, 0.12), transparent 36rem),
-    linear-gradient(155deg, var(--mid), var(--deep) 70%);
+  background: var(--bg);
 }
 
 button,
@@ -32,75 +67,49 @@ input {
 }
 
 .import-page {
-  position: relative;
   min-height: 100vh;
   display: grid;
   place-items: center;
   padding: clamp(20px, 6vw, 72px) 16px;
-  overflow: hidden;
-}
-
-.bubbles,
-.bubbles::before,
-.bubbles::after {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  content: "";
-  background-image:
-    radial-gradient(circle, rgba(0, 212, 255, 0.2) 0 2px, transparent 2.5px),
-    radial-gradient(circle, rgba(100, 231, 255, 0.12) 0 3px, transparent 3.5px);
-  background-position: 12% 85%, 83% 26%;
-  background-size: 190px 240px, 280px 330px;
-}
-
-.bubbles::before {
-  opacity: 0.55;
-  transform: translateY(30px);
-  animation: rise 12s linear infinite;
-}
-
-.bubbles::after {
-  opacity: 0.35;
-  transform: translateY(80px);
-  animation: rise 17s linear infinite reverse;
 }
 
 .import-card {
-  position: relative;
-  z-index: 1;
-  width: min(100%, 680px);
-  padding: clamp(22px, 5vw, 42px);
-  border: 1px solid rgba(0, 212, 255, 0.19);
-  border-radius: 24px;
-  background: var(--panel);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42), inset 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px);
+  width: min(100%, 620px);
+  padding: clamp(20px, 5vw, 32px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-bottom: 30px;
-  color: var(--accent-bright);
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
 .brand__mark {
-  width: 29px;
-  height: 29px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(0, 212, 255, 0.35);
-  border-radius: 50%;
-  background: rgba(0, 212, 255, 0.1);
-  font-size: 19px;
-  transform: rotate(-8deg);
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.brand__mark svg {
+  width: 16px;
+  height: 16px;
 }
 
 .brand__name {
-  font-weight: 720;
-  letter-spacing: 0.02em;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
 }
 
 .state-panel {
@@ -110,68 +119,73 @@ input {
 }
 
 .eyebrow {
-  margin: 0 0 7px;
-  color: var(--accent);
-  font-size: 0.74rem;
-  font-weight: 750;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  margin: 0 0 6px;
+  color: var(--accent-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 h1,
 h2 {
   margin: 0;
-  color: #f1fbff;
-  line-height: 1.12;
-  letter-spacing: -0.025em;
+  color: var(--ink);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 h1 {
-  font-size: clamp(1.8rem, 6vw, 2.7rem);
+  font-size: 1.5rem;
 }
 
 h2 {
-  font-size: clamp(1.55rem, 5vw, 2.15rem);
+  font-size: 1.25rem;
 }
 
 .lead {
   max-width: 58ch;
-  margin: 14px 0 0;
-  color: var(--text-dim);
-  font-size: 1rem;
-  line-height: 1.65;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
 }
 
 .notice-list {
   width: 100%;
   display: grid;
-  gap: 8px;
-  margin-top: 24px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .notice {
   margin: 0;
   padding: 12px 14px;
-  border-left: 3px solid var(--accent);
-  border-radius: 0 10px 10px 0;
-  background: rgba(0, 212, 255, 0.07);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--accent-tint);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 500;
   line-height: 1.5;
 }
 
 .notice--quiet {
-  border-left-color: rgba(139, 185, 203, 0.65);
-  background: rgba(139, 185, 203, 0.05);
-  color: var(--text-dim);
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 .file-control {
-  margin-top: 26px;
+  margin-top: 20px;
 }
 
 .file-control__hint {
-  margin: 9px 2px 0;
-  color: var(--text-dim);
-  font-size: 0.82rem;
+  margin: 8px 2px 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
 }
 
 .visually-hidden {
@@ -192,12 +206,13 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 11px 17px;
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  border-radius: 11px;
-  background: rgba(0, 212, 255, 0.07);
-  color: var(--text);
-  font-weight: 680;
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
   line-height: 1.3;
   text-align: center;
   text-decoration: none;
@@ -205,19 +220,18 @@ h2 {
 }
 
 .button:hover:not(:disabled) {
-  border-color: rgba(0, 212, 255, 0.62);
-  background: rgba(0, 212, 255, 0.15);
+  background: var(--hover);
 }
 
 .button--primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #02111f;
+  border-color: var(--accent-fill);
+  background: var(--accent-fill);
+  color: var(--on-accent);
 }
 
 .button--primary:hover:not(:disabled) {
-  border-color: var(--accent-bright);
-  background: var(--accent-bright);
+  border-color: var(--accent-fill-hover);
+  background: var(--accent-fill-hover);
 }
 
 .button:disabled {
@@ -229,31 +243,38 @@ h2 {
 h1:focus-visible,
 h2:focus-visible,
 .message:focus-visible {
-  outline: 3px solid #9cf0ff;
-  outline-offset: 3px;
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .message {
   width: 100%;
-  margin: 22px 0 0;
+  margin: 20px 0 0;
   padding: 12px 14px;
   border-radius: 10px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
 .message--error {
-  border: 1px solid rgba(255, 133, 133, 0.42);
-  background: rgba(255, 79, 79, 0.1);
-  color: #ffdcdc;
+  border: 1px solid var(--danger-border);
+  background: var(--danger-tint);
+  color: var(--danger-ink);
+}
+
+/* A failed write keeps the preview below the error, and a failed tab close keeps
+   the success panel there. */
+.message:not([hidden]) ~ .state-panel {
+  margin-top: 20px;
 }
 
 .preview__summary {
   width: 100%;
   display: grid;
   gap: 0;
-  margin: 24px 0 0;
-  border: 1px solid rgba(0, 212, 255, 0.15);
-  border-radius: 14px;
+  margin: 20px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -262,12 +283,11 @@ h2:focus-visible,
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(120px, 1.35fr);
   gap: 18px;
-  padding: 12px 14px;
-  background: rgba(2, 13, 26, 0.45);
+  padding: 10px 14px;
 }
 
 .preview__summary > div + div {
-  border-top: 1px solid rgba(0, 212, 255, 0.1);
+  border-top: 1px solid var(--border);
 }
 
 .preview__summary dt,
@@ -275,46 +295,33 @@ h2:focus-visible,
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
+  font-size: 0.9375rem;
   line-height: 1.45;
 }
 
 .preview__summary dt {
-  color: var(--text-dim);
+  color: var(--muted);
 }
 
 .preview__summary dd {
-  color: #edfaff;
+  color: var(--ink);
+  font-weight: 500;
   text-align: right;
+}
+
+#previewText {
+  text-align: left;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 26px;
-}
-
-.success::before {
-  content: "✓";
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 18px;
-  border: 1px solid rgba(0, 212, 255, 0.4);
-  border-radius: 50%;
-  background: rgba(0, 212, 255, 0.11);
-  color: var(--accent-bright);
-  font-size: 1.55rem;
-  font-weight: 800;
+  gap: 8px;
+  margin-top: 20px;
 }
 
 [hidden] {
   display: none !important;
-}
-
-@keyframes rise {
-  to { transform: translateY(-180px); }
 }
 
 @media (max-width: 520px) {
@@ -324,18 +331,17 @@ h2:focus-visible,
   }
 
   .import-card {
-    min-height: calc(100vh - 24px);
-    padding: 24px 18px;
-    border-radius: 18px;
+    padding: 20px 16px;
+    border-radius: 14px;
   }
 
   .brand {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
   .preview__summary > div {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 2px;
   }
 
   .preview__summary dd {
@@ -347,15 +353,5 @@ h2:focus-visible,
   .file-control,
   .file-control .button {
     width: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
   }
 }
