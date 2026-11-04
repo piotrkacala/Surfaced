@@ -239,19 +239,21 @@ async function testReminderResponsiveness(browser, origin) {
 }
 
 // These localized reminders need three lines at 320px; textContent alone would
-// still pass if the card clipped them.
+// still pass if the card clipped them. Firefox reports 1px of glyph overflow on
+// text that fits at 390px, so the check allows exactly that much.
 async function testLocalizedReminderFitsNarrowViewport(browser, origin) {
   const zoneMessageKeys = { mid: "notificationMid", deep: "notificationDeep" };
-  for (const { locale, zone } of [
-    { locale: "pl", zone: "deep" },
-    { locale: "fr", zone: "mid" },
-    { locale: "fr", zone: "deep" },
+  for (const { locale, zone, width } of [
+    { locale: "pl", zone: "deep", width: 320 },
+    { locale: "fr", zone: "mid", width: 320 },
+    { locale: "fr", zone: "deep", width: 320 },
+    { locale: "fr", zone: "deep", width: 390 },
   ]) {
     const messages = JSON.parse(await fs.readFile(
       path.join(repoRoot, "shared", "_locales", locale, "messages.json"),
       "utf8"
     ));
-    const page = await browser.newPage({ viewport: { width: 320, height: 640 } });
+    const page = await browser.newPage({ viewport: { width, height: 640 } });
     await installClosedShadowProbe(page);
     await page.goto(`${origin}/fixtures/marketing/long-article.html?threshold=1&zone=${zone}&locale=${locale}`, {
       waitUntil: "networkidle",
@@ -269,8 +271,8 @@ async function testLocalizedReminderFitsNarrowViewport(browser, origin) {
     });
     assert.equal(message.text, messages[zoneMessageKeys[zone]].message);
     assert.ok(
-      message.scrollHeight <= message.clientHeight,
-      `${locale} ${zone} reminder must be fully visible at 320px (${message.scrollHeight}px content in ${message.clientHeight}px)`
+      message.scrollHeight - message.clientHeight <= 1,
+      `${locale} ${zone} reminder must be fully visible at ${width}px (${message.scrollHeight}px content in ${message.clientHeight}px)`
     );
     await page.close();
   }
