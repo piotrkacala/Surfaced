@@ -18,6 +18,7 @@ export const STATIC_SCENES = {
     purpose: "Hero AMO shot showing the in-page reminder in a realistic long-scroll context.",
     amoCaptionEn: "A gentle reminder helps you notice how far you’ve scrolled.",
     amoCaptionPl: "Dyskretne przypomnienie pomaga zauważyć, jak daleko przewijasz.",
+    amoCaptionFr: "Un rappel discret vous aide à remarquer jusqu’où vous avez fait défiler la page.",
     page: "/fixtures/marketing/long-article.html",
     params: {
       fixture: "article",
@@ -34,6 +35,7 @@ export const STATIC_SCENES = {
     purpose: "Desktop popup shot focused on the threshold stepper and helper copy.",
     amoCaptionEn: "Choose how many screens to scroll before the first reminder.",
     amoCaptionPl: "Wybierz, po ilu ekranach pojawi się pierwsze przypomnienie.",
+    amoCaptionFr: "Choisissez le nombre d’écrans à parcourir avant le premier rappel.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
@@ -49,6 +51,7 @@ export const STATIC_SCENES = {
     purpose: "Desktop popup shot showing custom shallow reminder text and live preview.",
     amoCaptionEn: "Write your own first reminder and preview how it will look.",
     amoCaptionPl: "Napisz własną treść pierwszego przypomnienia i sprawdź, jak będzie wyglądać.",
+    amoCaptionFr: "Personnalisez le texte du premier rappel et prévisualisez son apparence.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
@@ -64,6 +67,7 @@ export const STATIC_SCENES = {
     purpose: "Desktop popup shot showing per-site settings with a visible override.",
     amoCaptionEn: "Turn Surfaced off on a site or choose a different reminder depth for it.",
     amoCaptionPl: "Wyłącz Surfaced na wybranej stronie lub ustaw dla niej osobny próg.",
+    amoCaptionFr: "Désactivez Surfaced sur un site ou définissez un seuil différent pour celui-ci.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
@@ -79,6 +83,7 @@ export const STATIC_SCENES = {
     purpose: "Android popup shot proving the product works on Firefox for Android too.",
     amoCaptionEn: "Adjust your reminders in Firefox for Android, too.",
     amoCaptionPl: "Dopasuj przypomnienia do siebie także w Firefoksie na Androidzie.",
+    amoCaptionFr: "Réglez aussi vos rappels dans Firefox pour Android.",
     page: "/tools/capture/popup-harness.html",
     colorScheme: "dark",
     params: {
@@ -95,6 +100,7 @@ export const STATIC_SCENES = {
     purpose: "Optional comparison shot showing a deeper reminder state.",
     amoCaptionEn: "Reminders become more noticeable as you scroll deeper.",
     amoCaptionPl: "Im dalej przewijasz, tym wyraźniejsze stają się przypomnienia.",
+    amoCaptionFr: "Les rappels deviennent plus visibles à mesure que vous descendez.",
     page: "/fixtures/marketing/feed.html",
     params: {
       fixture: "feed",
@@ -111,6 +117,7 @@ export const STATIC_SCENES = {
     purpose: "Optional shot showing the saved per-site settings list.",
     amoCaptionEn: "Review, edit, or remove your saved site settings anytime.",
     amoCaptionPl: "Przeglądaj, zmieniaj i usuwaj zapisane ustawienia stron w dowolnej chwili.",
+    amoCaptionFr: "Consultez, modifiez ou supprimez à tout moment vos paramètres enregistrés par site.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",

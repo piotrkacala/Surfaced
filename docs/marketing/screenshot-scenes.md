@@ -18,6 +18,7 @@ All compositions use a light background from the palette, with the popup set apa
 - Composition: the placeholder page is softened with `softPage`; the title card and the reminder stay sharp
 - AMO caption EN: `A gentle reminder helps you notice how far you’ve scrolled.`
 - AMO caption PL: `Dyskretne przypomnienie pomaga zauważyć, jak daleko przewijasz.`
+- AMO caption FR: `Un rappel discret vous aide à remarquer jusqu’où vous avez fait défiler la page.`
 
 ### 2. `desktop-threshold-control`
 
@@ -25,6 +26,7 @@ All compositions use a light background from the palette, with the popup set apa
 - Goal: show the threshold stepper and helper copy
 - AMO caption EN: `Choose how many screens to scroll before the first reminder.`
 - AMO caption PL: `Wybierz, po ilu ekranach pojawi się pierwsze przypomnienie.`
+- AMO caption FR: `Choisissez le nombre d’écrans à parcourir avant le premier rappel.`
 
 ### 3. `desktop-custom-preview`
 
@@ -32,6 +34,7 @@ All compositions use a light background from the palette, with the popup set apa
 - Goal: show the editable first reminder and live preview
 - AMO caption EN: `Write your own first reminder and preview how it will look.`
 - AMO caption PL: `Napisz własną treść pierwszego przypomnienia i sprawdź, jak będzie wyglądać.`
+- AMO caption FR: `Personnalisez le texte du premier rappel et prévisualisez son apparence.`
 
 ### 4. `desktop-site-settings`
 
@@ -40,6 +43,7 @@ All compositions use a light background from the palette, with the popup set apa
 - Composition: the saved-site manager stays closed and the custom threshold is expanded; the saved list belongs to s7
 - AMO caption EN: `Turn Surfaced off on a site or choose a different reminder depth for it.`
 - AMO caption PL: `Wyłącz Surfaced na wybranej stronie lub ustaw dla niej osobny próg.`
+- AMO caption FR: `Désactivez Surfaced sur un site ou définissez un seuil différent pour celui-ci.`
 
 ### 5. `android-popup`
 
@@ -48,6 +52,7 @@ All compositions use a light background from the palette, with the popup set apa
 - Composition: the Android popup in the dark theme on the same light background, rendered in the capture harness rather than on a device
 - AMO caption EN: `Adjust your reminders in Firefox for Android, too.`
 - AMO caption PL: `Dopasuj przypomnienia do siebie także w Firefoksie na Androidzie.`
+- AMO caption FR: `Réglez aussi vos rappels dans Firefox pour Android.`
 
 ## Optional follow-up set
 
