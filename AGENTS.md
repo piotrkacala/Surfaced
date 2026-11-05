@@ -116,6 +116,7 @@ Before considering a change done:
 
 Before debugging runtime issues:
 - Load an unpacked build assembled from `dist/`; platform source manifests are overlays and do not form complete extensions by themselves. Popup routing differs between unified and platform builds.
+- In Firefox, do not load a temporary copy into a profile that has Surfaced installed. Both use the same add-on ID, and removing the temporary copy clears the installed copy's `storage.local`. Use a separate profile.
 - Content script changes usually require reloading the tab, not just reopening the popup.
 - Background script changes require reloading the extension.
 - Popup changes usually appear only after reopening the popup; Android-specific layout issues need verification on Firefox for Android, not desktop Firefox responsive mode alone.

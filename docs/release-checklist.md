@@ -71,6 +71,10 @@ session pause is not included in the export.
 Test the exact unified artifact, preferably in a fresh profile and through the
 same signed update channel used for release.
 
+Do not load a temporary copy into a profile that has Surfaced installed. Both
+use the same add-on ID, and removing the temporary copy clears the installed
+copy's settings. Use a separate profile.
+
 - Verify routed desktop popup rendering and complete Tab/Shift+Tab navigation,
   Space/Enter activation, visible focus, confirmations, retry states, permission
   restore focus, and import/export controls.
