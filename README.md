@@ -2,7 +2,7 @@
 
 **Come up for air.**
 
-Surfaced is a browser extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It tracks signed, cumulative scroll depth on long pages and feed-like interfaces, then shows a subtle notification when you've gone deeper than you meant to.
+Surfaced is a browser extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It measures how far down you scroll on long pages and feeds, then shows a subtle reminder when you've gone deeper than you meant to.
 
 Works on Firefox for desktop, Firefox for Android, and Chrome desktop.
 
@@ -39,7 +39,7 @@ It is meant to feel calm, not punitive: a quiet tap on the shoulder when you hav
 - Imports and exports all persistent settings as a local JSON file.
 - Diagnoses page-access problems separately from local settings storage.
 - Shows your current depth in the toolbar badge once you are past your threshold.
-- Tracks net cumulative scroll depth: downward movement adds depth and upward movement subtracts it. This works better on long feeds and many single-page apps than a simple `scrollY` check.
+- Measures depth in screens: scrolling down adds to it and scrolling up reduces it. This keeps track better on long feeds and apps that load more content than checking the page position.
 
 ---
 
@@ -150,7 +150,7 @@ No. Surfaced is reminder-first, not blocker-first. It adds awareness without loc
 No meaningful impact is expected. The scroll listener is passive and throttled.
 
 **Why did it not show up on a page I expected?**  
-Some sites use unusual virtual lists, custom scroll containers, or aggressive UI updates. Surfaced handles many of these better than a naive page-position check because it tracks signed, net cumulative scroll depth, but some edge cases may still slip through. Also check whether the popup shows a **Page access** notice: missing host access does not mean your saved settings were reset.
+Some sites use unusual virtual lists, custom scroll containers, or aggressive UI updates. Surfaced handles many of these better than a simple page-position check because it adds up scrolling in both directions, but some edge cases may still slip through. Also check whether the popup shows a **Page access** notice: missing host access does not mean your saved settings were reset.
 
 **What happens on single-page apps or URL changes without a full reload?**  
 Surfaced detects many in-app navigations and resets scroll tracking when you move to a new view, so the threshold applies fresh on the next page state.

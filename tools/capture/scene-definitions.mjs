@@ -16,8 +16,8 @@ export const STATIC_SCENES = {
   "desktop-reminder-context": {
     output: "amo-s1-desktop-reminder-context.png",
     purpose: "Hero AMO shot showing the in-page reminder in a realistic long-scroll context.",
-    amoCaptionEn: "A gentle reminder appears when you scroll deeper than planned.",
-    amoCaptionPl: "Delikatne przypomnienie pojawia się, gdy scrollujesz głębiej niż planowałeś.",
+    amoCaptionEn: "A gentle reminder helps you notice how far you’ve scrolled.",
+    amoCaptionPl: "Dyskretne przypomnienie pomaga zauważyć, jak daleko przewijasz.",
     page: "/fixtures/marketing/long-article.html",
     params: {
       fixture: "article",
@@ -32,8 +32,8 @@ export const STATIC_SCENES = {
   "desktop-threshold-control": {
     output: "amo-s2-desktop-threshold-control.png",
     purpose: "Desktop popup shot focused on the threshold stepper and helper copy.",
-    amoCaptionEn: "Set your reminder depth in screens.",
-    amoCaptionPl: "Ustaw próg przypomnienia w ekranach.",
+    amoCaptionEn: "Choose how many screens to scroll before the first reminder.",
+    amoCaptionPl: "Wybierz, po ilu ekranach pojawi się pierwsze przypomnienie.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
@@ -47,8 +47,8 @@ export const STATIC_SCENES = {
   "desktop-custom-preview": {
     output: "amo-s3-desktop-custom-preview.png",
     purpose: "Desktop popup shot showing custom shallow reminder text and live preview.",
-    amoCaptionEn: "Customize the first reminder and preview it before it appears.",
-    amoCaptionPl: "Dostosuj pierwsze przypomnienie i zobacz podgląd przed jego wyświetleniem.",
+    amoCaptionEn: "Write your own first reminder and preview how it will look.",
+    amoCaptionPl: "Napisz własną treść pierwszego przypomnienia i sprawdź, jak będzie wyglądać.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
@@ -62,8 +62,8 @@ export const STATIC_SCENES = {
   "desktop-site-settings": {
     output: "amo-s4-desktop-site-settings.png",
     purpose: "Desktop popup shot showing per-site settings with a visible override.",
-    amoCaptionEn: "Disable Surfaced on one site or give that site a different threshold.",
-    amoCaptionPl: "Wyłącz Surfaced na jednej stronie albo ustaw dla niej inny próg.",
+    amoCaptionEn: "Turn Surfaced off on a site or choose a different reminder depth for it.",
+    amoCaptionPl: "Wyłącz Surfaced na wybranej stronie lub ustaw dla niej osobny próg.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
@@ -77,8 +77,8 @@ export const STATIC_SCENES = {
   "android-popup": {
     output: "amo-s5-android-popup.png",
     purpose: "Android popup shot proving the product works on Firefox for Android too.",
-    amoCaptionEn: "The same calm controls are available on Firefox for Android.",
-    amoCaptionPl: "Te same spokojne ustawienia są dostępne w Firefoksie na Androidzie.",
+    amoCaptionEn: "Adjust your reminders in Firefox for Android, too.",
+    amoCaptionPl: "Dopasuj przypomnienia do siebie także w Firefoksie na Androidzie.",
     page: "/tools/capture/popup-harness.html",
     colorScheme: "dark",
     params: {
@@ -93,8 +93,8 @@ export const STATIC_SCENES = {
   "reminder-escalation": {
     output: "amo-s6-reminder-escalation.png",
     purpose: "Optional comparison shot showing a deeper reminder state.",
-    amoCaptionEn: "Surfaced escalates gently as you go deeper.",
-    amoCaptionPl: "Surfaced delikatnie wzmacnia sygnał, gdy schodzisz głębiej.",
+    amoCaptionEn: "Reminders become more noticeable as you scroll deeper.",
+    amoCaptionPl: "Im dalej przewijasz, tym wyraźniejsze stają się przypomnienia.",
     page: "/fixtures/marketing/feed.html",
     params: {
       fixture: "feed",
@@ -109,8 +109,8 @@ export const STATIC_SCENES = {
   "site-settings-list": {
     output: "amo-s7-site-settings-list.png",
     purpose: "Optional shot showing the saved per-site settings list.",
-    amoCaptionEn: "Review and remove saved site-specific settings anytime.",
-    amoCaptionPl: "W każdej chwili przejrzyj i usuń zapisane ustawienia dla stron.",
+    amoCaptionEn: "Review, edit, or remove your saved site settings anytime.",
+    amoCaptionPl: "Przeglądaj, zmieniaj i usuwaj zapisane ustawienia stron w dowolnej chwili.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",

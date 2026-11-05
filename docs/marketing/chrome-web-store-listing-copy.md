@@ -40,44 +40,41 @@ English
 
 Come up for air.
 
-You opened a long page for a quick check. A few minutes later, you are 20 screens deep.
+You open a page for a quick look. A few minutes later, you’re 20 screens deep.
 
-Surfaced is a private browser extension that helps you notice endless scrolling before it turns into doomscrolling. It tracks signed, cumulative scroll depth and shows a gentle reminder when you have gone farther than you meant to.
+Surfaced helps you notice when you’re getting lost in infinite scroll or doomscrolling. It measures how far down you scroll and shows a gentle reminder at a depth you choose, giving you a moment to pause and decide whether to keep going.
 
 Where it helps
 
-- Social feeds and infinite-scroll timelines
-- News sites with endless recommendations
-- Forums, long threads, and comment sections
-- Single-page apps with no natural stopping point
+- Social feeds and endless timelines
+- News sites that keep recommending more stories
+- Forums, long discussions, and comment sections
+- Pages and apps that keep loading more content as you scroll
 
-What Surfaced does
+Make it your own
 
-- Lets you choose the first reminder threshold in screens
-- Shows follow-up reminders at 2× and 3× your threshold
-- Lets you customize the first reminder text
-- Lets you dismiss the current reminder without silencing the next deeper level
-- Includes a complete manager for per-site enablement and threshold overrides
-- Pauses reminders and badge updates on every tab until Chrome restarts
-- Imports and exports all persistent settings with a local JSON file
-- Separates page-access diagnostics from the health of saved local settings
-- Shows your current depth in the toolbar badge after you pass the threshold
-- Works on Chrome desktop
+- Choose how many screens to scroll before the first reminder
+- Get follow-up reminders at twice and three times that depth
+- Write your own first reminder and preview how it will look
+- Dismiss a reminder and still get the next one if you scroll deeper
+- Turn Surfaced off on selected sites or set a different reminder depth for each
+- Manage all your saved site settings in one place
+- Pause reminders and toolbar badges across all tabs until Chrome restarts
+- Back up your settings to a local file and restore them when needed
 
-Why it feels different
+Surfaced shows your current depth on its toolbar icon once you pass your chosen threshold. It follows your browser’s light or dark appearance preference and alerts you to page-access problems separately from issues with saved settings.
 
-Surfaced is built around reminders, not blocks. It does not lock pages, force timers, or shame you for browsing. It adds a calm scroll-depth cue so you can notice the moment and decide what to do next.
+Works in Chrome on desktop.
 
-Because downward movement adds depth and upward movement subtracts it, Surfaced's net cumulative scroll depth is more useful on infinite feeds and many single-page apps than a simple page-position check.
+A moment to notice
+
+Endless feeds make it easy to lose track of how far you’ve scrolled. Surfaced gives you a quiet cue to notice that moment and choose what comes next. It leaves you free to browse, without blocking pages, setting timers, or making you feel guilty.
+
+Depth is measured in screens: one screen is the height of the visible page area. Scrolling down adds to your depth; scrolling up reduces it. This helps Surfaced keep track as a feed loads more content.
 
 Private by design
 
-- No analytics
-- No account
-- No remote services
-- No data sent anywhere
-
-Persistent settings stay in browser.storage.local; the temporary pause stays in browser.storage.session. Surfaced does not use sync storage, and local import/export files are never uploaded.
+Surfaced works entirely in your browser. No account, analytics, or remote services. Your settings stay on your device, and backup files are never uploaded. Nothing is sent to a server or synced between browsers.
 
 Available in English, Polish, and French.
 
@@ -85,91 +82,85 @@ Available in English, Polish, and French.
 
 Złap oddech.
 
-Wchodzisz na długą stronę tylko na chwilę. Kilka minut później jesteś 20 ekranów niżej.
+Zaglądasz na stronę tylko na chwilę. Kilka minut później jesteś 20 ekranów niżej.
 
-Surfaced to prywatne rozszerzenie przeglądarki, które pomaga zauważyć moment, w którym nieskończone przewijanie zmienia się w bezwładne przeglądanie. Śledzi skumulowaną głębokość przewijania i pokazuje delikatne przypomnienie, gdy zjedziesz dalej, niż planowałeś.
+Surfaced pomaga zauważyć, kiedy wciąga Cię nieskończone przewijanie. Mierzy, jak daleko przewijasz stronę, i pokazuje dyskretne przypomnienie po wybranej przez Ciebie liczbie ekranów. To chwila, by się zatrzymać i zdecydować, czy chcesz przeglądać dalej.
 
-Gdzie pomaga
+Gdzie się przydaje
 
-- Strony społecznościowe i kanały z nieskończonym przewijaniem
-- Serwisy informacyjne z niekończącymi się rekomendacjami
-- Fora, długie wątki i sekcje komentarzy
-- Aplikacje jednostronicowe bez naturalnego punktu zatrzymania
+- W mediach społecznościowych z niekończącą się listą wpisów
+- W serwisach informacyjnych, które wciąż polecają kolejne artykuły
+- Na forach, w długich dyskusjach i sekcjach komentarzy
+- Na stronach i w aplikacjach, które wczytują kolejne treści podczas przewijania
 
-Co robi Surfaced
+Dopasuj Surfaced do siebie
 
-- Pozwala ustawić próg pierwszego przypomnienia w ekranach
-- Pokazuje kolejne przypomnienia przy 2× i 3× ustawionego progu
-- Pozwala zmienić treść pierwszego przypomnienia
-- Pozwala zamknąć bieżące przypomnienie bez wyciszania kolejnego, głębszego poziomu
-- Udostępnia pełny manager włączania stron i osobnych progów dla wybranych witryn
-- Wstrzymuje przypomnienia i odznaki we wszystkich kartach do restartu Chrome
-- Importuje i eksportuje wszystkie trwałe ustawienia w lokalnym pliku JSON
-- Oddziela diagnostykę dostępu do stron od stanu zapisanych ustawień lokalnych
-- Pokazuje aktualną głębokość na ikonie dodatku po przekroczeniu progu
-- Działa w Chrome na desktopie
+- Wybierz, po ilu ekranach pojawi się pierwsze przypomnienie
+- Otrzymuj kolejne przypomnienia przy dwu- i trzykrotności wybranego progu
+- Napisz własną treść pierwszego przypomnienia i sprawdź, jak będzie wyglądać
+- Zamknij przypomnienie — kolejne nadal się pojawi, jeśli przewiniesz dalej
+- Wyłącz Surfaced na wybranych stronach lub ustaw dla każdej z nich osobny próg
+- Zarządzaj wszystkimi zapisanymi ustawieniami stron w jednym miejscu
+- Wstrzymaj przypomnienia i wskaźniki na ikonie dodatku we wszystkich kartach do ponownego uruchomienia Chrome
+- Zapisz kopię ustawień w pliku na swoim urządzeniu i przywróć ją, gdy będzie potrzebna
 
-Dlaczego działa inaczej
+Po przekroczeniu ustawionego progu Surfaced pokazuje liczbę przewiniętych ekranów na ikonie dodatku. Dostosowuje wygląd do preferencji jasnego lub ciemnego motywu w przeglądarce. Osobno informuje o problemach z dostępem do stron i z zapisanymi ustawieniami.
 
-Surfaced opiera się na przypomnieniach, a nie blokadach. Nie blokuje stron, nie narzuca minutników i nie zawstydza Cię za przeglądanie. Dodaje spokojny sygnał głębokości, żebyś mógł zauważyć ten moment i sam zdecydować, co dalej.
+Działa w Chrome na komputerze.
 
-Ponieważ ruch w dół zwiększa głębokość, a ruch w górę ją zmniejsza, Surfaced śledzi skumulowaną głębokość netto i lepiej sprawdza się na nieskończonych kanałach oraz w wielu aplikacjach jednostronicowych niż prosty pomiar pozycji strony.
+Chwila na refleksję
 
-Prywatność z założenia
+Gdy kolejne treści nie mają końca, łatwo przeoczyć, ile ekranów jest już za Tobą. Surfaced dyskretnie o tym przypomina i zostawia Ci decyzję, co dalej. Możesz swobodnie przeglądać strony — bez blokad, narzuconych limitów czasu i wzbudzania poczucia winy.
 
-- Bez analityki
-- Bez konta
-- Bez zdalnych usług
-- Bez wysyłania danych gdziekolwiek
+Głębokość przewijania jest mierzona w ekranach: jeden ekran to wysokość widocznego obszaru strony. Przewijanie w dół zwiększa wynik, a w górę go zmniejsza. Dzięki temu Surfaced może mierzyć głębokość także wtedy, gdy strona wczytuje kolejne treści.
 
-Trwałe ustawienia zostają lokalnie w browser.storage.local, a tymczasowe wstrzymanie w browser.storage.session. Surfaced nie używa synchronizacji, a lokalne pliki importu i eksportu nie są nigdzie wysyłane.
+Z myślą o prywatności
 
-Dostępne po angielsku, po polsku i po francusku.
+Surfaced działa w całości w przeglądarce. Nie wymaga konta, nie zbiera danych analitycznych i nie korzysta ze zdalnych usług. Ustawienia pozostają na Twoim urządzeniu, a pliki z ich kopią nie są nigdzie przesyłane. Nic nie trafia na serwer ani nie jest synchronizowane między przeglądarkami.
+
+Dostępny po polsku, angielsku i francusku.
 
 ### Detailed Description: French
 
 Remontez prendre l’air.
 
-Vous ouvrez une longue page juste pour y jeter un coup d’œil. Quelques minutes plus tard, vous vous trouvez 20 écrans plus bas.
+Vous ouvrez une page pour y jeter un coup d’œil. Quelques minutes plus tard, vous voilà 20 écrans plus bas.
 
-Surfaced est une extension de navigateur respectueuse de votre vie privée qui vous aide à prendre conscience du défilement sans fin avant qu’il ne devienne automatique. Elle suit la profondeur de défilement cumulée nette et affiche un rappel discret lorsque vous avez fait défiler la page plus loin que prévu.
+Surfaced vous aide à remarquer quand vous vous laissez emporter par le défilement infini. L’extension mesure la distance parcourue et affiche un rappel discret au bout du nombre d’écrans que vous avez choisi. Un instant pour faire une pause et décider si vous souhaitez continuer.
 
-Où Surfaced vous aide
+Quand Surfaced est utile
 
-- Fils de réseaux sociaux et flux à défilement infini
-- Sites d’actualités aux recommandations sans fin
-- Forums, longues discussions et sections de commentaires
-- Applications monopages sans point d’arrêt naturel
+- Sur les réseaux sociaux aux fils sans fin
+- Sur les sites d’actualités qui recommandent toujours plus d’articles
+- Dans les forums, les longues discussions et les commentaires
+- Sur les pages et dans les applications qui chargent du contenu au fil du défilement
 
-Ce que fait Surfaced
+Adaptez Surfaced à vos habitudes
 
-- Vous permet de choisir le seuil du premier rappel en écrans
-- Affiche d’autres rappels lorsque la profondeur atteint 2× puis 3× votre seuil
-- Vous permet de personnaliser le texte du premier rappel
-- Vous permet de fermer le rappel actuel sans empêcher l’affichage du rappel suivant à un niveau plus profond
-- Comprend un gestionnaire complet pour activer ou désactiver Surfaced et définir des seuils propres à chaque site
-- Met les rappels et les mises à jour du badge en pause dans tous les onglets jusqu’au redémarrage de Chrome
-- Importe et exporte tous les paramètres persistants à l’aide d’un fichier JSON local
-- Sépare le diagnostic de l’accès aux pages de l’état des paramètres locaux enregistrés
-- Affiche votre profondeur de défilement actuelle sur le badge de la barre d’outils une fois le seuil dépassé
-- Fonctionne dans Chrome sur ordinateur
+- Choisissez le nombre d’écrans à parcourir avant le premier rappel
+- Recevez les rappels suivants à deux puis trois fois cette profondeur
+- Personnalisez le texte du premier rappel et prévisualisez son apparence
+- Fermez un rappel : le suivant pourra toujours apparaître si vous continuez à descendre
+- Désactivez Surfaced sur certains sites ou définissez un seuil différent pour chacun
+- Gérez tous vos paramètres par site au même endroit
+- Mettez les rappels et les indicateurs sur l’icône en pause dans tous les onglets jusqu’au redémarrage de Chrome
+- Sauvegardez vos paramètres dans un fichier sur votre appareil et restaurez-les au besoin
 
-Une approche différente
+Une fois le seuil choisi dépassé, Surfaced affiche votre profondeur de défilement sur son icône dans la barre d’outils. L’extension suit votre préférence d’affichage clair ou sombre dans le navigateur. Elle signale séparément les problèmes d’accès aux pages et ceux liés aux paramètres enregistrés.
 
-Surfaced repose sur des rappels, pas sur des blocages. L’extension ne bloque pas les pages, n’impose pas de minuteur et ne vous culpabilise pas pour votre navigation. Elle ajoute un repère discret lié à la profondeur de défilement pour vous signaler ce moment et vous laisser décider de la suite.
+Fonctionne dans Chrome sur ordinateur.
 
-Comme le mouvement vers le bas augmente la profondeur et que le mouvement vers le haut la réduit, la profondeur cumulée nette de Surfaced est plus utile sur les flux infinis et de nombreuses applications monopages qu’une simple mesure de position dans la page.
+Un instant pour prendre du recul
 
-Respect de la vie privée dès la conception
+Quand le contenu défile sans fin, il est facile de perdre de vue le chemin parcouru. Surfaced vous donne un repère discret et vous laisse décider de la suite. Vous restez libre de naviguer, sans blocage des pages, sans limite de temps imposée et sans culpabilisation.
 
-- Aucune analyse d’usage
-- Aucun compte
-- Aucun service distant
-- Aucune donnée envoyée
+La profondeur se mesure en écrans : un écran correspond à la hauteur de la partie visible de la page. Descendre augmente la profondeur, remonter la réduit. Surfaced peut ainsi suivre votre progression même lorsque le fil charge de nouveaux contenus.
 
-Les paramètres persistants restent dans browser.storage.local ; la mise en pause temporaire est conservée dans browser.storage.session. Surfaced n’utilise pas le stockage synchronisé et les fichiers locaux d’importation et d’exportation ne sont jamais transférés vers un service distant.
+Le respect de votre vie privée
 
-Disponible en anglais, polonais et français.
+Surfaced fonctionne entièrement dans votre navigateur. Aucun compte, aucune analyse d’utilisation, aucun service distant. Vos paramètres restent sur votre appareil et vos fichiers de sauvegarde ne sont jamais envoyés ailleurs. Rien n’est transmis à un serveur ni synchronisé entre navigateurs.
+
+Disponible en français, anglais et polonais.
 
 ## Graphic Assets
 
