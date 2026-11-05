@@ -1,7 +1,7 @@
 # Final Marketing Assets
 
 **Status:** Accepted assets for the current listing refresh  
-**Last updated:** 2026-04-29
+**Last updated:** 2026-11-05
 
 This document is the release-facing inventory for the current Surfaced marketing assets.
 
@@ -30,7 +30,19 @@ In short: `output/` is the working area, `screenshots/` is the canonical checked
 | `screenshots/amo-s2-desktop-threshold-control.png` | Threshold controls in the desktop popup | `desktop-threshold-control` |
 | `screenshots/amo-s3-desktop-custom-preview.png` | Editable first reminder text with live preview | `desktop-custom-preview` |
 | `screenshots/amo-s4-desktop-site-settings.png` | Per-site enablement and threshold override | `desktop-site-settings` |
-| `screenshots/amo-s5-android-popup.png` | Android popup layout | `android-popup` |
+| `screenshots/amo-s5-android-popup.png` | Android popup layout in the dark theme | `android-popup` |
+
+AMO uses s1–s5. Chrome Web Store uses s1–s4, because the Chrome package has no Android popup.
+
+The optional `reminder-escalation` (s6) and `site-settings-list` (s7) scenes can still be rendered, but they are not part of the accepted set.
+
+## Accepted promo tile
+
+| File | Purpose | Source scene |
+|---|---|---|
+| `screenshots/chrome-small-promo-tile.png` | Chrome Web Store small promo tile, `440x280` | `chrome-small-promo-tile` |
+
+The tile is dark on purpose, unlike the light screenshots: Chrome's image guidelines ask to avoid large white and light gray areas.
 
 ## Accepted animations
 
@@ -42,6 +54,8 @@ In short: `output/` is the working area, `screenshots/` is the canonical checked
 | `screenshots/animations/anim-reminder-depth.gif` | Reminder escalation across depth zones | `anim-reminder-depth` |
 | `screenshots/animations/anim-site-override.mp4` | Enabling and tuning a site-specific threshold override | `anim-site-override` |
 | `screenshots/animations/anim-site-override.gif` | Enabling and tuning a site-specific threshold override | `anim-site-override` |
+
+`anim-reminder-depth.gif` is about 2.7 MB, because the softened page compresses poorly as a GIF. That size is accepted: the README is the only place that uses it, and `build.sh` does not package these files. Dithering options do not help, and a smaller palette loses the accent color at 32 colors.
 
 ## Refresh workflow
 

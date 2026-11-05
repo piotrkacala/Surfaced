@@ -1527,18 +1527,32 @@ async function testStoreScenes(browser, origin) {
     "the escalation scene reaches the deepest zone"
   );
 
-  const heroPage = await openStoreScene(browser, origin, STATIC_SCENES["desktop-reminder-context"]);
-  assert.deepEqual(await heroPage.evaluate(() => {
-    const filterOf = (element) => getComputedStyle(element).filter;
-    return {
-      pageBlurred: filterOf(document.querySelector(".article-shell")) !== "none",
-      copy: filterOf(document.querySelector(".capture-copy")),
-      reminder: filterOf(document.getElementById("surfaced-notification-host")),
-    };
-  }), { pageBlurred: true, copy: "none", reminder: "none" }, "s1 softens only the placeholder page");
-  await heroPage.close();
-
   const depthAnimation = MOTION_SCENES["anim-reminder-depth"];
+  for (const [name, scene] of [
+    ["s1", STATIC_SCENES["desktop-reminder-context"]],
+    ["s6", STATIC_SCENES["reminder-escalation"]],
+    ["the last depth animation frame", depthAnimation.build(1)],
+  ]) {
+    const page = await openStoreScene(browser, origin, scene);
+    assert.deepEqual(await page.evaluate(() => {
+      const filterOf = (element) => getComputedStyle(element).filter;
+      return {
+        pageBlurred: filterOf(document.querySelector(".article-shell, .feed-shell")) !== "none",
+        copy: filterOf(document.querySelector(".capture-copy")),
+        reminder: filterOf(document.getElementById("surfaced-notification-host")),
+      };
+    }), { pageBlurred: true, copy: "none", reminder: "none" }, `${name} softens only the placeholder page`);
+    await page.close();
+  }
+
+  const firstFramePage = await openStoreScene(browser, origin, depthAnimation.build(0));
+  assert.notEqual(
+    await firstFramePage.evaluate(() => getComputedStyle(document.querySelector(".article-shell")).filter),
+    "none",
+    "the depth animation keeps the page soft before the first reminder, so the blur does not start with it"
+  );
+  await firstFramePage.close();
+
   const depths = [];
   for (let frame = 0; frame < depthAnimation.frames; frame += 1) {
     const reminder = await renderedReminder(browser, origin, depthAnimation.build(frame / (depthAnimation.frames - 1)));

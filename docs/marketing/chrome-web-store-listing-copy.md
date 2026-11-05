@@ -1,7 +1,7 @@
 # Chrome Web Store Listing Copy
 
 **Status:** Draft for manual publishing in Chrome Web Store
-**Last updated:** 2026-09-20
+**Last updated:** 2026-11-05
 
 This file contains ready-to-paste copy for the Chrome Web Store Developer Dashboard.
 
@@ -179,12 +179,13 @@ Current screenshots already match the required `1280x800` screenshot size:
 - `screenshots/amo-s2-desktop-threshold-control.png`
 - `screenshots/amo-s3-desktop-custom-preview.png`
 - `screenshots/amo-s4-desktop-site-settings.png`
-- `screenshots/amo-s5-android-popup.png`
+
+Do not upload `screenshots/amo-s5-android-popup.png` here: it shows the Android popup, which the Chrome package does not include.
 
 Chrome Web Store assets:
 
 - Store icon: `128x128` px; use `shared/icons/icon-128.png`
-- Small promo tile: `screenshots/chrome-small-promo-tile.png`
+- Small promo tile: `440x280` px; use `screenshots/chrome-small-promo-tile.png`
 - Marquee promo tile: `1400x560` px PNG or JPEG, optional
 
 ## URLs

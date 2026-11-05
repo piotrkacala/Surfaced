@@ -103,6 +103,7 @@ export const STATIC_SCENES = {
       threshold: DEPTH_SCENE_THRESHOLD,
       zone: "deep",
       text: DEFAULT_TEXT,
+      softPage: "1",
     },
   },
   "site-settings-list": {
@@ -166,6 +167,7 @@ export const MOTION_SCENES = {
           motion: "depth",
           progress: progress.toFixed(4),
           text: DEFAULT_TEXT,
+          softPage: "1",
         },
       };
     },

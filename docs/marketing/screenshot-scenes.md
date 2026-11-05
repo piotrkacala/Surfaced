@@ -1,11 +1,13 @@
 # Screenshot Scenes
 
 **Status:** Approved implementation target for the first AMO screenshot batch  
-**Last updated:** 2026-04-28
+**Last updated:** 2026-11-05
 
 This file is the human-readable companion to [tools/capture/scene-definitions.mjs](../../tools/capture/scene-definitions.mjs).
 
-The first AMO batch should use these five primary scenes:
+The first AMO batch should use these five primary scenes. Chrome Web Store uses the first four, because the Chrome package has no Android popup.
+
+All compositions use a light background from the palette, with the popup set apart by a soft outline and shadow.
 
 ## Primary AMO set
 
@@ -13,6 +15,7 @@ The first AMO batch should use these five primary scenes:
 
 - Output: `amo-s1-desktop-reminder-context.png`
 - Goal: one-frame explanation of the product
+- Composition: the placeholder page is softened with `softPage`; the title card and the reminder stay sharp
 - AMO caption EN: `A gentle reminder appears when you scroll deeper than planned.`
 - AMO caption PL: `Delikatne przypomnienie pojawia się, gdy scrollujesz głębiej niż planowałeś.`
 
@@ -34,6 +37,7 @@ The first AMO batch should use these five primary scenes:
 
 - Output: `amo-s4-desktop-site-settings.png`
 - Goal: show per-site control and a visible override
+- Composition: the saved-site manager stays closed and the custom threshold is expanded; the saved list belongs to s7
 - AMO caption EN: `Disable Surfaced on one site or give that site a different threshold.`
 - AMO caption PL: `Wyłącz Surfaced na jednej stronie albo ustaw dla niej inny próg.`
 
@@ -41,6 +45,7 @@ The first AMO batch should use these five primary scenes:
 
 - Output: `amo-s5-android-popup.png`
 - Goal: prove real Android support
+- Composition: the Android popup in the dark theme on the same light background, rendered in the capture harness rather than on a device
 - AMO caption EN: `The same calm controls are available on Firefox for Android.`
 - AMO caption PL: `Te same spokojne ustawienia są dostępne w Firefoksie na Androidzie.`
 
@@ -50,11 +55,19 @@ The first AMO batch should use these five primary scenes:
 
 - Output: `amo-s6-reminder-escalation.png`
 - Goal: show stronger cue at deeper depth
+- Composition: the placeholder page is softened with `softPage`, as in s1
 
 ### 7. `site-settings-list`
 
 - Output: `amo-s7-site-settings-list.png`
 - Goal: show saved per-site settings management
+
+## Chrome Web Store tile
+
+### `chrome-small-promo-tile`
+
+- Output: `chrome-small-promo-tile.png`
+- Goal: `440x280` small promo tile built around the rendered s1
 
 ## Runner usage
 
