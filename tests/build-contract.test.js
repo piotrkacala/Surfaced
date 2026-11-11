@@ -9,7 +9,7 @@ const { spawnSync } = require("node:child_process");
 const { test } = require("node:test");
 
 const repoRoot = path.resolve(__dirname, "..");
-const VERSION = "1.4.0";
+const VERSION = "1.4.1";
 const ARTIFACTS = Object.freeze({
   unified: `surfaced-${VERSION}.zip`,
   desktop: `surfaced-desktop-${VERSION}.zip`,
@@ -140,9 +140,12 @@ test("build contract, fail-fast gates, artifact preservation, and reproducible Z
       const manifest = zipJson(archive, "manifest.json");
       const frenchMessages = zipJson(archive, "_locales/fr/messages.json");
       assert.equal(manifest.version, VERSION);
+      assert.equal(manifest.name, "__MSG_extensionName__");
+      assert.equal(manifest.short_name, "__MSG_extensionShortName__");
       assert.equal(manifest.action.default_popup, "popup/popup.html");
-      assert.equal(frenchMessages.extensionName.message, "Surfaced");
-      assert.match(frenchMessages.extensionDescription.message, /rappels/);
+      assert.equal(frenchMessages.extensionName.message, "Surfaced – Infinite Scroll Reminder");
+      assert.equal(frenchMessages.extensionShortName.message, "Surfaced");
+      assert.match(frenchMessages.extensionDescription.message, /rappel/);
       assert.equal(frenchMessages.actionTitle.message, "Paramètres de Surfaced");
       assert.deepEqual(manifest.content_scripts[0].js, [
         "extension-api.js",

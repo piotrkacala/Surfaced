@@ -1,7 +1,7 @@
 # Chrome Web Store Listing Copy
 
 **Status:** Draft for manual publishing in Chrome Web Store
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-11
 
 This file contains ready-to-paste copy for the Chrome Web Store Developer Dashboard.
 
@@ -17,7 +17,7 @@ References:
 Upload:
 
 ```text
-dist/surfaced-chrome-1.4.0.zip
+dist/surfaced-chrome-1.4.1.zip
 ```
 
 The zip must contain `manifest.json` at the archive root.
@@ -26,11 +26,21 @@ The zip must contain `manifest.json` at the archive root.
 
 ### Name
 
-Surfaced
+Surfaced – Infinite Scroll Reminder
 
 ### Category
 
-Productivity
+Well-being
+
+Chrome Web Store files mindfulness and self-help extensions under Well-being, which places Surfaced next to similar tools instead of general utilities.
+
+### Summary
+
+Chrome Web Store takes the summary from the manifest `description`, so it comes from `extensionDescription` in `shared/_locales/` and changes only with a new version. The limit is 132 characters.
+
+- English: `A gentle reminder when you've scrolled too deep. Set your own depth for doomscrolling and endless feeds. Private, no blocking.`
+- Polish: `Dyskretne przypomnienie, gdy przewijasz zbyt daleko. Ustaw własny próg dla doomscrollingu i treści bez końca. Prywatnie, bez blokad.`
+- French: `Un rappel discret quand vous faites défiler trop loin. Votre seuil pour le doomscrolling et les fils sans fin. Privé, sans blocage.`
 
 ### Default Language
 

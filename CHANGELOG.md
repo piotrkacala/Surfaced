@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.1 — 2026-11-11
+
+- Renamed the extension to Surfaced – Infinite Scroll Reminder, keeping the short
+  Surfaced brand in the popup and settings import page.
+- Kept in-page reminders out of printouts and saved PDFs.
+- Refined the extension descriptions, Polish reminder text, and store listing copy.
+- Refreshed the store screenshots, animations, and repository social preview.
+
 ## 1.4.0 — 2026-11-05
 
 - Redesigned the popup, in-page reminder, and settings import page with a calmer

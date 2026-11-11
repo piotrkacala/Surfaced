@@ -1182,7 +1182,7 @@ export function mountPopup(platformConfig = {}) {
   const brandIcon = el("div", "brand__icon");
   brandIcon.appendChild(createLogoSvg());
   const brandName = el("h1", "brand__name");
-  brandName.textContent = msg("extensionName");
+  brandName.textContent = msg("extensionShortName");
   brand.append(brandIcon, brandName);
   const headerDescription = el("p", "header-description");
   headerDescription.textContent = msg("popupExplainer");

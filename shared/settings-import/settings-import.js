@@ -143,7 +143,7 @@
 
     const byId = (id) => documentApi.getElementById(id);
     const copy = {
-      extensionName: "extensionName",
+      extensionName: "extensionShortName",
       importEyebrow: "settingsBackupTitle",
       importTitle: "settingsImportPageTitle",
       importDescription: "settingsImportPageDescription",

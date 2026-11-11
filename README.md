@@ -1,4 +1,4 @@
-# Surfaced
+# Surfaced – Infinite Scroll Reminder
 
 **Come up for air.**
 
@@ -8,11 +8,8 @@ Works on Firefox for desktop, Firefox for Android, and Chrome desktop.
 
 Surfaced keeps everything local in your browser. No analytics, no account, no remote services.
 
-Firefox: install from Firefox Add-ons: https://addons.mozilla.org/firefox/addon/surfaced/
-
-Chrome desktop: install from Chrome Web Store: https://chrome.google.com/webstore/detail/bpbidikjpaffmpcbincadomhbfnoaaem
-
-Chrome desktop builds can also be generated from source with `./build.sh chrome`.
+- **Firefox, desktop and Android:** [install from Firefox Add-ons](https://addons.mozilla.org/firefox/addon/surfaced/)
+- **Chrome desktop:** [install from Chrome Web Store](https://chrome.google.com/webstore/detail/bpbidikjpaffmpcbincadomhbfnoaaem), or build the package from source with `./build.sh chrome`
 
 Project source: https://github.com/piotrkacala/Surfaced
 

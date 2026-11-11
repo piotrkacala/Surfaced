@@ -52,6 +52,19 @@ test("all shipped locales have canonical key and placeholder parity", () => {
   });
 });
 
+test("the manifest description fits the Chrome Web Store summary limit in every locale", () => {
+  // Chrome Web Store shows the manifest description as the listing summary
+  // and accepts at most 132 characters.
+  for (const locale of ["en", "pl", "fr"]) {
+    const { extensionDescription } = JSON.parse(fs.readFileSync(
+      path.join(repoRoot, `shared/_locales/${locale}/messages.json`),
+      "utf8"
+    ));
+    const length = [...extensionDescription.message].length;
+    assert.ok(length <= 132, `${locale}: description is ${length} characters`);
+  }
+});
+
 test("every literal runtime and manifest localization reference exists in every locale", () => {
   const localeData = ["en", "pl", "fr"].map((locale) => JSON.parse(fs.readFileSync(
     path.join(repoRoot, `shared/_locales/${locale}/messages.json`),

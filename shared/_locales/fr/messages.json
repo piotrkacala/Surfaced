@@ -1,6 +1,7 @@
 {
-  "extensionName": { "message": "Surfaced" },
-  "extensionDescription": { "message": "Des rappels pour le défilement sans fin. Affiche un rappel lorsque vous dépassez un seuil défini." },
+  "extensionName": { "message": "Surfaced – Infinite Scroll Reminder" },
+  "extensionShortName": { "message": "Surfaced" },
+  "extensionDescription": { "message": "Un rappel discret quand vous faites défiler trop loin. Votre seuil pour le doomscrolling et les fils sans fin. Privé, sans blocage." },
   "actionTitle": { "message": "Paramètres de Surfaced" },
   "popupExplainer": { "message": "Un rappel discret lorsque vous faites défiler trop loin." },
   "popupGlobalToggleLabel": { "message": "Activé" },

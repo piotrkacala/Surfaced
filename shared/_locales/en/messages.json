@@ -1,11 +1,15 @@
 {
   "extensionName": {
-    "message": "Surfaced",
+    "message": "Surfaced – Infinite Scroll Reminder",
     "description": "Name of the extension."
   },
+  "extensionShortName": {
+    "message": "Surfaced",
+    "description": "Short brand name used in the popup and settings import page."
+  },
   "extensionDescription": {
-    "message": "Notifications for the endless scroll. Shows a notification when you scroll past a set threshold.",
-    "description": "Description of the extension shown in add-ons manager."
+    "message": "A gentle reminder when you've scrolled too deep. Set your own depth for doomscrolling and endless feeds. Private, no blocking.",
+    "description": "Description of the extension shown in the add-ons manager and as the Chrome Web Store summary. Keep it within 132 characters."
   },
   "actionTitle": {
     "message": "Surfaced Settings",

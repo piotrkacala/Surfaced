@@ -1,15 +1,18 @@
 {
     "extensionName": {
+        "message": "Surfaced – Infinite Scroll Reminder"
+    },
+    "extensionShortName": {
         "message": "Surfaced"
     },
     "extensionDescription": {
-        "message": "Powiadomienia przy nieskończonym przewijaniu. Wyświetla powiadomienie po przekroczeniu ustawionego progu."
+        "message": "Dyskretne przypomnienie, gdy przewijasz zbyt daleko. Ustaw własny próg dla doomscrollingu i treści bez końca. Prywatnie, bez blokad."
     },
     "actionTitle": {
         "message": "Ustawienia Surfaced"
     },
     "popupExplainer": {
-        "message": "Delikatne przypomnienie, gdy scrollujesz zbyt daleko."
+        "message": "Dyskretne przypomnienie, gdy przewijasz zbyt daleko."
     },
     "popupGlobalToggleLabel": {
         "message": "Włączone"
@@ -222,7 +225,7 @@
         "message": "Zwiększ próg przypomnienia dla tej strony"
     },
     "defaultNotificationText": {
-        "message": "Zaszedłeś dość daleko. Wynurz się na chwilę."
+        "message": "To już dość daleko. Wynurz się na chwilę."
     },
     "ariaNotificationDismiss": {
         "message": "Zamknij to przypomnienie"
@@ -231,7 +234,7 @@
         "message": "Wciąż przewijasz? Jesteś już głęboko w treści."
     },
     "notificationDeep": {
-        "message": "Jesteś tu już od dłuższego czasu. Czas wypłynąć na powierzchnię."
+        "message": "Jesteś tu już dość długo. Pora wypłynąć na powierzchnię."
     },
     "popupSiteTitle": {
         "message": "Ta strona: $HOST$",

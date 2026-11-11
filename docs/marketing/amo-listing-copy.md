@@ -1,21 +1,35 @@
 # AMO Listing Copy
 
 **Status:** Draft for manual update in AMO  
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-11
 
 This file contains ready-to-paste listing copy for Firefox Add-ons (AMO).
 
 Notes:
 
 - AMO supports separate translated `summary` and `description` fields.
+- The AMO `summary` is limited to 250 characters.
 - The AMO `description` field supports Markdown, so the long descriptions below are formatted accordingly.
 - The copy below is intentionally concise and should fit comfortably even if AMO UI constraints change.
+
+## Listing details
+
+These fields are edited in the AMO Developer Hub and do not need a new version.
+
+| Field | Value |
+|---|---|
+| Name | `Surfaced – Infinite Scroll Reminder` |
+| Categories | `Alerts & Updates`, `Social & Communication` |
+| Tags | `social media` |
+| Homepage | `https://github.com/piotrkacala/Surfaced` |
+| Support site | `https://github.com/piotrkacala/Surfaced/issues` |
+| Privacy policy | The full text of [`PRIVACY.md`](../../PRIVACY.md), pasted into the listing's privacy policy field |
 
 ## English
 
 ### Summary
 
-Gentle reminders for endless scrolling. Choose your scroll depth in Firefox on desktop and Android.
+A gentle reminder when doomscrolling or infinite scroll pulls you too deep. Choose your own scroll depth. No blocking, no timers, no data collection. For Firefox on desktop and Android.
 
 ### Description
 
@@ -63,7 +77,7 @@ Available in English, Polish, and French.
 
 ### Summary
 
-Dyskretne przypomnienia, gdy przewijanie nie ma końca. Ustaw własny próg w Firefoksie na komputerze i Androidzie.
+Dyskretne przypomnienie, gdy doomscrolling lub nieskończone przewijanie wciąga Cię zbyt głęboko. Ustaw własny próg przewijania. Bez blokad, limitów czasu i zbierania danych. Dla Firefoksa na komputerze i Androidzie.
 
 ### Description
 
@@ -111,7 +125,7 @@ Dostępny po polsku, angielsku i francusku.
 
 ### Summary
 
-Des rappels discrets quand le défilement n’en finit plus. Choisissez votre seuil dans Firefox sur ordinateur et Android.
+Un rappel discret quand le doomscrolling ou le défilement infini vous entraîne trop loin. Choisissez votre propre seuil de défilement. Sans blocage, sans minuteur, sans collecte de données. Pour Firefox sur ordinateur et Android.
 
 ### Description
 
