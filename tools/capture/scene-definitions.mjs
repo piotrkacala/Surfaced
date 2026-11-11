@@ -3,9 +3,17 @@ const DEFAULT_TEXT = "You've drifted pretty far. Come up for air.";
 // need a threshold low enough for its later zones to be reachable.
 const DEPTH_SCENE_THRESHOLD = "1.5";
 
-export function capturePageOptions({ viewport = { width: 1280, height: 800 }, colorScheme } = {}) {
+// Every scene is 1280x800 in the saved image. A scene that should show the page
+// and the reminder twice as large uses CLOSE_UP: half the viewport at double density.
+const CLOSE_UP = { viewport: { width: 640, height: 400 }, deviceScaleFactor: 2 };
+// The desktop popup scenes enlarge the popup and give it a window-like height,
+// so it fits the frame as a whole and scrolls inside like the real popup.
+const POPUP_WINDOW = { popupZoom: "1.4", popupHeight: "531" };
+
+export function capturePageOptions({ viewport = { width: 1280, height: 800 }, deviceScaleFactor, colorScheme } = {}) {
   return {
     viewport,
+    ...(deviceScaleFactor ? { deviceScaleFactor } : {}),
     // The reminder skips its entrance animation, so every frame shows a settled state.
     reducedMotion: "reduce",
     ...(colorScheme ? { colorScheme } : {}),
@@ -15,13 +23,14 @@ export function capturePageOptions({ viewport = { width: 1280, height: 800 }, co
 export const STATIC_SCENES = {
   "desktop-reminder-context": {
     output: "amo-s1-desktop-reminder-context.png",
-    purpose: "Hero AMO shot showing the in-page reminder in a realistic long-scroll context.",
+    purpose: "Hero shot: the in-page reminder, large, on a softened feed.",
     amoCaptionEn: "A gentle reminder helps you notice how far you’ve scrolled.",
     amoCaptionPl: "Dyskretne przypomnienie pomaga zauważyć, jak daleko przewijasz.",
     amoCaptionFr: "Un rappel discret vous aide à remarquer jusqu’où vous avez fait défiler la page.",
-    page: "/fixtures/marketing/long-article.html",
+    page: "/fixtures/marketing/feed.html",
+    ...CLOSE_UP,
     params: {
-      fixture: "article",
+      fixture: "feed",
       title: "A gentle cue for endless scroll",
       subtitle: "Know when the feed has gone deeper than planned.",
       threshold: "7",
@@ -30,24 +39,38 @@ export const STATIC_SCENES = {
       softPage: "1",
     },
   },
-  "desktop-threshold-control": {
-    output: "amo-s2-desktop-threshold-control.png",
-    purpose: "Desktop popup shot focused on the threshold stepper and helper copy.",
-    amoCaptionEn: "Choose how many screens to scroll before the first reminder.",
-    amoCaptionPl: "Wybierz, po ilu ekranach pojawi się pierwsze przypomnienie.",
-    amoCaptionFr: "Choisissez le nombre d’écrans à parcourir avant le premier rappel.",
+  "reminder-depths": {
+    output: "amo-s2-reminder-depths.png",
+    purpose: "The three reminder levels side by side, each with the depth that triggers it.",
+    amoCaptionEn: "Follow-up reminders appear at twice and three times your chosen depth.",
+    amoCaptionPl: "Kolejne przypomnienia pojawiają się przy dwu- i trzykrotności wybranego progu.",
+    amoCaptionFr: "Les rappels suivants apparaissent à deux puis trois fois la profondeur choisie.",
+    page: "/tools/capture/reminder-depths.html",
+    params: {
+      title: "Deeper scroll, clearer cue",
+      subtitle: "Two more reminders follow if you keep going.",
+      threshold: "7",
+    },
+  },
+  "desktop-site-settings": {
+    output: "amo-s3-desktop-site-settings.png",
+    purpose: "Desktop popup shot showing the reminder depth and a site-specific override.",
+    amoCaptionEn: "Choose your reminder depth, then adjust it or turn Surfaced off on any site.",
+    amoCaptionPl: "Wybierz próg przypomnienia, a potem zmień go lub wyłącz Surfaced na dowolnej stronie.",
+    amoCaptionFr: "Choisissez votre seuil, puis ajustez-le ou désactivez Surfaced sur n’importe quel site.",
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
-      title: "Set your reminder depth in screens",
-      subtitle: "Choose the point where scrolling stops feeling intentional.",
-      threshold: "8.5",
-      help: "1",
-      tab: "https://reading.example/articles/quiet-patterns",
+      title: "Your depth, tuned for each site",
+      subtitle: "Set it once, then adjust it or switch Surfaced off where you need to.",
+      threshold: "7",
+      tab: "https://forum.example/threads/signal-design",
+      siteOverrides: "forum.example:11.5;news.example:9",
+      ...POPUP_WINDOW,
     },
   },
   "desktop-custom-preview": {
-    output: "amo-s3-desktop-custom-preview.png",
+    output: "amo-s4-desktop-custom-preview.png",
     purpose: "Desktop popup shot showing custom shallow reminder text and live preview.",
     amoCaptionEn: "Write your own first reminder and preview how it will look.",
     amoCaptionPl: "Napisz własną treść pierwszego przypomnienia i sprawdź, jak będzie wyglądać.",
@@ -55,27 +78,13 @@ export const STATIC_SCENES = {
     page: "/tools/capture/popup-harness.html",
     params: {
       platform: "desktop",
-      title: "Customize the first reminder",
-      subtitle: "See the message before it ever appears on a page.",
+      title: "Say it in your own words",
+      subtitle: "Write the first reminder and see it before it appears on a page.",
       threshold: "7",
       text: "Take a breath. Deep enough for now.",
       tab: "https://reading.example/articles/quiet-patterns",
-    },
-  },
-  "desktop-site-settings": {
-    output: "amo-s4-desktop-site-settings.png",
-    purpose: "Desktop popup shot showing per-site settings with a visible override.",
-    amoCaptionEn: "Turn Surfaced off on a site or choose a different reminder depth for it.",
-    amoCaptionPl: "Wyłącz Surfaced na wybranej stronie lub ustaw dla niej osobny próg.",
-    amoCaptionFr: "Désactivez Surfaced sur un site ou définissez un seuil différent pour celui-ci.",
-    page: "/tools/capture/popup-harness.html",
-    params: {
-      platform: "desktop",
-      title: "Tune Surfaced for each site",
-      subtitle: "Disable it here, or use a deeper threshold where you need one.",
-      threshold: "7",
-      tab: "https://forum.example/threads/signal-design",
-      siteOverrides: "forum.example:11.5;news.example:9",
+      ...POPUP_WINDOW,
+      popupScroll: "end",
     },
   },
   "android-popup": {
@@ -93,27 +102,11 @@ export const STATIC_SCENES = {
       threshold: "7",
       tab: "https://reading.example/articles/quiet-patterns",
       text: DEFAULT_TEXT,
-    },
-  },
-  "reminder-escalation": {
-    output: "amo-s6-reminder-escalation.png",
-    purpose: "Optional comparison shot showing a deeper reminder state.",
-    amoCaptionEn: "Reminders become more noticeable as you scroll deeper.",
-    amoCaptionPl: "Im dalej przewijasz, tym wyraźniejsze stają się przypomnienia.",
-    amoCaptionFr: "Les rappels deviennent plus visibles à mesure que vous descendez.",
-    page: "/fixtures/marketing/feed.html",
-    params: {
-      fixture: "feed",
-      title: "Deeper scroll, stronger cue",
-      subtitle: "Surfaced escalates gently as depth increases.",
-      threshold: DEPTH_SCENE_THRESHOLD,
-      zone: "deep",
-      text: DEFAULT_TEXT,
-      softPage: "1",
+      popupHeight: "704",
     },
   },
   "site-settings-list": {
-    output: "amo-s7-site-settings-list.png",
+    output: "amo-s6-site-settings-list.png",
     purpose: "Optional shot showing the saved per-site settings list.",
     amoCaptionEn: "Review, edit, or remove your saved site settings anytime.",
     amoCaptionPl: "Przeglądaj, zmieniaj i usuwaj zapisane ustawienia stron w dowolnej chwili.",
@@ -129,11 +122,39 @@ export const STATIC_SCENES = {
       overridesOpen: "1",
     },
   },
+  "github-social-preview": {
+    output: "github-social-preview.png",
+    purpose: "Repository social preview: the hero composition in GitHub's 2:1 format.",
+    page: "/fixtures/marketing/feed.html",
+    viewport: { width: 640, height: 320 },
+    deviceScaleFactor: 2,
+    params: {
+      fixture: "feed",
+      title: "A gentle cue for endless scroll",
+      subtitle: "Know when the feed has gone deeper than planned.",
+      threshold: "7",
+      zone: "shallow",
+      text: DEFAULT_TEXT,
+      softPage: "1",
+    },
+  },
+  "promo-tile-backdrop": {
+    output: "promo-tile-backdrop.png",
+    purpose: "Working image for the promo tile: a softened long page with no caption. The tile covers its reminder with its own.",
+    page: "/fixtures/marketing/long-article.html",
+    params: {
+      fixture: "article",
+      threshold: "7",
+      zone: "shallow",
+      text: DEFAULT_TEXT,
+      softPage: "1",
+    },
+  },
   "chrome-small-promo-tile": {
     output: "chrome-small-promo-tile.png",
-    purpose: "Chrome Web Store small promo tile, built around the rendered hero shot.",
+    purpose: "Chrome Web Store small promo tile, built around the rendered backdrop.",
     page: "/tools/capture/chrome-small-promo-tile.html",
-    requires: "amo-s1-desktop-reminder-context.png",
+    requires: "promo-tile-backdrop.png",
     viewport: { width: 440, height: 280 },
     params: {},
   },
@@ -149,12 +170,14 @@ export const MOTION_SCENES = {
         page: "/tools/capture/popup-harness.html",
         params: {
           platform: "desktop",
-          title: "Customize the first reminder",
-          subtitle: "See the message before it ever appears on a page.",
+          title: "Say it in your own words",
+          subtitle: "Write the first reminder and see it before it appears on a page.",
           threshold: "7",
           motion: "preview-edit",
           progress: progress.toFixed(4),
           tab: "https://reading.example/articles/quiet-patterns",
+          ...POPUP_WINDOW,
+          popupScroll: "end",
         },
       };
     },
@@ -165,9 +188,10 @@ export const MOTION_SCENES = {
     frames: 20,
     build(progress) {
       return {
-        page: "/fixtures/marketing/long-article.html",
+        page: "/fixtures/marketing/feed.html",
+        ...CLOSE_UP,
         params: {
-          fixture: "article",
+          fixture: "feed",
           title: "A gentle cue for endless scroll",
           subtitle: "Know when the feed has gone deeper than planned.",
           threshold: DEPTH_SCENE_THRESHOLD,
@@ -188,12 +212,13 @@ export const MOTION_SCENES = {
         page: "/tools/capture/popup-harness.html",
         params: {
           platform: "desktop",
-          title: "Tune Surfaced for each site",
-          subtitle: "Set a deeper threshold where it actually helps.",
+          title: "Your depth, tuned for each site",
+          subtitle: "Set it once, then adjust it or switch Surfaced off where you need to.",
           threshold: "7",
           motion: "site-override",
           progress: progress.toFixed(4),
           tab: "https://forum.example/threads/signal-design",
+          ...POPUP_WINDOW,
         },
       };
     },
@@ -202,8 +227,8 @@ export const MOTION_SCENES = {
 
 export const PRIMARY_STATIC_SCENE_IDS = [
   "desktop-reminder-context",
-  "desktop-threshold-control",
-  "desktop-custom-preview",
+  "reminder-depths",
   "desktop-site-settings",
+  "desktop-custom-preview",
   "android-popup",
 ];

@@ -1516,6 +1516,7 @@ async function renderedReminder(browser, origin, scene) {
       depth: Number(card.dataset.depth),
       litChevrons: card.querySelectorAll(".notification__chevron--lit").length,
       opacity: getComputedStyle(card).opacity,
+      frameShare: card.getBoundingClientRect().width / window.innerWidth,
     };
   });
   await page.close();
@@ -1526,12 +1527,19 @@ async function renderedPopupScene(browser, origin, scene) {
   const page = await openStoreScene(browser, origin, scene);
   const state = await page.evaluate(() => {
     const root = document.getElementById("root").shadowRoot;
+    const popupWindow = document.getElementById("popupScreen").getBoundingClientRect();
+    const header = root.querySelector(".header").getBoundingClientRect();
+    const footer = root.querySelector(".footer").getBoundingClientRect();
+    const preview = root.querySelector(".preview-block .notification").getBoundingClientRect();
     return {
       focused: root.activeElement?.className ?? null,
       managerExpanded: root.querySelector("[aria-controls='siteSettingsManager']").getAttribute("aria-expanded"),
       customThresholdVisible: !root.querySelector(".site-override-panel").hidden,
       stageBackground: getComputedStyle(document.body).backgroundColor,
       popupBackground: getComputedStyle(root.querySelector(".shell")).backgroundColor,
+      windowInsideFrame: popupWindow.top >= 0 && popupWindow.bottom <= window.innerHeight
+        && popupWindow.left >= 0 && popupWindow.right <= window.innerWidth,
+      previewInsideWindow: preview.top >= header.bottom && preview.bottom <= footer.top,
     };
   });
   await page.close();
@@ -1542,21 +1550,43 @@ async function renderedPopupScene(browser, origin, scene) {
 // under the capture tool's own page options, not the scene's parameters.
 async function testStoreScenes(browser, origin) {
   const settled = (depth) => ({ depth, litChevrons: depth, opacity: "1" });
+  const hero = await renderedReminder(browser, origin, STATIC_SCENES["desktop-reminder-context"]);
   assert.deepEqual(
-    await renderedReminder(browser, origin, STATIC_SCENES["desktop-reminder-context"]),
+    { depth: hero.depth, litChevrons: hero.litChevrons, opacity: hero.opacity },
     settled(1),
     "s1 shows the first reminder in its settled state"
   );
-  assert.deepEqual(
-    await renderedReminder(browser, origin, STATIC_SCENES["reminder-escalation"]),
-    settled(3),
-    "the escalation scene reaches the deepest zone"
+  assert.ok(
+    hero.frameShare >= 0.75,
+    `s1 is a close-up, so the reminder spans most of the frame (${hero.frameShare.toFixed(2)})`
   );
+
+  const depthsPage = await openStoreScene(browser, origin, STATIC_SCENES["reminder-depths"]);
+  assert.deepEqual(await depthsPage.evaluate(() => (
+    [...document.querySelectorAll(".depths__step")].map((step) => {
+      const card = step.querySelector(".notification");
+      return {
+        label: step.querySelector(".depths__label").textContent,
+        depth: Number(card.dataset.depth),
+        litChevrons: card.querySelectorAll(".notification__chevron--lit").length,
+        text: card.querySelector(".notification__title").textContent,
+        lines: Math.round(
+          card.querySelector(".notification__title").getBoundingClientRect().height
+          / parseFloat(getComputedStyle(card.querySelector(".notification__title")).lineHeight)
+        ),
+        interactive: card.querySelectorAll("button, a, [role='status']").length,
+      };
+    })
+  )), [
+    { label: "7 screens", depth: 1, litChevrons: 1, text: "You've drifted pretty far. Come up for air.", lines: 1, interactive: 0 },
+    { label: "14 screens", depth: 2, litChevrons: 2, text: "Still going? You're deep in the feed now.", lines: 1, interactive: 0 },
+    { label: "21 screens", depth: 3, litChevrons: 3, text: "You've been down here a while. Time to surface.", lines: 1, interactive: 0 },
+  ], "s2 shows the three reminder levels with the product's own messages, one line each");
+  await depthsPage.close();
 
   const depthAnimation = MOTION_SCENES["anim-reminder-depth"];
   for (const [name, scene] of [
     ["s1", STATIC_SCENES["desktop-reminder-context"]],
-    ["s6", STATIC_SCENES["reminder-escalation"]],
     ["the last depth animation frame", depthAnimation.build(1)],
   ]) {
     const page = await openStoreScene(browser, origin, scene);
@@ -1571,9 +1601,17 @@ async function testStoreScenes(browser, origin) {
     await page.close();
   }
 
+  const backdropPage = await openStoreScene(browser, origin, STATIC_SCENES["promo-tile-backdrop"]);
+  assert.equal(
+    await backdropPage.evaluate(() => document.querySelector(".capture-copy").hidden),
+    true,
+    "the promo tile backdrop carries no caption for the tile to crop"
+  );
+  await backdropPage.close();
+
   const firstFramePage = await openStoreScene(browser, origin, depthAnimation.build(0));
   assert.notEqual(
-    await firstFramePage.evaluate(() => getComputedStyle(document.querySelector(".article-shell")).filter),
+    await firstFramePage.evaluate(() => getComputedStyle(document.querySelector(".feed-shell")).filter),
     "none",
     "the depth animation keeps the page soft before the first reminder, so the blur does not start with it"
   );
@@ -1595,13 +1633,19 @@ async function testStoreScenes(browser, origin) {
   assert.equal(savedSites.focused, null, "the open manager leaves no focus ring in the scene");
 
   const siteSettings = await renderedPopupScene(browser, origin, STATIC_SCENES["desktop-site-settings"]);
-  assert.equal(siteSettings.managerExpanded, "false", "s4 keeps the saved-site manager closed");
-  assert.equal(siteSettings.customThresholdVisible, true, "s4 shows the custom threshold");
+  assert.equal(siteSettings.managerExpanded, "false", "s3 keeps the saved-site manager closed");
+  assert.equal(siteSettings.customThresholdVisible, true, "s3 shows the custom threshold");
+  assert.equal(siteSettings.windowInsideFrame, true, "s3 shows the popup window whole");
 
-  const lightPopup = await renderedPopupScene(browser, origin, STATIC_SCENES["desktop-threshold-control"]);
+  const customPreview = await renderedPopupScene(browser, origin, STATIC_SCENES["desktop-custom-preview"]);
+  assert.equal(customPreview.windowInsideFrame, true, "s4 shows the popup window whole");
+  assert.equal(customPreview.previewInsideWindow, true, "s4 scrolls the popup to the reminder preview");
+  assert.equal(customPreview.focused, null, "s4 leaves no focus ring in the scene");
+
   const darkPopup = await renderedPopupScene(browser, origin, STATIC_SCENES["android-popup"]);
-  assert.notEqual(darkPopup.popupBackground, lightPopup.popupBackground, "s5 shows the dark popup");
-  assert.equal(darkPopup.stageBackground, lightPopup.stageBackground, "s5 keeps the light composition");
+  assert.notEqual(darkPopup.popupBackground, siteSettings.popupBackground, "s5 shows the dark popup");
+  assert.equal(darkPopup.stageBackground, siteSettings.stageBackground, "s5 keeps the light composition");
+  assert.equal(darkPopup.windowInsideFrame, true, "s5 shows the phone window whole");
 }
 
 async function testFrenchLocalization(browser, origin) {

@@ -177,9 +177,9 @@ Disponible en français, anglais et polonais.
 Current screenshots already match the required `1280x800` screenshot size:
 
 - `screenshots/amo-s1-desktop-reminder-context.png`
-- `screenshots/amo-s2-desktop-threshold-control.png`
-- `screenshots/amo-s3-desktop-custom-preview.png`
-- `screenshots/amo-s4-desktop-site-settings.png`
+- `screenshots/amo-s2-reminder-depths.png`
+- `screenshots/amo-s3-desktop-site-settings.png`
+- `screenshots/amo-s4-desktop-custom-preview.png`
 
 Do not upload `screenshots/amo-s5-android-popup.png` here: it shows the Android popup, which the Chrome package does not include.
 

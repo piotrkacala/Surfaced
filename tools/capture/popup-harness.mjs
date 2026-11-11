@@ -26,6 +26,18 @@ function configureShell() {
     shell.classList.add("popup-shell--android");
     screen.classList.add("popup-shell__screen--android");
   }
+
+  // A fixed height turns the shell into a popup window: the popup scrolls or is
+  // clipped inside it instead of running off the stage.
+  if (state.popupHeight > 0) {
+    document.querySelector(".stage").classList.add("stage--window");
+    shell.classList.add("popup-shell--window");
+    screen.style.height = `${state.popupHeight}px`;
+  }
+
+  if (state.popupZoom !== 1) {
+    shell.style.zoom = String(state.popupZoom);
+  }
 }
 
 function getShadowRoot() {
@@ -121,6 +133,17 @@ async function applySiteOverrideMotion(shadowRoot) {
   }
 }
 
+// Shows the last sections of the desktop popup, as after scrolling it down.
+async function scrollPopupIfNeeded(shadowRoot) {
+  if (state.popupScroll !== "end") {
+    return;
+  }
+
+  const content = query(shadowRoot, ".content");
+  content.scrollTop = content.scrollHeight;
+  await waitForAnimationFrames(2);
+}
+
 async function applyMotion(shadowRoot) {
   switch (state.motion) {
     case "preview-edit":
@@ -158,6 +181,7 @@ async function init() {
   await expandHelpIfNeeded(shadowRoot);
   await openSiteManagerIfNeeded(shadowRoot);
   await applyMotion(shadowRoot);
+  await scrollPopupIfNeeded(shadowRoot);
 
   // The document only sees the shadow host, so its blur leaves the inner focus ring.
   shadowRoot.activeElement?.blur();

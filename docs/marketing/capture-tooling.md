@@ -1,7 +1,7 @@
 # Capture Tooling
 
 **Status:** Working notes for asset production  
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-11
 
 This repo now contains deterministic fixture pages and capture harnesses for Surfaced marketing assets.
 
@@ -12,6 +12,8 @@ This repo now contains deterministic fixture pages and capture harnesses for Sur
 - [fixtures/marketing/fixture-runtime.mjs](../../fixtures/marketing/fixture-runtime.mjs)
 - [tools/capture/popup-harness.html](../../tools/capture/popup-harness.html)
 - [tools/capture/popup-harness.mjs](../../tools/capture/popup-harness.mjs)
+- [tools/capture/reminder-depths.html](../../tools/capture/reminder-depths.html)
+- [tools/capture/reminder-depths.mjs](../../tools/capture/reminder-depths.mjs)
 - [tools/capture/capture-assets.mjs](../../tools/capture/capture-assets.mjs)
 - [tools/capture/scene-definitions.mjs](../../tools/capture/scene-definitions.mjs)
 - [tools/capture/chrome-small-promo-tile.html](../../tools/capture/chrome-small-promo-tile.html)
@@ -35,7 +37,15 @@ The fixture pages provide neutral long-scroll environments for reminder captures
 
 They can render Surfaced reminder states from URL parameters.
 
-`softPage=1` blurs the placeholder page by 2 px so the reminder stays the focal point; the title card and the reminder stay sharp. `desktop-reminder-context`, `reminder-escalation`, and every `anim-reminder-depth` frame use it, so the blur is already there before the first reminder appears instead of starting with it. It is a capture-only choice: Surfaced never blurs real pages.
+`softPage=1` blurs and fades the placeholder page so the reminder stays the focal point; the title card and the reminder stay sharp. `desktop-reminder-context` and every `anim-reminder-depth` frame use it, so the page is already soft before the first reminder appears instead of changing with it. It is a capture-only choice: Surfaced never blurs real pages.
+
+## Close-up scenes
+
+A reminder is small next to a full `1280x800` page, and it nearly disappears in a store thumbnail. Close-up scenes are therefore captured with a `640x400` viewport at double pixel density. The saved image is still `1280x800`, but the page and the reminder appear twice as large, as they would at 200% browser zoom. The caption card has its own rules for that density, so it keeps the size it has in the other scenes.
+
+## Reminder depths
+
+`reminder-depths.html` renders the real reminder card once per depth zone, through the same `shared/reminder-view.js` API as the popup preview and with the product's own messages. The labels are the scene's `threshold` and its multiples.
 
 ## Reduced motion
 
@@ -50,6 +60,8 @@ The popup harness renders the real popup UI inside a controlled `1280x800` compo
 - threshold helper expanded state
 - overrides list open state
 - custom threshold and custom reminder text
+- `popupZoom` to enlarge the popup, and `popupHeight` to give it a window-like height, so the popup fits the frame as a whole and scrolls inside like the real one
+- `popupScroll=end` to show the last sections of the desktop popup
 
 The harness reads its strings directly from `shared/_locales/`; it does not maintain a second capture-only locale copy.
 
@@ -82,7 +94,7 @@ node tools/capture/capture-assets.mjs shots
 Capture one still:
 
 ```bash
-node tools/capture/capture-assets.mjs shot desktop-threshold-control
+node tools/capture/capture-assets.mjs shot reminder-depths
 ```
 
 Capture animation frames:
@@ -97,11 +109,11 @@ Encode the rendered frame sequences with `ffmpeg`:
 tools/capture/encode-animations.sh
 ```
 
-The Chrome tile is a static scene built around the rendered hero shot, which it names in `requires`. The runner stops with an error if `amo-s1-desktop-reminder-context.png` is missing. `shots` without arguments renders scenes in definition order, so s1 comes first.
+The Chrome tile is a static scene built around a rendered backdrop, which it names in `requires`. The runner stops with an error if `promo-tile-backdrop.png` is missing. `shots` without arguments renders scenes in definition order, so the backdrop comes first.
 
 ## Scene checks
 
-`testStoreScenes` in `tests/browser-smoke.mjs` reads what the scenes rendered, under the same `capturePageOptions` as the runner: reminder zone, lit chevrons, opacity, blur, and focus. To run only those checks:
+`testStoreScenes` in `tests/browser-smoke.mjs` reads what the scenes rendered, under the same `capturePageOptions` as the runner: reminder zone, lit chevrons, opacity, blur, focus, how much of the frame the hero reminder spans, the three depth cards and their messages, and whether each popup window and the reminder preview are fully in view. To run only those checks:
 
 ```bash
 SURFACED_SMOKE_SCOPE=store-scenes node tests/browser-smoke.mjs
@@ -120,7 +132,7 @@ Example:
 
 ```bash
 npm install -g playwright
-PLAYWRIGHT_MODULE_PATH="$(npm root -g)/playwright/index.mjs" node tools/capture/capture-assets.mjs shot desktop-threshold-control
+PLAYWRIGHT_MODULE_PATH="$(npm root -g)/playwright/index.mjs" node tools/capture/capture-assets.mjs shot reminder-depths
 ```
 
 ## Output location

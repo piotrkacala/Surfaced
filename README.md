@@ -2,6 +2,8 @@
 
 **Come up for air.**
 
+![The Surfaced reminder at the bottom of a long feed](screenshots/amo-s1-desktop-reminder-context.png)
+
 Surfaced is a browser extension for people who want a gentle reminder before endless scrolling turns into mindless drifting. It measures how far down you scroll on long pages and feeds, then shows a subtle reminder when you've gone deeper than you meant to.
 
 Works on Firefox for desktop, Firefox for Android, and Chrome desktop.
@@ -46,19 +48,19 @@ The current accepted listing assets live in [`screenshots/`](screenshots/) and a
 
 **In-page reminder**
 
-![Surfaced reminder in context](screenshots/animations/anim-reminder-depth.gif)
+![Surfaced reminder appearing as the scroll goes deeper](screenshots/animations/anim-reminder-depth.gif)
 
-**Threshold control**
+**Three reminder levels**
 
-![Surfaced desktop threshold control](screenshots/amo-s2-desktop-threshold-control.png)
+![The three Surfaced reminder levels at 7, 14, and 21 screens](screenshots/amo-s2-reminder-depths.png)
+
+**Reminder depth and per-site settings**
+
+![Surfaced per-site settings](screenshots/animations/anim-site-override.gif)
 
 **Custom reminder preview**
 
 ![Surfaced custom reminder preview](screenshots/animations/anim-preview-edit.gif)
-
-**Per-site settings**
-
-![Surfaced per-site settings](screenshots/animations/anim-site-override.gif)
 
 **Android popup**
 

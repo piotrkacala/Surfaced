@@ -177,7 +177,7 @@
     </section>
 
     <figure class="browser-card" aria-hidden="true">
-      <img src="../../output/playwright/amo-s1-desktop-reminder-context.png" alt="">
+      <img src="../../output/playwright/promo-tile-backdrop.png" alt="">
     </figure>
 
     <aside class="reminder" aria-hidden="true">
@@ -192,7 +192,7 @@
     </aside>
   </main>
   <script>
-    // capture-assets.mjs waits for this, so a missing hero shot fails the capture.
+    // capture-assets.mjs waits for this, so a missing backdrop fails the capture.
     document.querySelector(".browser-card img").decode().then(() => {
       document.documentElement.dataset.ready = "1";
     });

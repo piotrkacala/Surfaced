@@ -19,7 +19,7 @@ body {
 /* A store scene can soften the placeholder page so the reminder stays the focal point. */
 .fixture-page--soft .article-shell,
 .fixture-page--soft .feed-shell {
-  filter: blur(2px);
+  filter: blur(3px) opacity(0.62);
 }
 
 .capture-copy {
@@ -63,6 +63,36 @@ body {
   font-size: 17px;
   line-height: 1.42;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* A close-up scene is captured at double pixel density, which shows the page and
+   the reminder twice as large. The caption keeps the size it has elsewhere. */
+@media (min-resolution: 2dppx) {
+  .capture-copy {
+    top: 20px;
+    left: 20px;
+    max-width: 262px;
+    padding: 14px 16px 15px;
+    border-radius: 14px;
+    box-shadow: 0 9px 24px rgba(10, 32, 48, 0.14);
+  }
+
+  .capture-copy__eyebrow {
+    margin-bottom: 8px;
+    font-size: 7.5px;
+  }
+
+  .capture-copy__title {
+    margin-bottom: 7px;
+    font-size: 26px;
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+  }
+
+  .capture-copy__subtitle {
+    font-size: 11px;
+    line-height: 1.4;
+  }
 }
 
 .article-shell {

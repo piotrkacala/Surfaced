@@ -110,8 +110,6 @@ async function loadPlaywright() {
   console.error("Use a Node environment that resolves the `playwright` module, or install it globally.");
   console.error("Global install path:");
   console.error("  npm install -g playwright");
-  console.error("Then run:");
-  console.error("  PLAYWRIGHT_MODULE_PATH=\"$(npm root -g)/playwright/index.mjs\" node tools/capture/capture-assets.mjs shot desktop-threshold-control");
   process.exitCode = 1;
   return null;
 }

@@ -23,6 +23,11 @@ body {
   overflow: hidden;
 }
 
+/* A popup window can be taller than the padded stage; keep it centered in the frame. */
+.stage--window {
+  align-content: center;
+}
+
 .stage__copy {
   position: absolute;
   top: 50%;
@@ -83,6 +88,21 @@ body {
   width: 432px;
   min-height: 784px;
   padding: 14px;
+}
+
+/* The window is centered in the frame, so it needs no room around it. */
+.popup-shell--window {
+  width: auto;
+  min-height: 0;
+  padding: 0;
+}
+
+.popup-shell--window .popup-shell__screen {
+  width: 352px;
+}
+
+.popup-shell--window .popup-shell__screen--android {
+  width: 404px;
 }
 
 .popup-shell__screen {

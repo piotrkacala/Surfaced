@@ -1,9 +1,9 @@
 # Surfaced Asset Storyboard
 
-**Status:** Historical plan, partly superseded by the light-theme redesign\
-**Last updated:** 2026-11-05
+**Status:** Historical plan, superseded by the light-theme redesign and the close-up screenshot set\
+**Last updated:** 2026-11-11
 
-This document is the original plan for Surfaced's public-facing visuals. The accepted set differs from it: compositions use a light background, deeper reminder zones move through deeper blues instead of amber and coral, and `amo-s5-android-popup.png` is rendered in the capture harness rather than on a device. Where this plan disagrees with [screenshot-scenes.md](screenshot-scenes.md) or [final-assets.md](final-assets.md), they win.
+This document is the original plan for Surfaced's public-facing visuals. The accepted set differs from it: compositions use a light background, deeper reminder zones move through deeper blues instead of amber and coral, `amo-s5-android-popup.png` is rendered in the capture harness rather than on a device, and the scene list and filenames below were replaced by a set built around enlarged reminders and popups. Where this plan disagrees with [screenshot-scenes.md](screenshot-scenes.md) or [final-assets.md](final-assets.md), they win.
 
 It is written for:
 
