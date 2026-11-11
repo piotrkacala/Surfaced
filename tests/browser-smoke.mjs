@@ -469,6 +469,32 @@ async function testReducedMotion(browser, origin) {
   }
 }
 
+// A reminder that is on screen must stay out of printouts and saved PDFs, where
+// a fixed element would otherwise repeat on every page.
+async function testReminderHiddenWhenPrinting(browser, origin) {
+  const page = await browser.newPage({ viewport: { width: 1000, height: 800 } });
+  await page.goto(`${origin}/fixtures/marketing/long-article.html?threshold=1&zone=shallow`, {
+    waitUntil: "networkidle",
+  });
+  await waitForReady(page);
+  await page.waitForFunction(() => document.getElementById("surfaced-notification-host"));
+  const hostDisplay = () => page.evaluate(() => (
+    getComputedStyle(document.getElementById("surfaced-notification-host")).display
+  ));
+
+  assert.equal(await hostDisplay(), "block");
+  await page.emulateMedia({ media: "print" });
+  assert.equal(await hostDisplay(), "none", "the reminder is left out of printed pages");
+
+  // A page stylesheet that forces the host back must not win in print either.
+  await page.addStyleTag({ content: "#surfaced-notification-host { display: block !important; }" });
+  assert.equal(await hostDisplay(), "none", "page CSS cannot put the reminder back into print");
+
+  await page.emulateMedia({ media: "screen" });
+  assert.equal(await hostDisplay(), "block", "the reminder is back on screen after printing");
+  await page.close();
+}
+
 async function testPopupSessionUi(browser, origin) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.goto(`${origin}/tools/capture/popup-harness.html?platform=desktop`, {
@@ -1689,6 +1715,7 @@ try {
     await testRestoredPageSessionRefreshFailure(browser, server.origin);
     await testCanonicalRuntimeHostname(browser, server.origin);
     await testReducedMotion(browser, server.origin);
+    await testReminderHiddenWhenPrinting(browser, server.origin);
     await testPopupSessionUi(browser, server.origin);
     await testPermissionHealthUi(browser, server.origin);
     await testPopupKeyboardAndSiteManager(browser, server.origin);

@@ -309,6 +309,14 @@
           margin-bottom: 12px;
         }
       }
+
+      /* A fixed host would repeat on every printed page. The shadow tree's
+         !important outranks the host's inline display and any page rule. */
+      @media print {
+        :host {
+          display: none !important;
+        }
+      }
     `;
 
     // ── Structure ────────────────────────────────────────────────────────────
